@@ -1,0 +1,13 @@
+{%  extends 'base.html.twig' %}
+
+{% block title %}Liste{% endblock %}
+
+{% block body %}
+    <h2>Liste</h2>
+
+    <ul>
+    {% for serie in series %}
+        <li>{{ serie.name }}: {{ serie.overview }} - {{ serie.firstAirDate|date('d/m/Y') }}</li>
+    {% endfor %}
+    </ul>
+{% endblock %}
