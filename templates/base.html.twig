@@ -1,18 +1,45 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="UTF-8">
-        <title>{% block title %}Niortflix{% endblock %}</title>
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
-        {% block stylesheets %}
-        {% endblock %}
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}NiortFlix!{% endblock %}</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/logo.svg') }}">
 
-        {% block javascripts %}
-            {% block importmap %}{{ importmap('app') }}{% endblock %}
-        {% endblock %}
-    </head>
-    <body>
-        <h1>Niortflix</h1>
-        {% block body %}{% endblock %}
-    </body>
+    {% block stylesheets %}
+    {% endblock %}
+
+    {% block javascripts %}
+        {% block importmap %}{{ importmap('app') }}{% endblock %}
+    {% endblock %}
+</head>
+<body class="d-flex flex-column">
+<header>
+    <div class="container">
+        <h1 class="header-logo">
+            <a href="{{ path('serie_home') }}" title="Go back to homepage">
+                <img src="{{ asset('images/logo.svg') }}" id="logo" alt="logo" width="50px">
+            </a>
+            NiortFlix
+        </h1>
+        {% for status, message in app.flashes %}
+            {% for message in message %}
+                    <div class="alert alert-{{ status }}">{{ message }}</div>
+                {% endfor %}
+        {% endfor %}
+
+        {% include('_navbar.html.twig') %}
+    </div>
+</header>
+
+<main class="flex-grow-1">
+    <div class="container">
+        {% block body %} {% endblock %}
+    </div>
+    <footer>
+        <div class="container">
+            &copy; NiortFlix {{ "now"|date('Y') }}
+        </div>
+    </footer>
+</main>
+</body>
 </html>

@@ -1,0 +1,45 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Détail de la série {{ serie.name }} | {{ parent() }}{% endblock %}
+
+{% block body %}
+    <style>
+        body {
+            background-image: linear-gradient(to bottom, rgba(0,0,0,0.7), rgba(0,0,0,0.7)),
+            url("{{ asset('uploads/backdrops/') ~ serie.backdrop }}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            min-height: 100vh;
+        }
+    </style>
+
+    <div class="container py-5 text-light">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+
+                <div class="card bg-dark bg-opacity-75 border-light shadow-lg text-light">
+                    <div class="card-body text-center">
+
+                        <!-- Titre -->
+                        <h2 class="card-title mb-3">{{ serie.name }}</h2>
+
+                        <!-- Badges -->
+                        <div class="mb-3">
+                            <span class="badge bg-info text-dark me-2">{{ serie.status }}</span>
+                            <span class="badge bg-info text-dark">{{ serie.firstAirDate|date('d/m/Y') }}</span>
+                        </div>
+
+                        <!-- Description -->
+                        <p class="card-text">{{ serie.overview }}</p>
+
+                        <!-- Bouton retour -->
+                        <a href="{{ path('serie_liste') }}" class="btn btn-outline-light mt-4">← Retour à la liste</a>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+{% endblock %}
