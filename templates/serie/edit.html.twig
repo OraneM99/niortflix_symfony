@@ -1,0 +1,26 @@
+{% extends 'base.html.twig' %}
+
+{% form_theme serieForm 'bootstrap_5_layout.html.twig' %}
+
+{% block title %}Créer une série{% endblock %}
+
+{% block body %}
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Créer une nouvelle série</h5>
+                    </div>
+                    <div class="card-body">
+                        {{ form_start(serieForm) }}
+
+                        {{ form_widget(serieForm) }}
+
+                        {{ form_end(serieForm, {'render_rest': false}) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

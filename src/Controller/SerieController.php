@@ -3,9 +3,12 @@
 namespace App\Controller;
 
 use App\Entity\Serie;
+use App\Form\SerieType;
 use App\Repository\SerieRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
@@ -31,13 +34,67 @@ final class SerieController extends AbstractController
         return new Response('Une série a été créée en base');
     }
 
-    #[Route('/liste', name: '_liste')]
-    public function liste(SerieRepository $serieRepository): Response
+    #[Route('/liste/{page}', name: '_liste', requirements: ['page' => '\d+'], defaults: ['page' => 1])]
+    public function liste(SerieRepository $serieRepository, int $page, ParameterBagInterface $parameterBag): Response
     {
-        $series = $serieRepository->findAll();
+        $nbPerPage = $parameterBag->get('serie')['nb_par_page'];
+        $offset = ($page - 1) * $nbPerPage;
+
+//      $series = $serieRepository->findAll();
+//        $series = $serieRepository->findBy(
+//            // ['status' => 'ended', 'genres' => 'Romance'],
+//            [],
+//            ['name' => 'ASC'],
+//            $nbPerPage,
+//            $offset
+//        );
+
+        $series = $serieRepository->findSeriesWithQueryBuilder($offset, $nbPerPage);
+//      $series = $serieRepository->findSeriesWithDQL($nbPerPage, $offset, "Drama");
+
+        $nbSeries = $serieRepository->findSeriesWithQueryBuilder($offset, $nbPerPage, true);
+
+        $nbPages = ceil($nbSeries[1] / $nbPerPage);
+
 
         return $this->render('serie/liste.html.twig', [
-            'series' => $series
+            'series' => $series,
+            'page' => $page,
+            'nb_pages' => $nbPages,
         ]);
+    }
+
+    #[Route('/detail/{id}', name: '_detail', requirements: ['id' => '\d+'])]
+    public function detail(int $id, SerieRepository $serieRepository): Response
+    {
+        $serie = $serieRepository->find($id);
+
+        if (!$serie) {
+            throw $this->createNotFoundException("La série n'existe pas.");
+        }
+
+        return $this->render('serie/detail.html.twig', [
+            'serie' => $serie,
+        ]);
+    }
+
+    #[Route('/create', name: '_create')]
+    public function create(Request $request, EntityManagerInterface $em): Response
+    {
+        $serie = new Serie();
+        $serieForm = $this->createForm(SerieType::class, $serie);
+        $serieForm->handleRequest($request);
+
+        if ($serieForm->isSubmitted()) {
+            $em->persist($serie);
+            $em->flush();
+
+            $this->addFlash('success', 'Une série a été créée en base');
+
+            return $this->redirectToRoute('serie_detail', ['id' => $serie->getId()]);
+        }
+
+        return $this->render('serie/edit.html.twig',
+        ['serieForm' => $serieForm]);
     }
 }

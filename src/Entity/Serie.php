@@ -5,8 +5,10 @@ namespace App\Entity;
 use App\Repository\SerieRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\ORM\Mapping\PrePersist;
 
 #[ORM\Entity(repositoryClass: SerieRepository::class)]
+#[ORM\HasLifecycleCallbacks]
 class Serie
 {
     #[ORM\Id]
@@ -183,6 +185,12 @@ class Serie
         return $this->dateCreated;
     }
 
+    #[ORM\PrePersist]
+    public function onPersist(): void
+    {
+        $this->setDateCreated(new \DateTime());
+    }
+
     public function setDateCreated(\DateTime $dateCreated): static
     {
         $this->dateCreated = $dateCreated;
@@ -193,6 +201,12 @@ class Serie
     public function getDateModified(): ?\DateTime
     {
         return $this->dateModified;
+    }
+
+    #[ORM\PrePersist]
+    public function onUpdate(): void
+    {
+        $this->setDateModified(new \DateTime());
     }
 
     public function setDateModified(?\DateTime $dateModified): static
