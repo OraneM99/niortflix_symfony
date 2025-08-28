@@ -6,9 +6,13 @@ use App\Repository\SerieRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\Mapping\PrePersist;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: SerieRepository::class)]
 #[ORM\HasLifecycleCallbacks]
+#[ORM\UniqueConstraint(columns: ['name', 'first_air_date'])]
+#[UniqueEntity(fields: ['name', 'firstAirDate'], message: 'Cette série existe déjà.')]
 class Serie
 {
     #[ORM\Id]
@@ -17,24 +21,48 @@ class Serie
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'Le nom est obligatoire !')]
+    #[Assert\Length(min: 3, max: 150,
+        minMessage: 'Un nom doit comporter au moins {{ limit }} caractères.',
+        maxMessage: 'Un nom ne doit pas dépasser {{ limit }} caractères.')]
     private ?string $name = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $overview = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\Choice(choices: ['returning', 'ended', 'cancelled'],
+        message: "Le choix n'est pas valable")]
     private ?string $status = null;
 
     #[ORM\Column(nullable: true)]
+    #[Assert\Range(
+        notInRangeMessage: 'Cette valeur doit être comprise entre {{ min }} et {{ max }}.',
+        min: 0, max: 10)]
     private ?float $vote = null;
 
     #[ORM\Column(nullable: true)]
     private ?float $popularity = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[Assert\LessThan('today',
+        message: 'La date ne doit pas être postérieure à {{ compared_value }}')]
     private ?\DateTime $firstAirDate = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
+    #[Assert\GreaterThan(propertyPath: 'firstAirDate')]
+    #[Assert\When(
+        expression: "this.getStatus() == 'returning'",
+        constraints: [
+            new Assert\Blank(message: 'Au vu du statut, il ne faut pas de date de fin.')
+        ]
+    )]
+    #[Assert\When(
+        expression: "this.getStatus() == 'ended' || this.getStatus() == 'cancelled'",
+        constraints: [
+            new Assert\NotBlank(message: 'Au vu du statut, il faut une date de fin.')
+        ]
+    )]
     private ?\DateTime $lastAirDate = null;
 
     #[ORM\Column(length: 255, nullable: true)]
