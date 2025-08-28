@@ -5,36 +5,74 @@
 {% block body %}
     <style>
         body {
-            background-image: linear-gradient(to bottom, rgba(0,0,0,0.7), rgba(0,0,0,0.7)),
-            url("{{ asset('uploads/backdrops/') ~ serie.backdrop }}");
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.85)),
+            url("{{ asset('uploads/backdrops/') ~ serie.backdrop }}") center/cover no-repeat fixed;
             min-height: 100vh;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .badge-custom {
+            background-color: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-custom-outline {
+            border-color: #ffffff;
+            color: #ffffff;
+        }
+
+        .btn-custom-outline:hover {
+            background-color: #ffffff;
+            color: #000;
         }
     </style>
 
     <div class="container py-5 text-light">
         <div class="row justify-content-center">
-            <div class="col-md-8">
+            <div class="col-lg-8">
 
-                <div class="card bg-dark bg-opacity-75 border-light shadow-lg text-light">
-                    <div class="card-body text-center">
+                <div class="card bg-dark bg-opacity-75 border-light shadow-lg text-light rounded-4">
+                    <div class="card-body text-center p-5">
 
                         <!-- Titre -->
-                        <h2 class="card-title mb-3">{{ serie.name }}</h2>
+                        <h2 class="card-title mb-4 display-5 fw-bold">{{ serie.name }}</h2>
 
                         <!-- Badges -->
-                        <div class="mb-3">
-                            <span class="badge bg-info text-dark me-2">{{ serie.status }}</span>
-                            <span class="badge bg-info text-dark">{{ serie.firstAirDate|date('d/m/Y') }}</span>
+                        <div class="mb-4">
+                            <span class="badge badge-custom px-3 py-2 me-2">{{ serie.status }}</span>
+                            <span class="badge badge-custom px-3 py-2">
+                                Diffusée le : {{ serie.firstAirDate|date('d/m/Y') }}
+                            </span>
+                            {% if serie.status in ['Ended', 'Canceled', 'Cancelled'] %}
+                                <span class="badge badge-custom px-3 py-2">
+                                    Terminée le : {{ serie.lastAirDate|date('d/m/Y') }}
+                                </span>
+                            {% endif %}
                         </div>
 
                         <!-- Description -->
-                        <p class="card-text">{{ serie.overview }}</p>
+                        <p class="card-text lead">{{ serie.overview }}</p>
 
-                        <!-- Bouton retour -->
-                        <a href="{{ path('serie_liste') }}" class="btn btn-outline-light mt-4">← Retour à la liste</a>
+                        <!-- Boutons -->
+                        <div class="d-flex flex-wrap justify-content-center gap-3 mt-5">
+                            <a href="{{ path('serie_update', { id: serie.id }) }}"
+                               class="btn btn-outline-light btn-lg px-4" title="Modifier la série">
+                                ✏️ Modifier
+                            </a>
+
+                            <a href="{{ path('serie_delete', { id: serie.id, token: csrf_token('delete'~serie.id) }) }}"
+                               class="btn btn-danger btn-lg px-4"
+                               onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette série ?')"
+                               title="Supprimer la série">
+                                🗑️ Supprimer
+                            </a>
+
+                            <a href="{{ path('serie_liste') }}"
+                               class="btn btn-primary btn-lg px-4" title="Retour à la liste">
+                                ← Retour à la liste
+                            </a>
+                        </div>
 
                     </div>
                 </div>

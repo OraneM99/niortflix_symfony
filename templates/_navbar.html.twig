@@ -1,20 +1,25 @@
-<nav class="navbar navbar-expand-lg">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
     <div class="container-fluid">
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportContent" aria-expanded="false" aria-label="Toggle navigation">
+        <a class="navbar-brand" href="{{ path('serie_home') }}">🎬 MySeries</a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
-        <div class="collapse navbar-collapse" id="navbarSupportContent">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ path('serie_home') }}" title="Go back to homepage">
-                        Home
-                    </a>
-                    <a class="nav-link" href="{{ path('serie_liste') }}" title="About Us">
-                        Liste des séries
-                    </a>
-                    <a class="nav-link" href="{{ path('serie_create') }}" title="Wish List">
-                        Créer une série
-                    </a>
+                    <a class="nav-link{% if app.request.attributes.get('_route') == 'serie_home' %} active{% endif %}"
+                       href="{{ path('serie_home') }}" title="Accueil">Accueil</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link{% if app.request.attributes.get('_route') == 'serie_liste' %} active{% endif %}"
+                       href="{{ path('serie_liste') }}" title="Liste des séries">Liste des séries</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link{% if app.request.attributes.get('_route') == 'serie_create' %} active{% endif %}"
+                       href="{{ path('serie_create') }}" title="Créer une série">Créer une série</a>
                 </li>
             </ul>
         </div>

@@ -3,21 +3,21 @@
 {% block title %}Liste des séries{% endblock %}
 
 {% block body %}
-    <div class="container my-5">
+    <div class="container my-5 text-black">
 
         <!-- Titre -->
-        <h2 class="text-center mb-4">Liste des séries</h2>
+        <h2 class="text-center mb-4">📺 Liste des séries</h2>
 
         <!-- Pagination -->
-        <div class="d-flex justify-content-between mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
             {% if page > 1 %}
-                <a class="btn btn-outline-primary" href="{{ path('serie_liste', {'page': page - 1}) }}">← Page précédente</a>
+                <a class="btn btn-outline-light" href="{{ path('serie_liste', {'page': page - 1}) }}">← Page précédente</a>
             {% else %}
                 <div></div>
             {% endif %}
 
             {% if page < nb_pages %}
-                <a class="btn btn-outline-primary ms-auto" href="{{ path('serie_liste', {'page': page + 1}) }}">Page suivante →</a>
+                <a class="btn btn-outline-light ms-auto" href="{{ path('serie_liste', {'page': page + 1}) }}">Page suivante →</a>
             {% endif %}
         </div>
 
@@ -25,9 +25,9 @@
         <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
             {% for serie in series %}
                 <div class="col">
-                    <div class="card h-100 shadow-sm">
-                        <a href="{{ path('serie_detail', {id : serie.id}) }}" class="text-decoration-none text-dark">
-                            <img src="{{ asset('uploads/posters/series/') ~ serie.poster }}" class="card-img-top" alt="Poster de {{ serie.name }}" loading="lazy" style="height: 370px; object-fit: cover;">
+                    <div class="card h-100 bg-dark text-light border-secondary shadow-sm">
+                        <a href="{{ path('serie_detail', {id : serie.id}) }}" class="text-decoration-none text-light">
+                            <img src="{{ asset('uploads/posters/series/') ~ serie.poster }}" class="card-img-top" alt="Poster de {{ serie.name }}" loading="lazy" style="height: 370px; object-fit: cover; border-bottom: 1px solid #444;">
                             <div class="card-body text-center">
                                 <h5 class="card-title">{{ serie.name }}</h5>
                             </div>
@@ -36,10 +36,11 @@
                 </div>
             {% else %}
                 <div class="col-12">
-                    <div class="alert alert-warning text-center">Pas de série trouvée.</div>
+                    <div class="alert alert-warning bg-transparent border-warning text-center text-warning">
+                        ⚠️ Pas de série trouvée.
+                    </div>
                 </div>
             {% endfor %}
         </div>
-
     </div>
 {% endblock %}

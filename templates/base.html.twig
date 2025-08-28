@@ -6,25 +6,62 @@
     <link rel="icon" type="image/png" href="{{ asset('images/logo.svg') }}">
 
     {% block stylesheets %}
+        <style>
+            body {
+                background-color: #121212;
+                color: #e0e0e0;
+            }
+
+            .header-logo {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 20px 0;
+                color: black;
+                font-size: 1.8rem;
+                font-weight: bold;
+            }
+
+            .header-logo a {
+                text-decoration: none;
+                color: inherit;
+            }
+
+            .alert {
+                margin-top: 10px;
+            }
+
+            footer {
+                padding: 1rem 0;
+                background-color: #1f1f1f;
+                text-align: center;
+                color: #aaa;
+                border-top: 1px solid #333;
+            }
+        </style>
     {% endblock %}
 
     {% block javascripts %}
+        <!-- Bootstrap JS (via CDN ici) -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
         {% block importmap %}{{ importmap('app') }}{% endblock %}
     {% endblock %}
 </head>
-<body class="d-flex flex-column">
+
+<body class="d-flex flex-column min-vh-100">
 <header>
     <div class="container">
         <h1 class="header-logo">
-            <a href="{{ path('serie_home') }}" title="Go back to homepage">
+            <a href="{{ path('serie_home') }}" title="Retour à l'accueil">
                 <img src="{{ asset('images/logo.svg') }}" id="logo" alt="logo" width="50px">
+                NiortFlix
             </a>
-            NiortFlix
         </h1>
-        {% for status, message in app.flashes %}
-            {% for message in message %}
-                    <div class="alert alert-{{ status }}">{{ message }}</div>
-                {% endfor %}
+
+        {% for status, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ status }}">{{ message }}</div>
+            {% endfor %}
         {% endfor %}
 
         {% include('_navbar.html.twig') %}
@@ -32,14 +69,15 @@
 </header>
 
 <main class="flex-grow-1">
-    <div class="container">
-        {% block body %} {% endblock %}
+    <div class="container my-4">
+        {% block body %}{% endblock %}
     </div>
-    <footer>
-        <div class="container">
-            &copy; NiortFlix {{ "now"|date('Y') }}
-        </div>
-    </footer>
 </main>
+
+<footer class="mt-auto">
+    <div class="container">
+        &copy; NiortFlix {{ "now"|date('Y') }}
+    </div>
+</footer>
 </body>
 </html>

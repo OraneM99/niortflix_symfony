@@ -5,13 +5,15 @@ namespace App\Controller;
 use App\Entity\Serie;
 use App\Form\SerieType;
 use App\Repository\SerieRepository;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\String\Slugger\SluggerInterface;
 
 #[Route('/serie', name: 'serie')]
 final class SerieController extends AbstractController
@@ -25,9 +27,9 @@ final class SerieController extends AbstractController
             ->setStatus('ended')
             ->setVote(8.4)
             ->setPopularity(899.2)
-            ->setFirstAirDate(new \DateTime('2017-05-02'))
-            ->setLastAirDate(new \DateTime('2021-12-03'))
-            ->setDateCreated(new \DateTime());
+            ->setFirstAirDate(new DateTime('2017-05-02'))
+            ->setLastAirDate(new DateTime('2021-12-03'))
+            ->setDateCreated(new DateTime());
 
         $em->persist($serie);
         $em->flush();
@@ -74,13 +76,21 @@ final class SerieController extends AbstractController
     }
 
     #[Route('/create', name: '_create')]
-    public function create(Request $request, EntityManagerInterface $em): Response
+    public function create(Request $request, EntityManagerInterface $em, SluggerInterface $slugger): Response
     {
         $serie = new Serie();
         $serieForm = $this->createForm(SerieType::class, $serie);
         $serieForm->handleRequest($request);
 
         if ($serieForm->isSubmitted() && $serieForm->isValid()) {
+            $file = $serieForm->get('backdrop_file')->getData();
+
+            if ($file instanceof UploadedFile) {
+                $name = $slugger->slug($serieForm->getName()) . '-' . uniqid() . '.' . $file->guessExtension();
+                $file->move('uploads/backdrops', $name);
+                $serie->setBackdrop($name);
+            }
+
             $em->persist($serie);
             $em->flush();
 
@@ -89,9 +99,11 @@ final class SerieController extends AbstractController
             return $this->redirectToRoute('serie_detail', ['id' => $serie->getId()]);
         }
 
-        return $this->render('serie/edit.html.twig',
-            ['serieForm' => $serieForm]);
+        return $this->render('serie/edit.html.twig', [
+            'serieForm' => $serieForm,
+        ]);
     }
+
 
     #[Route('/update/{id]', name: '_update', requirements: ['id' => '\d+'])]
     public function update(Request $request, EntityManagerInterface $em, Serie $serie): Response
@@ -108,5 +120,20 @@ final class SerieController extends AbstractController
 
         return $this->render('serie/edit.html.twig',
             ['serieForm' => $serieForm]);
+    }
+
+    #[Route('/delete/{id}', name: '_delete', requirements: ['id' => '\d+'])]
+    public function delete(Request $request, Serie $serie, EntityManagerInterface $em): Response
+    {
+        if ($this->isCsrfTokenValid('delete' . $serie->getId(), $request->get('token'))) {
+            $em->remove($serie);
+            $em->flush();
+
+            $this->addFlash('success', 'La série a bien été supprimée.');
+        } else {
+            $this->addFlash('danger', 'Problème lors de la suppression.');
+        }
+
+        return $this->redirectToRoute('serie_liste');
     }
 }

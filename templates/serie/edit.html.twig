@@ -8,14 +8,20 @@
     <div class="container mt-5">
         <div class="row justify-content-center">
             <div class="col-md-8 col-lg-6">
-                <div class="card shadow-sm border-0">
+                <div class="card bg-dark text-light shadow-sm border-secondary">
                     <div class="card-header bg-primary text-white">
                         <h5 class="mb-0">Créer une nouvelle série</h5>
                     </div>
                     <div class="card-body">
-                        {{ form_start(serieForm) }}
+                        {{ form_start(serieForm, {'attr': {'class': 'needs-validation', 'novalidate': 'novalidate'}}) }}
 
                         {{ form_widget(serieForm) }}
+
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                Enregistrer
+                            </button>
+                        </div>
 
                         {{ form_end(serieForm, {'render_rest': false}) }}
                     </div>
