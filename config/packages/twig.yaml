@@ -1,5 +1,7 @@
 twig:
     file_name_pattern: '*.twig'
+    globals:
+        serie_params: '%serie%'
 
 when@test:
     twig:

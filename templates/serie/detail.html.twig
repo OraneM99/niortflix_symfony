@@ -6,7 +6,7 @@
     <style>
         body {
             background: linear-gradient(to bottom, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.85)),
-            url("{{ asset('uploads/backdrops/') ~ serie.backdrop }}") center/cover no-repeat fixed;
+            url("{{ asset(serie_params.backdrop_dir ~ '/' ~ serie.backdrop) }}") center/cover no-repeat fixed;
             min-height: 100vh;
             font-family: 'Segoe UI', sans-serif;
         }

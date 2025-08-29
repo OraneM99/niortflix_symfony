@@ -16,25 +16,34 @@ class SerieRepository extends ServiceEntityRepository
         parent::__construct($registry, Serie::class);
     }
 
-    public function findSeriesWithQueryBuilder(int $offset, int $nbPerPage, bool $count = false): array
+    public function findSeriesWithQueryBuilder(int $offset, int $nbPerPage, bool $count = false, ?string $sort = null): array
     {
-
-        $q = $this->createQueryBuilder('s')
+        $qb = $this->createQueryBuilder('s')
             ->andWhere('s.status = :status OR s.firstAirDate >= :date')
             ->setParameter('status', 'returning')
             ->setParameter('date', new \DateTime('1998-01-01'));
 
-        if ($count === false) {
-            return $q->orderBy('s.name', 'ASC')
-                ->setFirstResult($offset)
-                ->setMaxResults($nbPerPage)
-                ->getQuery()
-                ->getResult();
+        if ($count === true) {
+            return $qb->select('count(s.id)')->getQuery()->getOneOrNullResult();
         }
 
-        return $q->select('count(s.id)')->getQuery()->getOneOrNullResult();
+        $allowedSorts = ['name', 'firstAirDate', 'lastAirDate', 'popularity', 'vote'];
 
+        if ($sort && in_array($sort, $allowedSorts)) {
+            $qb->orderBy('s.' . $sort, 'ASC');
+        } elseif ($sort === 'genres') {
+            $qb->leftJoin('s.genres', 'g')
+                ->orderBy('g.name', 'ASC');
+        } else {
+            $qb->orderBy('s.name', 'ASC');
+        }
+
+        return $qb->setFirstResult($offset)
+            ->setMaxResults($nbPerPage)
+            ->getQuery()
+            ->getResult();
     }
+
 
     public function findSeriesWithDQL(int $offset, int $nbPerPage, string $genre): array
     {

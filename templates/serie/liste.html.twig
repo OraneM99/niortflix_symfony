@@ -8,18 +8,19 @@
         <!-- Titre -->
         <h2 class="text-center mb-4">📺 Liste des séries</h2>
 
-        <!-- Pagination -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            {% if page > 1 %}
-                <a class="btn btn-primary btn-outline-light" href="{{ path('serie_liste', {'page': page - 1}) }}">← Page précédente</a>
-            {% else %}
-                <div></div>
-            {% endif %}
-
-            {% if page < nb_pages %}
-                <a class="btn btn-primary btn-outline-light ms-auto" href="{{ path('serie_liste', {'page': page + 1}) }}">Page suivante →</a>
-            {% endif %}
-        </div>
+        <!-- Filtres de tri -->
+        <form method="get" class="mb-4 d-flex justify-content-end align-items-center">
+            <label for="sort" class="me-2">Trier par :</label>
+            <select name="sort" id="sort" class="form-select w-auto" onchange="this.form.submit()">
+                <option value="">-- Choisir --</option>
+                <option value="name" {{ sort == 'name' ? 'selected' }}>Nom</option>
+                <option value="firstAirDate" {{ sort == 'firstAirDate' ? 'selected' }}>Première diffusion</option>
+                <option value="lastAirDate" {{ sort == 'lastAirDate' ? 'selected' }}>Dernière diffusion</option>
+                <option value="popularity" {{ sort == 'popularity' ? 'selected' }}>Popularité</option>
+                <option value="vote" {{ sort == 'vote' ? 'selected' }}>Note</option>
+                <option value="genres" {{ sort == 'genres' ? 'selected' }}>Genres</option>
+            </select>
+        </form>
 
         <!-- Liste des séries -->
         <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
@@ -27,7 +28,7 @@
                 <div class="col">
                     <div class="card h-100 bg-dark text-light border-secondary shadow-sm">
                         <a href="{{ path('serie_detail', {id : serie.id}) }}" class="text-decoration-none text-light">
-                            <img src="{{ asset('uploads/posters/series/') ~ serie.poster }}" class="card-img-top" alt="Poster de {{ serie.name }}" loading="lazy" style="height: 370px; object-fit: cover; border-bottom: 1px solid #444;">
+                            <img src="{{ asset(serie_params.poster_dir ~ '/' ~ serie.poster)}}" class="card-img-top" alt="Poster de {{ serie.name }}" loading="lazy" style="height: 370px; object-fit: cover; border-bottom: 1px solid #444;">
                             <div class="card-body text-center">
                                 <h5 class="card-title">{{ serie.name }}</h5>
                             </div>
@@ -41,6 +42,18 @@
                     </div>
                 </div>
             {% endfor %}
+        </div>
+        <!-- Pagination -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            {% if page > 1 %}
+                <a class="btn btn-primary btn-outline-light" href="{{ path('serie_liste', {'page': page - 1}) ~ '?sort=' ~ sort }}">← Page précédente</a>
+            {% else %}
+                <div></div>
+            {% endif %}
+
+            {% if page < nb_pages %}
+                <a class="btn btn-primary btn-outline-light ms-auto" href="{{ path('serie_liste', {'page': page + 1}) ~ '?sort=' ~ sort }}">Page suivante →</a>
+            {% endif %}
         </div>
     </div>
 {% endblock %}

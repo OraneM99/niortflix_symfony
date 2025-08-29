@@ -38,22 +38,14 @@ final class SerieController extends AbstractController
     }
 
     #[Route('/liste/{page}', name: '_liste', requirements: ['page' => '\d+'], defaults: ['page' => 1])]
-    public function liste(SerieRepository $serieRepository, int $page, ParameterBagInterface $parameterBag): Response
+    public function liste(SerieRepository $serieRepository, int $page, ParameterBagInterface $parameterBag, Request $request): Response
     {
         $nbPerPage = $parameterBag->get('serie')['nb_par_page'];
         $offset = ($page - 1) * $nbPerPage;
 
-//      $series = $serieRepository->findAll();
-//        $series = $serieRepository->findBy(
-//            // ['status' => 'ended', 'genres' => 'Romance'],
-//            [],
-//            ['name' => 'ASC'],
-//            $nbPerPage,
-//            $offset
-//        );
+        $sort = $request->query->get('sort', null);
 
-        $series = $serieRepository->findSeriesWithQueryBuilder($offset, $nbPerPage);
-//      $series = $serieRepository->findSeriesWithDQL($nbPerPage, $offset, "Drama");
+        $series = $serieRepository->findSeriesWithQueryBuilder($offset, $nbPerPage, false, $sort);
 
         $nbSeries = $serieRepository->findSeriesWithQueryBuilder($offset, $nbPerPage, true);
 
@@ -64,6 +56,7 @@ final class SerieController extends AbstractController
             'series' => $series,
             'page' => $page,
             'nb_pages' => $nbPages,
+            'sort' => $sort
         ]);
     }
 
@@ -123,6 +116,13 @@ final class SerieController extends AbstractController
             if ($file instanceof UploadedFile) {
                 if ($name = $fileManager->upload($file, 'uploads/backdrops/', $serie->getName(), $serie->getBackdrop())) {
                     $serie->setBackdrop($name);
+                }
+            }
+
+            $poster = $serieForm->get('poster_file')->getData();
+            if ($poster instanceof UploadedFile) {
+                if ($name = $fileManager->uploadPoster($poster, 'uploads/posters/series', $serie->getName(), $serie->getPoster())) {
+                    $serie->setPoster($name);
                 }
             }
 

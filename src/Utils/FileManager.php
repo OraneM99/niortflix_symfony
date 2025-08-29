@@ -23,7 +23,19 @@ class FileManager
         return $name;
     }
 
-    public function delete(string $dir, string $name): boolean
+    public function uploadPoster(UploadedFile $poster, string $dir, string $name, string $oldRessourceToDelete = ''): string
+    {
+        $name = $this->slugger->slug($name) . '-' . uniqid() . '.' . $poster->guessExtension();
+        $poster->move($dir, $name);
+
+        if ($oldRessourceToDelete) {
+            $this->delete($dir, $oldRessourceToDelete);
+        }
+
+        return $name;
+    }
+
+    public function delete(string $dir, string $name): bool
     {
         if (\file_exists($dir . '/' . $name)) {
             unlink($dir . '/' . $name);

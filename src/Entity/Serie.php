@@ -231,7 +231,7 @@ class Serie
         return $this->dateModified;
     }
 
-    #[ORM\PrePersist]
+    #[ORM\PreUpdate]
     public function onUpdate(): void
     {
         $this->setDateModified(new \DateTime());
