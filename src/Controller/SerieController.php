@@ -44,10 +44,11 @@ final class SerieController extends AbstractController
         $offset = ($page - 1) * $nbPerPage;
 
         $sort = $request->query->get('sort', null);
+        $search = $request->query->get('search', null);
 
-        $series = $serieRepository->findSeriesWithQueryBuilder($offset, $nbPerPage, false, $sort);
+        $series = $serieRepository->findSeriesWithQueryBuilder($offset, $nbPerPage, false, $sort, $search);
 
-        $nbSeries = $serieRepository->findSeriesWithQueryBuilder($offset, $nbPerPage, true);
+        $nbSeries = $serieRepository->findSeriesWithQueryBuilder($offset, $nbPerPage, true, $sort, $search);
 
         $nbPages = ceil($nbSeries[1] / $nbPerPage);
 

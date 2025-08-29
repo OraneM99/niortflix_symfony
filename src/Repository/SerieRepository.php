@@ -16,12 +16,17 @@ class SerieRepository extends ServiceEntityRepository
         parent::__construct($registry, Serie::class);
     }
 
-    public function findSeriesWithQueryBuilder(int $offset, int $nbPerPage, bool $count = false, ?string $sort = null): array
+    public function findSeriesWithQueryBuilder(int $offset, int $nbPerPage, bool $count = false, ?string $sort = null, ?string $search = null): array
     {
         $qb = $this->createQueryBuilder('s')
             ->andWhere('s.status = :status OR s.firstAirDate >= :date')
             ->setParameter('status', 'returning')
             ->setParameter('date', new \DateTime('1998-01-01'));
+
+        if ($search) {
+            $qb->andWhere('LOWER(s.name) LIKE :search')
+                ->setParameter('search', '%' . strtolower($search) . '%');
+        }
 
         if ($count === true) {
             return $qb->select('count(s.id)')->getQuery()->getOneOrNullResult();

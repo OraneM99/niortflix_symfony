@@ -40,15 +40,26 @@
 
                         <!-- Badges -->
                         <div class="mb-4">
-                            <span class="badge badge-custom px-3 py-2 me-2">{{ serie.status }}</span>
+                            <span class="badge badge-custom px-3 py-2 me-2">
+                                {% if serie.status == 'returning' %}
+                                    En cours
+                                {% elseif serie.status == 'ended' %}
+                                    Terminée
+                                {% elseif serie.status == 'cancelled' %}
+                                    Annulée
+                                {% else %}
+                                    {{ serie.status }}
+                                {% endif %}
+                            </span>
                             <span class="badge badge-custom px-3 py-2">
                                 Diffusée le : {{ serie.firstAirDate|date('d/m/Y') }}
                             </span>
-                            {% if serie.status in ['Ended', 'Canceled', 'Cancelled'] %}
+                            {% if serie.status in ['ended', 'cancelled'] %}
                                 <span class="badge badge-custom px-3 py-2">
                                     Terminée le : {{ serie.lastAirDate|date('d/m/Y') }}
                                 </span>
                             {% endif %}
+                            <span class="badge badge-custom px-3 py-2 me-2">Note : {{ serie.vote }} / 10</span>
                         </div>
 
                         <!-- Description -->
