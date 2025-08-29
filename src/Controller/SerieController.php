@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Serie;
 use App\Form\SerieType;
 use App\Repository\SerieRepository;
+use App\Utils\FileManager;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -13,7 +14,6 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\String\Slugger\SluggerInterface;
 
 #[Route('/serie', name: 'serie')]
 final class SerieController extends AbstractController
@@ -76,7 +76,7 @@ final class SerieController extends AbstractController
     }
 
     #[Route('/create', name: '_create')]
-    public function create(Request $request, EntityManagerInterface $em, SluggerInterface $slugger): Response
+    public function create(Request $request, EntityManagerInterface $em, FileManager $fileManager): Response
     {
         $serie = new Serie();
         $serieForm = $this->createForm(SerieType::class, $serie);
@@ -84,48 +84,63 @@ final class SerieController extends AbstractController
 
         if ($serieForm->isSubmitted() && $serieForm->isValid()) {
             $file = $serieForm->get('backdrop_file')->getData();
+            $poster = $serieForm->get('poster_file')->getData();
 
             if ($file instanceof UploadedFile) {
-                $name = $slugger->slug($serieForm->getName()) . '-' . uniqid() . '.' . $file->guessExtension();
-                $file->move('uploads/backdrops', $name);
-                $serie->setBackdrop($name);
+                if ($name = $fileManager->upload($file, 'uploads/backdrops', $serie->getName())) {
+                    $serie->setBackdrop($name);
+                }
+            }
+
+            if ($poster instanceof UploadedFile) {
+                if ($name = $fileManager->upload($poster, 'uploads/posters/series', $serie->getName())) {
+                    $serie->setPoster($name);
+                }
             }
 
             $em->persist($serie);
             $em->flush();
-
-            $this->addFlash('success', 'Une série a été créée en base');
-
+            $this->addFlash('success', 'Votre série a bien été enregistrée !');
             return $this->redirectToRoute('serie_detail', ['id' => $serie->getId()]);
+
         }
 
         return $this->render('serie/edit.html.twig', [
             'serieForm' => $serieForm,
+            'is_edit' => false
         ]);
     }
 
 
-    #[Route('/update/{id]', name: '_update', requirements: ['id' => '\d+'])]
-    public function update(Request $request, EntityManagerInterface $em, Serie $serie): Response
+    #[Route('/update/{id}', name: '_update', requirements: ['id' => '\d+'])]
+    public function update(Request $request, EntityManagerInterface $em, Serie $serie, FileManager $fileManager): Response
     {
         $serieForm = $this->createForm(SerieType::class, $serie);
         $serieForm->handleRequest($request);
 
         if ($serieForm->isSubmitted() && $serieForm->isValid()) {
-            $em->flush();
+            $file = $serieForm->get('backdrop_file')->getData();
+            if ($file instanceof UploadedFile) {
+                if ($name = $fileManager->upload($file, 'uploads/backdrops/', $serie->getName(), $serie->getBackdrop())) {
+                    $serie->setBackdrop($name);
+                }
+            }
 
+            $em->flush();
             $this->addFlash('success', 'Une série a été modifié avec succès.');
             return $this->redirectToRoute('serie_detail', ['id' => $serie->getId()]);
         }
 
         return $this->render('serie/edit.html.twig',
-            ['serieForm' => $serieForm]);
+            ['serieForm' => $serieForm,
+                'is_edit' => true]);
     }
 
     #[Route('/delete/{id}', name: '_delete', requirements: ['id' => '\d+'])]
     public function delete(Request $request, Serie $serie, EntityManagerInterface $em): Response
     {
         if ($this->isCsrfTokenValid('delete' . $serie->getId(), $request->get('token'))) {
+
             $em->remove($serie);
             $em->flush();
 

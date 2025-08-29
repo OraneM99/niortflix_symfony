@@ -36,7 +36,9 @@ class SerieType extends AbstractType
             ->add('firstAirDate', DateType::class, [
                 'widget' => 'single_text',
             ])
-            ->add('lastAirDate')
+            ->add('lastAirDate', DateType::class, [
+                'widget' => 'single_text',
+            ])
             ->add('backdrop_file', FileType::class, [
                 'required' => false,
                 'mapped' => false,
@@ -54,14 +56,23 @@ class SerieType extends AbstractType
                     ])
                 ]
             ])
-            ->add('poster')
-            ->add('submit', SubmitType::class, [
-                'label' => 'Envoyer',
-                'attr' => [
-                    'class' => 'btn btn-primary',
+            ->add('poster_file', FileType::class, [
+                'required' => false,
+                'mapped' => false,
+                'constraints' => [
+                    new File([
+                        'maxSize' => '2000k',
+                        'mimeTypes' => [
+                            'image/jpeg',
+                            'image/jpg',
+                            'image/png',
+                            'image/webp'
+                        ],
+                        'mimeTypesMessage' => "Le format de l'image n'est pas valide : .jpg, .jpeg, .png ou .webp",
+                        'maxSizeMessage' => 'Max file size 2 MB',
+                    ])
                 ]
-            ])
-        ;
+            ]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void
