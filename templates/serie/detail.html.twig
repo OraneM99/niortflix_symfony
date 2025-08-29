@@ -41,6 +41,10 @@
                         <!-- Badges -->
                         <div class="mb-4">
                             <span class="badge badge-custom px-3 py-2 me-2">
+                               <img src="{{ asset('images/flags/' ~ serie.countryFlagFilename) }}" alt="{{ serie.country }}" width="30">
+                            </span>
+
+                            <span class="badge badge-custom px-3 py-2 me-2">
                                 {% if serie.status == 'returning' %}
                                     En cours
                                 {% elseif serie.status == 'ended' %}

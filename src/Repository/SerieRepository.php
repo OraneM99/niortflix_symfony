@@ -18,10 +18,12 @@ class SerieRepository extends ServiceEntityRepository
 
     public function findSeriesWithQueryBuilder(int $offset, int $nbPerPage, bool $count = false, ?string $sort = null, ?string $search = null): array
     {
-        $qb = $this->createQueryBuilder('s')
-            ->andWhere('s.status = :status OR s.firstAirDate >= :date')
-            ->setParameter('status', 'returning')
-            ->setParameter('date', new \DateTime('1998-01-01'));
+        $qb = $this->createQueryBuilder('s');
+
+        if ($search) {
+            $qb->andWhere('LOWER(s.name) LIKE :search')
+                ->setParameter('search', '%' . strtolower($search) . '%');
+        }
 
         if ($search) {
             $qb->andWhere('LOWER(s.name) LIKE :search')

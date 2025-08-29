@@ -8,6 +8,8 @@ parameters:
       nb_par_page: 12
       backdrop_dir: 'uploads/backdrops'
       poster_dir: 'uploads/posters/series'
+      flags_dir: 'images/flags'
+      streaming_dir: 'images/streaming'
 services:
     # default configuration for services in *this* file
     _defaults:

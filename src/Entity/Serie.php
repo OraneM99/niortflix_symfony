@@ -83,6 +83,12 @@ class Serie
     #[ORM\Column(nullable: true)]
     private ?string $genres = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $country = null;
+
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?string $streamingLinks = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -254,4 +260,50 @@ class Serie
         $this->genres = $genres;
         return $this;
     }
+
+    public function getCountry(): ?string
+    {
+        return $this->country;
+    }
+
+    public function setCountry(?string $country): static
+    {
+        $this->country = $country;
+
+        return $this;
+    }
+
+    public function getCountryFlagFilename(): string
+    {
+        $map = [
+            'France' => 'fr.png',
+            'Etats-Unis' => 'usa.png',
+            'Royaume-Uni' => 'uk.png',
+            'Allemagne' => 'all.png',
+            'Brésil' => 'br.png',
+            'Canada' => 'ca.png',
+            'Espagne' => 'es.png',
+            'Japon' => 'jp.png',
+            'Corée du Sud' => 'kr.png'
+        ];
+
+        if (array_key_exists($this->country, $map)) {
+            return $map[$this->country];
+        }
+
+        return 'default.png';
+    }
+
+    public function getStreamingLinks(): ?string
+    {
+        return $this->streamingLinks;
+    }
+
+    public function setStreamingLinks(?string $streamingLinks): static
+    {
+        $this->streamingLinks = $streamingLinks;
+
+        return $this;
+    }
+
 }

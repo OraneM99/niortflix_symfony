@@ -5,9 +5,12 @@ namespace App\Form;
 use App\Entity\Serie;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\CountryType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
+use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\UrlType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\File;
@@ -21,7 +24,9 @@ class SerieType extends AbstractType
                 'label' => 'Nom de la série',
                 'required' => true,
             ])
-            ->add('overview')
+            ->add('overview', TextareaType::class, [
+                'label' => 'Synopsis'
+            ])
             ->add('status', ChoiceType::class, [
                 'choices' => [
                     'En cours' => 'returning',
@@ -30,13 +35,24 @@ class SerieType extends AbstractType
                 ],
                 'placeholder' => '-- Choisir un statut --'
             ])
-            ->add('vote')
-            ->add('popularity')
+            ->add('vote', TextType::class, [
+                'label' => 'Note'
+            ])
             ->add('firstAirDate', DateType::class, [
                 'widget' => 'single_text',
+                'label' => 'Première diffusion'
             ])
             ->add('lastAirDate', DateType::class, [
                 'widget' => 'single_text',
+                'label' => 'Dernière Diffusion'
+            ])
+            ->add('country', CountryType::class, [
+                'label' => 'Pays de création',
+                'required' => false,
+            ])
+            ->add('streamingLinks', UrlType::class, [
+                'label' => 'Liens de streaming',
+                'required' => false,
             ])
             ->add('backdrop_file', FileType::class, [
                 'required' => false,
