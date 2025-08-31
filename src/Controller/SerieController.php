@@ -44,6 +44,7 @@ final class SerieController extends AbstractController
         $offset = ($page - 1) * $nbPerPage;
 
         $sort = $request->query->get('sort', null);
+
         $search = $request->query->get('search', null);
 
         $series = $serieRepository->findSeriesWithQueryBuilder($offset, $nbPerPage, false, $sort, $search);
@@ -61,11 +62,15 @@ final class SerieController extends AbstractController
         ]);
     }
 
-    #[Route('/detail/{id}', name: '_detail', requirements: ['id' => '\d+'])] // On utilise le param converter pour récupérer l'id
-    public function detail(Serie $serie): Response
+    #[Route('/detail/{id}', name: '_detail', requirements: ['id' => '\d+'])]
+    public function detail(Serie $serie, Request $request): Response
     {
+
+        $referer = $request->headers->get('referer');
+
         return $this->render('serie/detail.html.twig', [
             'serie' => $serie,
+            'referer' => $referer,
         ]);
     }
 

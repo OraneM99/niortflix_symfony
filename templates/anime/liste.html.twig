@@ -3,18 +3,18 @@
 {% set search = search|default('') %}
 {% set sort = sort|default('') %}
 
-{% block title %}Liste des séries{% endblock %}
+{% block title %}Liste des animes{% endblock %}
 
 {% block body %}
     <div class="container my-5 text-black">
 
         <!-- Titre -->
-        <h2 class="text-center mb-4">📺 Liste des séries</h2>
+        <h2 class="text-center mb-4">🎬 Liste des animes</h2>
         <form method="get" class="mb-4 d-flex align-items-center justify-content-between">
             <div class="d-flex align-items-center">
                 <label for="search" class="me-2 mb-0">Rechercher</label>
                 <input type="text" name="search" id="search" class="form-control me-2"
-                       value="{{ search|default('') }}" placeholder="Nom de la série...">
+                       value="{{ search|default('') }}" placeholder="Nom de l'anime...">
                 <button type="submit" class="btn btn-outline-primary">🔍</button>
             </div>
         </form>
@@ -32,15 +32,15 @@
             </select>
         </form>
 
-        <!-- Liste des séries -->
+        <!-- Liste des animes -->
         <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
-            {% for serie in series %}
+            {% for anime in animes %}
                 <div class="col">
                     <div class="card h-100 bg-dark text-light border-secondary shadow-sm">
-                        <a href="{{ path('serie_detail', {id : serie.id}) }}" class="text-decoration-none text-light">
-                            <img src="{{ asset(serie_params.poster_dir ~ '/' ~ serie.poster)}}" class="card-img-top" alt="Poster de {{ serie.name }}" loading="lazy" style="height: 370px; object-fit: cover; border-bottom: 1px solid #444;">
+                        <a href="{{ path('anime_detail', {id : anime.id}) }}" class="text-decoration-none text-light">
+                            <img src="{{ asset(anime_params.poster_dir ~ '/' ~ anime.poster)}}" class="card-img-top" alt="Poster de {{ anime.name }}" loading="lazy" style="height: 370px; object-fit: cover; border-bottom: 1px solid #444;">
                             <div class="card-body text-center">
-                                <h5 class="card-title">{{ serie.name }}</h5>
+                                <h5 class="card-title">{{ anime.name }}</h5>
                             </div>
                         </a>
                     </div>
@@ -48,21 +48,22 @@
             {% else %}
                 <div class="col-12">
                     <div class="alert alert-warning bg-transparent border-warning text-center text-warning">
-                        ⚠️ Pas de série trouvée.
+                        ⚠️ Pas d'anime trouvé.
                     </div>
                 </div>
             {% endfor %}
         </div>
+
         <!-- Pagination -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             {% if page > 1 %}
-                <a class="btn btn-primary btn-outline-light" href="{{ path('serie_liste', {'page': page - 1}) ~ '?sort=' ~ sort ~ '&search=' ~ search}}">← Page précédente</a>
+                <a class="btn btn-primary btn-outline-light" href="{{ path('anime_liste', {'page': page - 1}) ~ '?sort=' ~ sort ~ '&search=' ~ search}}">← Page précédente</a>
             {% else %}
                 <div></div>
             {% endif %}
 
             {% if page < nb_pages %}
-                <a class="btn btn-primary btn-outline-light ms-auto" href="{{ path('serie_liste', {'page': page + 1}) ~ '?sort=' ~ sort }}">Page suivante →</a>
+                <a class="btn btn-primary btn-outline-light ms-auto" href="{{ path('anime_liste', {'page': page + 1}) ~ '?sort=' ~ sort ~ '&search=' ~ search }}">Page suivante →</a>
             {% endif %}
         </div>
     </div>

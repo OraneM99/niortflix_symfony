@@ -18,8 +18,16 @@
                        href="{{ path('serie_liste') }}" title="Liste des séries">Liste des séries</a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link{% if app.request.attributes.get('_route') == 'anime_liste' %} active{% endif %}"
+                       href="{{ path('anime_liste') }}" title="Liste des animes">Liste des animes</a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link{% if app.request.attributes.get('_route') == 'serie_create' %} active{% endif %}"
-                       href="{{ path('serie_create') }}" title="Créer une série">Créer une série</a>
+                       href="{{ path('serie_create') }}" title="Créer une série">Ajouter une série</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link{% if app.request.attributes.get('_route') == 'anime_create' %} active{% endif %}"
+                       href="{{ path('anime_create') }}" title="Créer une série">Ajouter un anime</a>
                 </li>
             </ul>
         </div>

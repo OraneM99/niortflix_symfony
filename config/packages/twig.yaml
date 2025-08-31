@@ -2,6 +2,7 @@ twig:
     file_name_pattern: '*.twig'
     globals:
         serie_params: '%serie%'
+        anime_params: '%anime%'
 
 when@test:
     twig:

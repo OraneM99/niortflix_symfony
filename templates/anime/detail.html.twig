@@ -1,0 +1,151 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Détail de l'anime {{ anime.name }} | {{ parent() }}{% endblock %}
+
+{% block body %}
+    <style>
+        body {
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
+            url("{{ asset(anime_params.backdrop_dir ~ '/' ~ anime.backdrop) }}") center/cover no-repeat fixed;
+            min-height: 100vh;
+            font-family: 'Segoe UI', sans-serif;
+            color: #fff;
+        }
+
+        .anime-container {
+            display: flex;
+            gap: 2rem;
+            align-items: flex-start;
+        }
+
+        .poster {
+            flex: 0 0 300px;
+        }
+
+        .poster img {
+            width: 100%;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+        }
+
+        .anime-info {
+            flex: 1;
+        }
+
+        .anime-title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+
+        .badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .badge-custom {
+            background-color: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: .4rem 1rem;
+            font-size: .9rem;
+        }
+
+        .overview {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+
+        .actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .actions a {
+            padding: .7rem 1.5rem;
+            border-radius: 30px;
+            font-size: 1rem;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        .btn-outline {
+            border: 1px solid #fff;
+            color: #fff;
+        }
+        .btn-outline:hover {
+            background: #fff;
+            color: #000;
+        }
+
+        .btn-danger {
+            background: #e63946;
+            color: #fff;
+        }
+        .btn-danger:hover {
+            background: #c9182a;
+        }
+
+        .btn-primary {
+            background: #1d4ed8;
+            color: #fff;
+        }
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+    </style>
+
+    <div class="container py-5">
+        <div class="anime-container">
+
+            <!-- Poster -->
+            <div class="poster">
+                <img src="{{ asset(anime_params.poster_dir ~ '/' ~ anime.poster) }}" alt="{{ anime.name }}">
+            </div>
+
+            <!-- Infos -->
+            <div class="anime-info">
+                <h2 class="anime-title">{{ anime.name }}</h2>
+
+                <div class="badges">
+                    <span class="badge-custom">
+                        {% if anime.status == 'returning' %}
+                            En cours
+                        {% elseif anime.status == 'ended' %}
+                            Terminée
+                        {% elseif anime.status == 'cancelled' %}
+                            Annulée
+                        {% else %}
+                            {{ anime.status }}
+                        {% endif %}
+                    </span>
+                    <span class="badge-custom">Pays : {{ anime.country }}</span>
+                    <span class="badge-custom">Première diffusion : {{ anime.firstAirDate|date('d/m/Y') }}</span>
+                    {% if anime.status in ['ended', 'cancelled'] %}
+                        <span class="badge-custom">Dernière diffusion : {{ anime.lastAirDate|date('d/m/Y') }}</span>
+                    {% endif %}
+                    <span class="badge-custom">{{ anime.genres|join(', ') }}</span>
+                    <span class="badge-custom">Note : {{ anime.vote }} / 10</span>
+                </div>
+
+                <p class="overview">{{ anime.overview }}</p>
+
+                <div class="actions">
+                    <a href="{{ path('anime_update', { id: anime.id }) }}" class="btn-outline">✏️ Modifier</a>
+                    <a href="{{ path('anime_delete', { id: anime.id, token: csrf_token('delete'~anime.id) }) }}"
+                       class="btn-danger"
+                       onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet anime ?')">
+                        🗑️ Supprimer
+                    </a>
+                    <a href="{{ referer ?: path('anime_liste') }}" class="btn-primary">← Retour à la liste</a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+{% endblock %}

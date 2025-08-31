@@ -2,18 +2,16 @@
 
 namespace App\Entity;
 
-use App\Repository\SerieRepository;
+use App\Repository\AnimeRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints as Assert;
-use Symfony\Component\Validator\Constraints\Collection;
 
-#[ORM\Entity(repositoryClass: SerieRepository::class)]
-#[ORM\HasLifecycleCallbacks]
+#[ORM\Entity(repositoryClass: AnimeRepository::class)]
 #[ORM\UniqueConstraint(columns: ['name', 'first_air_date'])]
-#[UniqueEntity(fields: ['name', 'firstAirDate'], message: 'Cette série existe déjà.')]
-class Serie
+#[UniqueEntity(fields: ['name', 'firstAirDate'], message: 'Cet anime existe déjà.')]
+class Anime
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -27,10 +25,10 @@ class Serie
         maxMessage: 'Un nom ne doit pas dépasser {{ limit }} caractères.')]
     private ?string $name = null;
 
-    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $overview = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
     #[Assert\Choice(choices: ['returning', 'ended', 'cancelled'],
         message: "Le choix n'est pas valable")]
     private ?string $status = null;
@@ -42,9 +40,9 @@ class Serie
     private ?float $vote = null;
 
     #[ORM\Column(nullable: true)]
-    private ?float $popularity = null;
+    private ?int $popularity = null;
 
-    #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[ORM\Column(nullable: true)]
     #[Assert\LessThan('today',
         message: 'La date ne doit pas être postérieure à {{ compared_value }}')]
     private ?\DateTime $firstAirDate = null;
@@ -72,18 +70,18 @@ class Serie
     private ?string $poster = null;
 
     #[ORM\Column(nullable: true)]
-    private ?int $tmdbId = null;
+    private ?int $tmdb_id = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $country = null;
 
-    #[ORM\Column(type: Types::JSON, nullable: true)]
-    private ?array $streamingLinks = [];
-
-    #[ORM\Column]
-    private ?\DateTime $dateCreated = null;
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $streamingLink = null;
 
     #[ORM\Column(nullable: true)]
+    private ?\DateTime $dateCreated = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
     private ?\DateTime $dateModified = null;
 
     #[ORM\Column(type: Types::JSON, nullable: true)]
@@ -106,6 +104,13 @@ class Serie
         return $this;
     }
 
+    public function setId(int $id): static
+    {
+        $this->id = $id;
+
+        return $this;
+    }
+
     public function getOverview(): ?string
     {
         return $this->overview;
@@ -123,7 +128,7 @@ class Serie
         return $this->status;
     }
 
-    public function setStatus(string $status): static
+    public function setStatus(?string $status): static
     {
         $this->status = $status;
 
@@ -142,12 +147,12 @@ class Serie
         return $this;
     }
 
-    public function getPopularity(): ?float
+    public function getPopularity(): ?int
     {
         return $this->popularity;
     }
 
-    public function setPopularity(?float $popularity): static
+    public function setPopularity(?int $popularity): static
     {
         $this->popularity = $popularity;
 
@@ -159,7 +164,7 @@ class Serie
         return $this->firstAirDate;
     }
 
-    public function setFirstAirDate(\DateTime $firstAirDate): static
+    public function setFirstAirDate(?\DateTime $firstAirDate): static
     {
         $this->firstAirDate = $firstAirDate;
 
@@ -195,7 +200,7 @@ class Serie
         return $this->poster;
     }
 
-    public function setPoster(string $poster): static
+    public function setPoster(?string $poster): static
     {
         $this->poster = $poster;
 
@@ -204,12 +209,12 @@ class Serie
 
     public function getTmdbId(): ?int
     {
-        return $this->tmdbId;
+        return $this->tmdb_id;
     }
 
-    public function setTmdbId(?int $tmdbId): static
+    public function setTmdbId(?int $tmdb_id): static
     {
-        $this->tmdbId = $tmdbId;
+        $this->tmdb_id = $tmdb_id;
 
         return $this;
     }
@@ -226,21 +231,16 @@ class Serie
         return $this;
     }
 
-    public function getStreamingLinks(): ?array
+    public function getStreamingLink(): ?string
     {
-        return $this->streamingLinks;
+        return $this->streamingLink;
     }
 
-    public function setStreamingLinks(?array $streamingLinks): static
+    public function setStreamingLink(?string $streamingLink): static
     {
-        $this->streamingLinks = $streamingLinks;
+        $this->streamingLink = $streamingLink;
 
         return $this;
-    }
-
-    public function getDateCreated(): ?\DateTime
-    {
-        return $this->dateCreated;
     }
 
     #[ORM\PrePersist]
@@ -250,14 +250,19 @@ class Serie
         $this->dateModified = new \DateTime();
     }
 
-    public function setDateCreated(\DateTime $dateCreated): static
+    public function getDateCreated(): ?\DateTime
+    {
+        return $this->dateCreated;
+    }
+
+    public function setDateCreated(?\DateTime $dateCreated): static
     {
         $this->dateCreated = $dateCreated;
 
         return $this;
     }
 
-    public function getDateModified(): ?\DateTime
+    public function getDateModified(): \DateTime
     {
         return $this->dateModified;
     }
@@ -268,21 +273,22 @@ class Serie
         $this->dateModified = new \DateTime();
     }
 
-    public function setDateModified(?\DateTime $dateModified): static
+    public function setDateModified(\DateTime $dateModified): static
     {
         $this->dateModified = $dateModified;
 
         return $this;
     }
 
-    public function getGenres(): ?array
+    public function getGenres(): array
     {
         return $this->genres;
     }
 
-    public function setGenres(?array $genres): static
+    public function setGenres(array $genres): static
     {
         $this->genres = $genres;
+
         return $this;
     }
 }

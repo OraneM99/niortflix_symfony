@@ -8,6 +8,15 @@ parameters:
       nb_par_page: 12
       backdrop_dir: 'uploads/backdrops'
       poster_dir: 'uploads/posters/series'
+  anime:
+      nb_par_page: 12
+      backdrop_dir: 'uploads/backdrops'
+      poster_dir: 'uploads/posters/animes'
+
+    # Enregistrement de l'extension Twig pour les drapeaux
+      App\Utils\AppExtension:
+        tags:
+          - { name: twig.extension }
 services:
     # default configuration for services in *this* file
     _defaults:

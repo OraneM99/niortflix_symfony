@@ -1,0 +1,34 @@
+{% extends 'base.html.twig' %}
+{% form_theme animeForm 'bootstrap_5_layout.html.twig' %}
+
+{% block title %}
+    {{ is_edit ? 'Modifier un anime' : 'Créer un anime' }}
+{% endblock %}
+
+{% block body %}
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="card bg-dark text-light shadow-sm border-secondary">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            {{ is_edit ? 'Modifier un anime' : 'Créer une nouvel anime' }}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {{ form_start(animeForm, {'attr': {'class': 'needs-validation', 'novalidate': 'novalidate'}}) }}
+                        {{ form_widget(animeForm) }}
+
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                {{ is_edit ? 'Mettre à jour' : 'Enregistrer' }}
+                            </button>
+                        </div>
+
+                        {{ form_end(animeForm, {'render_rest': false}) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

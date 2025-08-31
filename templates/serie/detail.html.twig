@@ -5,90 +5,197 @@
 {% block body %}
     <style>
         body {
-            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.85)),
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
             url("{{ asset(serie_params.backdrop_dir ~ '/' ~ serie.backdrop) }}") center/cover no-repeat fixed;
             min-height: 100vh;
             font-family: 'Segoe UI', sans-serif;
+            color: #fff;
+        }
+
+        .serie-container {
+            display: flex;
+            gap: 2rem;
+            align-items: flex-start;
+        }
+
+        .poster {
+            flex: 0 0 300px;
+        }
+
+        .poster img {
+            width: 100%;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+        }
+
+        .serie-info {
+            flex: 1;
+        }
+
+        .serie-title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+
+        .badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .5rem;
+            margin-bottom: 1.5rem;
         }
 
         .badge-custom {
             background-color: rgba(255, 255, 255, 0.15);
             color: #fff;
             border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: .4rem 1rem;
+            font-size: .9rem;
         }
 
-        .btn-custom-outline {
-            border-color: #ffffff;
-            color: #ffffff;
+        .overview {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
         }
 
-        .btn-custom-outline:hover {
-            background-color: #ffffff;
+        .actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .actions a {
+            padding: .7rem 1.5rem;
+            border-radius: 30px;
+            font-size: 1rem;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        .btn-outline {
+            border: 1px solid #fff;
+            color: #fff;
+        }
+        .btn-outline:hover {
+            background: #fff;
             color: #000;
+        }
+
+        .btn-danger {
+            background: #e63946;
+            color: #fff;
+        }
+        .btn-danger:hover {
+            background: #c9182a;
+        }
+
+        .btn-primary {
+            background: #1d4ed8;
+            color: #fff;
+        }
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+
+        .streaming-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .streaming-card {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 90px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            text-decoration: none;
+            overflow: hidden;
+        }
+
+        .streaming-card img {
+            max-height: 35px;
+            max-width: 70px;
+            transition: transform 0.3s ease;
+        }
+
+        .streaming-card:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-4px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.4);
+        }
+
+        .streaming-card:hover img {
+            transform: scale(1.1);
         }
     </style>
 
-    <div class="container py-5 text-light">
-        <div class="row justify-content-center">
-            <div class="col-lg-8">
+    <div class="container py-5">
+        <div class="serie-container">
 
-                <div class="card bg-dark bg-opacity-75 border-light shadow-lg text-light rounded-4">
-                    <div class="card-body text-center p-5">
+            <!-- Poster -->
+            <div class="poster">
+                <img src="{{ asset(serie_params.poster_dir ~ '/' ~ serie.poster) }}" alt="{{ serie.name }}">
+            </div>
 
-                        <!-- Titre -->
-                        <h2 class="card-title mb-4 display-5 fw-bold">{{ serie.name }}</h2>
+            <!-- Infos -->
+            <div class="serie-info">
+                <h2 class="serie-title">{{ serie.name }}</h2>
 
-                        <!-- Badges -->
-                        <div class="mb-4">
-                            <span class="badge badge-custom px-3 py-2 me-2">
-                                {% if serie.status == 'returning' %}
-                                    En cours
-                                {% elseif serie.status == 'ended' %}
-                                    Terminée
-                                {% elseif serie.status == 'cancelled' %}
-                                    Annulée
-                                {% else %}
-                                    {{ serie.status }}
-                                {% endif %}
-                            </span>
-                            <span class="badge badge-custom px-3 py-2">
-                                Diffusée le : {{ serie.firstAirDate|date('d/m/Y') }}
-                            </span>
-                            {% if serie.status in ['ended', 'cancelled'] %}
-                                <span class="badge badge-custom px-3 py-2">
-                                    Terminée le : {{ serie.lastAirDate|date('d/m/Y') }}
-                                </span>
-                            {% endif %}
-                            <span class="badge badge-custom px-3 py-2 me-2">Note : {{ serie.vote }} / 10</span>
+                <div class="badges">
+                    <span class="badge-custom">
+                        {% if serie.status == 'returning' %}
+                            En cours
+                        {% elseif serie.status == 'ended' %}
+                            Terminée
+                        {% elseif serie.status == 'cancelled' %}
+                            Annulée
+                        {% else %}
+                            {{ serie.status }}
+                        {% endif %}
+                    </span>
+                    <span class="badge-custom">
+                        Pays : {{ serie.country|flag }} {{ serie.country }}
+                    </span>
+
+                    {% if serie.streamingLinks %}
+                        <div class="streaming-links">
+                            {% for platform, url in serie.streamingLinks %}
+                                <a href="{{ url }}" target="_blank" class="streaming-card" title="{{ platform|capitalize }}">
+                                    <img src="{{ platform|streamingLogo }}" alt="{{ platform }}">
+                                </a>
+                            {% endfor %}
                         </div>
+                    {% endif %}
 
-                        <!-- Description -->
-                        <p class="card-text lead">{{ serie.overview }}</p>
-
-                        <!-- Boutons -->
-                        <div class="d-flex flex-wrap justify-content-center gap-3 mt-5">
-                            <a href="{{ path('serie_update', { id: serie.id }) }}"
-                               class="btn btn-outline-light btn-lg px-4" title="Modifier la série">
-                                ✏️ Modifier
-                            </a>
-
-                            <a href="{{ path('serie_delete', { id: serie.id, token: csrf_token('delete'~serie.id) }) }}"
-                               class="btn btn-danger btn-lg px-4"
-                               onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette série ?')"
-                               title="Supprimer la série">
-                                🗑️ Supprimer
-                            </a>
-
-                            <a href="{{ path('serie_liste') }}"
-                               class="btn btn-primary btn-lg px-4" title="Retour à la liste">
-                                ← Retour à la liste
-                            </a>
-                        </div>
-
-                    </div>
+                    <span class="badge-custom">Première diffusion : {{ serie.firstAirDate|date('d/m/Y') }}</span>
+                    {% if serie.status in ['ended', 'cancelled'] %}
+                        <span class="badge-custom">Dernière diffusion : {{ serie.lastAirDate|date('d/m/Y') }}</span>
+                    {% endif %}
+                    <span class="badge-custom">{{ serie.genres|join(', ') }}</span>
+                    <span class="badge-custom">Note : {{ serie.vote }} / 10</span>
                 </div>
 
+                <p class="overview">{{ serie.overview }}</p>
+
+                <div class="actions">
+                    <a href="{{ path('serie_update', { id: serie.id }) }}" class="btn-outline">✏️ Modifier</a>
+                    <a href="{{ path('serie_delete', { id: serie.id, token: csrf_token('delete'~serie.id) }) }}"
+                       class="btn-danger"
+                       onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette série ?')">
+                        🗑️ Supprimer
+                    </a>
+                    <a href="{{ referer ?: path('serie_liste') }}" class="btn-primary">← Retour à la liste</a>
+                </div>
             </div>
+
         </div>
     </div>
 {% endblock %}
