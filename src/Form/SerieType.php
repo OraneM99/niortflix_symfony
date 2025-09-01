@@ -46,14 +46,6 @@ class SerieType extends AbstractType
                 'widget' => 'single_text',
                 'label' => 'Dernière Diffusion'
             ])
-            ->add('country', CountryType::class, [
-                'label' => 'Pays de création',
-                'required' => false,
-            ])
-            ->add('streamingLinks', UrlType::class, [
-                'label' => 'Liens de streaming',
-                'required' => false,
-            ])
             ->add('backdrop_file', FileType::class, [
                 'required' => false,
                 'mapped' => false,

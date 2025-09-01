@@ -25,11 +25,6 @@ class SerieRepository extends ServiceEntityRepository
                 ->setParameter('search', '%' . strtolower($search) . '%');
         }
 
-        if ($search) {
-            $qb->andWhere('LOWER(s.name) LIKE :search')
-                ->setParameter('search', '%' . strtolower($search) . '%');
-        }
-
         if ($count === true) {
             return $qb->select('count(s.id)')->getQuery()->getOneOrNullResult();
         }

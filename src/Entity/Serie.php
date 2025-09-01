@@ -273,27 +273,6 @@ class Serie
         return $this;
     }
 
-    public function getCountryFlagFilename(): string
-    {
-        $map = [
-            'France' => 'fr.png',
-            'Etats-Unis' => 'usa.png',
-            'Royaume-Uni' => 'uk.png',
-            'Allemagne' => 'all.png',
-            'Brésil' => 'br.png',
-            'Canada' => 'ca.png',
-            'Espagne' => 'es.png',
-            'Japon' => 'jp.png',
-            'Corée du Sud' => 'kr.png'
-        ];
-
-        if (array_key_exists($this->country, $map)) {
-            return $map[$this->country];
-        }
-
-        return 'default.png';
-    }
-
     public function getStreamingLinks(): ?string
     {
         return $this->streamingLinks;
