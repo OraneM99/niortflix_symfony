@@ -5,11 +5,11 @@
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
   serie:
-      nb_par_page: 12
+      nb_par_page: 15
       backdrop_dir: 'uploads/backdrops'
       poster_dir: 'uploads/posters/series'
   anime:
-      nb_par_page: 12
+      nb_par_page: 15
       backdrop_dir: 'uploads/backdrops'
       poster_dir: 'uploads/posters/animes'
 

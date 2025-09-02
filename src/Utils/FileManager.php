@@ -11,7 +11,7 @@ class FileManager
     {
     }
 
-    public function upload(UploadedFile $file, string $dir, string $name, string $oldRessourceToDelete = ''): string
+    public function upload(UploadedFile $file, string $dir, string $name, string $oldRessourceToDelete = null): string
     {
         $name = $this->slugger->slug($name) . '-' . uniqid() . '.' . $file->guessExtension();
         $file->move($dir, $name);
