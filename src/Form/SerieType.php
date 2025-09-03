@@ -38,6 +38,16 @@ class SerieType extends AbstractType
                 ],
                 'placeholder' => '-- Choisir un statut --'
             ])
+            ->add('country', CountryType::class, [
+                'label' => 'Pays de production',
+                'placeholder' => '-- Choisir un pays --'
+            ])
+            ->add('vote', TextType::class, [
+                'label' => 'Note'
+            ])
+            ->add('popularity', NumberType::class, [
+                'label' => 'Popularité'
+            ])
             ->add('firstAirDate', DateType::class, [
                 'widget' => 'single_text',
                 'label' => 'Première diffusion'
@@ -45,46 +55,6 @@ class SerieType extends AbstractType
             ->add('lastAirDate', DateType::class, [
                 'widget' => 'single_text',
                 'label' => 'Dernière diffusion'
-            ])
-            ->add('country', CountryType::class, [
-                'label' => 'Pays de production',
-                'placeholder' => '-- Choisir un pays --'
-            ])
-            ->add('genres', ChoiceType::class, [
-                'label' => 'Genres',
-                'choices' => [
-                    'Action' => 'Action',
-                    'Aventure' => 'Aventure',
-                    'Comédie' => 'Comédie',
-                    'Crime' => 'Crime',
-                    'Drame' => 'Drame',
-                    'Fantastique' => 'Fantastique',
-                    'Historique' => 'Historique',
-                    'Horreur' => 'Horreur',
-                    'Romance' => 'Romance',
-                    'Policier' => 'Police',
-                    'Politique' => 'Politique',
-                    'Medical' => 'Médical',
-                    'Musical' => 'Musical',
-                    'Mystère' => 'Mystère',
-                    'Guerre' => 'Guerre',
-                    'Judiciare' => 'Judiciaire',
-                    'Sport' => 'Sport',
-                    'Famille' => 'Famille',
-                    'Thriller' => 'Thriller',
-                    'Gangster' => 'Gangster',
-                    'Science-Fiction' => 'Science-Fiction',
-                    'Sitcom' => 'Sitcom',
-                    'Western' => 'Western',
-                ],
-                'multiple' => true,
-                'expanded' => true,
-            ])
-            ->add('vote', TextType::class, [
-                'label' => 'Note'
-            ])
-            ->add('popularity', NumberType::class, [
-                'label' => 'Popularité'
             ])
             ->add('backdrop_file', FileType::class, [
                 'required' => false,
@@ -119,6 +89,37 @@ class SerieType extends AbstractType
                         'maxSizeMessage' => 'Max file size 2 MB',
                     ])
                 ]
+            ])
+            ->add('genres', ChoiceType::class, [
+                'label' => 'Genres',
+                'choices' => [
+                    'Action' => 'Action',
+                    'Aventure' => 'Aventure',
+                    'Comédie' => 'Comédie',
+                    'Crime' => 'Crime',
+                    'Drame' => 'Drame',
+                    'Fantastique' => 'Fantastique',
+                    'Historique' => 'Historique',
+                    'Horreur' => 'Horreur',
+                    'Romance' => 'Romance',
+                    'Policier' => 'Police',
+                    'Politique' => 'Politique',
+                    'Medical' => 'Médical',
+                    'Musical' => 'Musical',
+                    'Mystère' => 'Mystère',
+                    'Guerre' => 'Guerre',
+                    'Judiciare' => 'Judiciaire',
+                    'Sport' => 'Sport',
+                    'Famille' => 'Famille',
+                    'Thriller' => 'Thriller',
+                    'Gangster' => 'Gangster',
+                    'Science-Fiction' => 'Science-Fiction',
+                    'Superhéro' => 'Superhéro',
+                    'Sitcom' => 'Sitcom',
+                    'Western' => 'Western',
+                ],
+                'multiple' => true,
+                'expanded' => true,
             ]);
     }
 

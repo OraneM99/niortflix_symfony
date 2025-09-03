@@ -31,14 +31,34 @@ class SerieRepository extends ServiceEntityRepository
 
         $allowedSorts = ['name', 'firstAirDate', 'lastAirDate', 'popularity', 'vote'];
 
-        if ($sort && in_array($sort, $allowedSorts)) {
-            $qb->orderBy('s.' . $sort, 'ASC');
-        } elseif ($sort === 'genres') {
-            $qb->leftJoin('s.genres', 'g')
-                ->orderBy('g.name', 'ASC');
+        if ($sort) {
+            switch ($sort) {
+                case 'best':
+                    $qb->orderBy('s.vote', 'DESC'); // tri par note pour recommandations
+                    break;
+                case 'fans':
+                    $qb->orderBy('s.popularity', 'ASC'); // tri par popularité
+                    break;
+                case 'date':
+                    $qb->orderBy('s.firstAirDate', 'ASC');
+                    break;
+                case 'last':
+                    $qb->orderBy('s.firstAirDate', 'DESC');
+                    break;
+                case 'name':
+                    $qb->orderBy('s.name', 'ASC');
+                    break;
+                default:
+                    if (in_array($sort, $allowedSorts)) {
+                        $qb->orderBy('s.' . $sort, 'ASC');
+                    } else {
+                        $qb->orderBy('s.name', 'ASC');
+                    }
+            }
         } else {
             $qb->orderBy('s.name', 'ASC');
         }
+
 
         return $qb->setFirstResult($offset)
             ->setMaxResults($nbPerPage)
