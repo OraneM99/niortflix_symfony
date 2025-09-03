@@ -34,17 +34,13 @@ class Contributor
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $photo = null;
 
-    /**
-     * @var Collection<int, Serie>
-     */
-    #[ORM\ManyToMany(targetEntity: Serie::class, inversedBy: 'series')]
+    #[ORM\ManyToMany(targetEntity: Serie::class, inversedBy: "contributors")]
     private Collection $series;
 
     public function __construct()
     {
         $this->series = new ArrayCollection();
     }
-
     public function getId(): ?int
     {
         return $this->id;
@@ -122,27 +118,25 @@ class Contributor
         return $this;
     }
 
-    /**
-     * @return Collection<int, Serie>
-     */
     public function getSeries(): Collection
     {
         return $this->series;
     }
 
-    public function addSeries(Serie $series): static
+    public function addSerie(Serie $serie): self
     {
-        if (!$this->series->contains($series)) {
-            $this->series->add($series);
+        if (!$this->series->contains($serie)) {
+            $this->series->add($serie);
         }
 
         return $this;
     }
 
-    public function removeSeries(Serie $series): static
+    public function removeSerie(Serie $serie): self
     {
-        $this->series->removeElement($series);
+        $this->series->removeElement($serie);
 
         return $this;
     }
+
 }

@@ -2,8 +2,11 @@
 
 namespace App\Controller;
 
+use App\Entity\Contributor;
 use App\Entity\Serie;
+use App\Form\ContributorType;
 use App\Form\SerieType;
+use App\Repository\ContributorRepository;
 use App\Repository\SerieRepository;
 use App\Utils\FileManager;
 use DateTime;
@@ -63,14 +66,13 @@ final class SerieController extends AbstractController
     }
 
     #[Route('/detail/{id}', name: '_detail', requirements: ['id' => '\d+'])]
-    public function detail(Serie $serie, Request $request): Response
+    public function detail(Serie $serie, ContributorRepository $contributorRepository): Response
     {
-
-        $referer = $request->headers->get('referer');
+        $contributors = $contributorRepository->findBySerie($serie);
 
         return $this->render('serie/detail.html.twig', [
             'serie' => $serie,
-            'referer' => $referer,
+            'contributors' => $contributors
         ]);
     }
 
@@ -140,6 +142,26 @@ final class SerieController extends AbstractController
         return $this->render('serie/edit.html.twig',
             ['serieForm' => $serieForm,
                 'is_edit' => true]);
+    }
+
+    #[Route('/contributor/create', name: 'contributor_create')]
+    public function createContributor(Request $request, EntityManagerInterface $em): Response
+    {
+        $contributor = new Contributor();
+        $form = $this->createForm(ContributorType::class, $contributor);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $em->persist($contributor);
+            $em->flush();
+
+            $this->addFlash('success', 'Le contributeur a été ajouté avec succès !');
+            return $this->redirectToRoute('serie_liste');
+        }
+
+        return $this->render('contributor/edit.html.twig', [
+            'form' => $form,
+        ]);
     }
 
     #[Route('/delete/{id}', name: '_delete', requirements: ['id' => '\d+'])]
