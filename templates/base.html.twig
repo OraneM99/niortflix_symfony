@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>{% block title %}NiortFlix!{% endblock %}</title>
+    <title>{% block title %}SeriesTime | Home{% endblock %}</title>
     <link rel="icon" type="image/png" href="{{ asset('images/logo.svg') }}">
 
     {% block stylesheets %}
@@ -50,14 +50,6 @@
 
 <body class="d-flex flex-column min-vh-100">
 <header>
-    <div class="container">
-        <h1 class="header-logo">
-            <a href="{{ path('serie_home') }}" title="Retour à l'accueil">
-                <img src="{{ asset('images/logo.svg') }}" id="logo" alt="logo" width="50px">
-                NiortFlix
-            </a>
-        </h1>
-
         {% for status, messages in app.flashes %}
             {% for message in messages %}
                 <div class="alert alert-{{ status }}">{{ message }}</div>
@@ -75,9 +67,7 @@
 </main>
 
 <footer class="mt-auto">
-    <div class="container">
-        &copy; NiortFlix {{ "now"|date('Y') }}
-    </div>
+
 </footer>
 </body>
 </html>

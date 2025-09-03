@@ -2,8 +2,10 @@
 
 namespace App\Form;
 
+use App\Entity\Genre;
 use App\Entity\Serie;
 use Doctrine\DBAL\Types\FloatType;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\CollectionType;
@@ -90,36 +92,12 @@ class SerieType extends AbstractType
                     ])
                 ]
             ])
-            ->add('genres', ChoiceType::class, [
-                'label' => 'Genres',
-                'choices' => [
-                    'Action' => 'Action',
-                    'Aventure' => 'Aventure',
-                    'Comédie' => 'Comédie',
-                    'Crime' => 'Crime',
-                    'Drame' => 'Drame',
-                    'Fantastique' => 'Fantastique',
-                    'Historique' => 'Historique',
-                    'Horreur' => 'Horreur',
-                    'Romance' => 'Romance',
-                    'Policier' => 'Police',
-                    'Politique' => 'Politique',
-                    'Medical' => 'Médical',
-                    'Musical' => 'Musical',
-                    'Mystère' => 'Mystère',
-                    'Guerre' => 'Guerre',
-                    'Judiciare' => 'Judiciaire',
-                    'Sport' => 'Sport',
-                    'Famille' => 'Famille',
-                    'Thriller' => 'Thriller',
-                    'Gangster' => 'Gangster',
-                    'Science-Fiction' => 'Science-Fiction',
-                    'Superhéro' => 'Superhéro',
-                    'Sitcom' => 'Sitcom',
-                    'Western' => 'Western',
-                ],
+            ->add('genres', EntityType::class, [
+                'class' => Genre::class,
+                'choice_label' => 'name',
                 'multiple' => true,
-                'expanded' => true,
+                'expanded' => false, // mettre true pour des checkboxes
+                'label' => 'Genres',
             ]);
     }
 

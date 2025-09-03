@@ -3,16 +3,22 @@
 namespace App\Entity;
 
 use App\Repository\SerieRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints as Assert;
-use Symfony\Component\Validator\Constraints\Collection;
 
 #[ORM\Entity(repositoryClass: SerieRepository::class)]
-#[ORM\HasLifecycleCallbacks]
-#[ORM\UniqueConstraint(columns: ['name', 'first_air_date'])]
+#[ORM\Table(
+    name: 'serie',
+    uniqueConstraints: [
+        new ORM\UniqueConstraint(name: 'unique_name_date', columns: ['name', 'first_air_date'])
+    ]
+)]
 #[UniqueEntity(fields: ['name', 'firstAirDate'], message: 'Cette série existe déjà.')]
+#[ORM\HasLifecycleCallbacks]
 class Serie
 {
     #[ORM\Id]
@@ -31,39 +37,22 @@ class Serie
     private ?string $overview = null;
 
     #[ORM\Column(length: 255)]
-    #[Assert\Choice(choices: ['returning', 'ended', 'cancelled'],
-        message: "Le choix n'est pas valable")]
+    #[Assert\Choice(choices: ['returning', 'ended', 'cancelled'], message: "Le choix n'est pas valable")]
     private ?string $status = null;
 
     #[ORM\Column(nullable: true)]
-    #[Assert\Range(
-        notInRangeMessage: 'Cette valeur doit être comprise entre {{ min }} et {{ max }}.',
-        min: 0, max: 10)]
+    #[Assert\Range(notInRangeMessage: 'Cette valeur doit être comprise entre {{ min }} et {{ max }}.', min: 0, max: 10)]
     private ?float $vote = null;
 
     #[ORM\Column(nullable: true)]
     private ?float $popularity = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
-    #[Assert\LessThan('today',
-        message: 'La date ne doit pas être postérieure à {{ compared_value }}')]
-    private ?\DateTime $firstAirDate = null;
+    #[Assert\LessThan('today', message: 'La date ne doit pas être postérieure à aujourd\'hui')]
+    private ?\DateTimeInterface $firstAirDate = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
-    #[Assert\GreaterThan(propertyPath: 'firstAirDate')]
-    #[Assert\When(
-        expression: "this.getStatus() == 'returning'",
-        constraints: [
-            new Assert\Blank(message: 'Au vu du statut, il ne faut pas de date de fin.')
-        ]
-    )]
-    #[Assert\When(
-        expression: "this.getStatus() == 'ended' || this.getStatus() == 'cancelled'",
-        constraints: [
-            new Assert\NotBlank(message: 'Au vu du statut, il faut une date de fin.')
-        ]
-    )]
-    private ?\DateTime $lastAirDate = null;
+    private ?\DateTimeInterface $lastAirDate = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $backdrop = null;
@@ -86,8 +75,14 @@ class Serie
     #[ORM\Column(nullable: true)]
     private ?\DateTime $dateModified = null;
 
-    #[ORM\Column(type: Types::JSON, nullable: true)]
-    private ?array $genres = [];
+    #[ORM\ManyToMany(targetEntity: Genre::class, inversedBy: 'series', cascade: ['persist'])]
+    #[ORM\JoinTable(name: 'serie_genre')]
+    private Collection $genres;
+
+    public function __construct()
+    {
+        $this->genres = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -102,7 +97,6 @@ class Serie
     public function setName(string $name): static
     {
         $this->name = $name;
-
         return $this;
     }
 
@@ -114,7 +108,6 @@ class Serie
     public function setOverview(?string $overview): static
     {
         $this->overview = $overview;
-
         return $this;
     }
 
@@ -126,7 +119,6 @@ class Serie
     public function setStatus(string $status): static
     {
         $this->status = $status;
-
         return $this;
     }
 
@@ -138,7 +130,6 @@ class Serie
     public function setVote(?float $vote): static
     {
         $this->vote = $vote;
-
         return $this;
     }
 
@@ -150,31 +141,28 @@ class Serie
     public function setPopularity(?float $popularity): static
     {
         $this->popularity = $popularity;
-
         return $this;
     }
 
-    public function getFirstAirDate(): ?\DateTime
+    public function getFirstAirDate(): ?\DateTimeInterface
     {
         return $this->firstAirDate;
     }
 
-    public function setFirstAirDate(\DateTime $firstAirDate): static
+    public function setFirstAirDate(\DateTimeInterface $firstAirDate): static
     {
         $this->firstAirDate = $firstAirDate;
-
         return $this;
     }
 
-    public function getLastAirDate(): ?\DateTime
+    public function getLastAirDate(): ?\DateTimeInterface
     {
         return $this->lastAirDate;
     }
 
-    public function setLastAirDate(?\DateTime $lastAirDate): static
+    public function setLastAirDate(?\DateTimeInterface $lastAirDate): static
     {
         $this->lastAirDate = $lastAirDate;
-
         return $this;
     }
 
@@ -186,7 +174,6 @@ class Serie
     public function setBackdrop(?string $backdrop): static
     {
         $this->backdrop = $backdrop;
-
         return $this;
     }
 
@@ -195,10 +182,9 @@ class Serie
         return $this->poster;
     }
 
-    public function setPoster(string $poster): static
+    public function setPoster(?string $poster): static
     {
         $this->poster = $poster;
-
         return $this;
     }
 
@@ -210,7 +196,6 @@ class Serie
     public function setTmdbId(?int $tmdbId): static
     {
         $this->tmdbId = $tmdbId;
-
         return $this;
     }
 
@@ -222,7 +207,6 @@ class Serie
     public function setCountry(?string $country): static
     {
         $this->country = $country;
-
         return $this;
     }
 
@@ -234,11 +218,10 @@ class Serie
     public function setStreamingLinks(?array $streamingLinks): static
     {
         $this->streamingLinks = $streamingLinks;
-
         return $this;
     }
 
-    public function getDateCreated(): ?\DateTime
+    public function getDateCreated(): ?\DateTimeInterface
     {
         return $this->dateCreated;
     }
@@ -246,18 +229,11 @@ class Serie
     #[ORM\PrePersist]
     public function onPrePersist(): void
     {
-        $this->dateCreated = new \DateTime();
-        $this->dateModified = new \DateTime();
+        $this->dateCreated = new \DateTimeImmutable();
+        $this->dateModified = new \DateTimeImmutable();
     }
 
-    public function setDateCreated(\DateTime $dateCreated): static
-    {
-        $this->dateCreated = $dateCreated;
-
-        return $this;
-    }
-
-    public function getDateModified(): ?\DateTime
+    public function getDateModified(): ?\DateTimeInterface
     {
         return $this->dateModified;
     }
@@ -265,24 +241,31 @@ class Serie
     #[ORM\PreUpdate]
     public function onPreUpdate(): void
     {
-        $this->dateModified = new \DateTime();
+        $this->dateModified = new \DateTimeImmutable();
     }
 
-    public function setDateModified(?\DateTime $dateModified): static
-    {
-        $this->dateModified = $dateModified;
-
-        return $this;
-    }
-
-    public function getGenres(): ?array
+    /**
+     * @return Collection<int, Genre>
+     */
+    public function getGenres(): Collection
     {
         return $this->genres;
     }
 
-    public function setGenres(?array $genres): static
+    public function addGenre(Genre $genre): static
     {
-        $this->genres = $genres;
+        if (!$this->genres->contains($genre)) {
+            $this->genres->add($genre);
+            $genre->addSerie($this);
+        }
+        return $this;
+    }
+
+    public function removeGenre(Genre $genre): static
+    {
+        if ($this->genres->removeElement($genre)) {
+            $genre->removeSerie($this);
+        }
         return $this;
     }
 }

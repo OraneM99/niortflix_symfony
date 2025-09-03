@@ -7,6 +7,7 @@ use App\Entity\Serie;
 use App\Form\ContributorType;
 use App\Form\SerieType;
 use App\Repository\ContributorRepository;
+use App\Repository\GenreRepository;
 use App\Repository\SerieRepository;
 use App\Utils\FileManager;
 use DateTime;
@@ -41,7 +42,9 @@ final class SerieController extends AbstractController
     }
 
     #[Route('/liste/{page}', name: '_liste', requirements: ['page' => '\d+'], defaults: ['page' => 1])]
-    public function liste(SerieRepository $serieRepository, int $page, ParameterBagInterface $parameterBag, Request $request): Response
+    public function liste(SerieRepository $serieRepository,
+                          GenreRepository $genreRepository,
+                          int $page, ParameterBagInterface $parameterBag, Request $request): Response
     {
         $nbPerPage = $parameterBag->get('serie')['nb_par_page'];
         $offset = ($page - 1) * $nbPerPage;
@@ -51,6 +54,7 @@ final class SerieController extends AbstractController
         $search = $request->query->get('search', null);
 
         $series = $serieRepository->findSeriesWithQueryBuilder($offset, $nbPerPage, false, $sort, $search);
+        $genres = $genreRepository->findAllOrderedByName();
 
         $nbSeries = $serieRepository->findSeriesWithQueryBuilder($offset, $nbPerPage, true, $sort, $search);
 
@@ -61,7 +65,8 @@ final class SerieController extends AbstractController
             'series' => $series,
             'page' => $page,
             'nb_pages' => $nbPages,
-            'sort' => $sort
+            'sort' => $sort,
+            'genres' => $genres
         ]);
     }
 
