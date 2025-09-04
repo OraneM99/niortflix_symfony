@@ -37,9 +37,16 @@ class Contributor
     #[ORM\ManyToMany(targetEntity: Serie::class, inversedBy: "contributors")]
     private Collection $series;
 
+    /**
+     * @var Collection<int, Film>
+     */
+    #[ORM\ManyToMany(targetEntity: Film::class, mappedBy: 'contributors')]
+    private Collection $films;
+
     public function __construct()
     {
         $this->series = new ArrayCollection();
+        $this->films = new ArrayCollection();
     }
     public function getId(): ?int
     {
@@ -135,6 +142,33 @@ class Contributor
     public function removeSerie(Serie $serie): self
     {
         $this->series->removeElement($serie);
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Film>
+     */
+    public function getFilms(): Collection
+    {
+        return $this->films;
+    }
+
+    public function addFilm(Film $film): static
+    {
+        if (!$this->films->contains($film)) {
+            $this->films->add($film);
+            $film->addContributor($this);
+        }
+
+        return $this;
+    }
+
+    public function removeFilm(Film $film): static
+    {
+        if ($this->films->removeElement($film)) {
+            $film->removeContributor($this);
+        }
 
         return $this;
     }

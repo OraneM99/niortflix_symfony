@@ -1,37 +1,83 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
     <div class="container-fluid">
-        <a class="navbar-brand" href="{{ path('serie_home') }}">🎬 MySeries</a>
 
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
-                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <!-- LOGO / BRAND -->
+        <a class="navbar-brand fw-bold" href="{{ path('serie_home') }}">🎬 SeriesTime</a>
+
+        <!-- TOGGLE BTN (mobile) -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarMain" aria-controls="navbarMain"
+                aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
 
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+        <!-- NAVIGATION LINKS -->
+        <div class="collapse navbar-collapse" id="navbarMain">
 
+            <!-- MENUS PRINCIPAUX (au centre) -->
+            <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
+
+                <!-- Accueil -->
                 <li class="nav-item">
                     <a class="nav-link{% if app.request.attributes.get('_route') == 'serie_home' %} active{% endif %}"
-                       href="{{ path('serie_home') }}" title="Accueil">Accueil</a>
+                       href="{{ path('serie_home') }}">Accueil</a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link{% if app.request.attributes.get('_route') == 'serie_liste' %} active{% endif %}"
-                       href="{{ path('serie_liste') }}" title="Liste des séries">Liste des séries</a>
+
+                <!-- Séries -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle {% if app.request.attributes.get('_route') starts with 'serie_' %} active{% endif %}"
+                       href="#" id="navbarSerie" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Séries
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="navbarSerie">
+                        <li><a class="dropdown-item" href="{{ path('serie_liste') }}">Liste des séries</a></li>
+                        <li><a class="dropdown-item" href="{{ path('serie_create') }}">Ajouter une série</a></li>
+                    </ul>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link{% if app.request.attributes.get('_route') == 'anime_liste' %} active{% endif %}"
-                       href="{{ path('anime_liste') }}" title="Liste des animes">Liste des séries</a>
+
+                <!-- Films -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle {% if app.request.attributes.get('_route') starts with 'film_' %} active{% endif %}"
+                       href="#" id="navbarFilm" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Films
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="navbarFilm">
+                        <li><a class="dropdown-item" href="{{ path('film_liste') }}">Liste des films</a></li>
+                        <li><a class="dropdown-item" href="{{ path('film_create') }}">Ajouter un film</a></li>
+                    </ul>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link{% if app.request.attributes.get('_route') == 'serie_create' %} active{% endif %}"
-                       href="{{ path('serie_create') }}" title="Créer une série">Ajouter une série</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link{% if app.request.attributes.get('_route') == 'anime_create' %} active{% endif %}"
-                       href="{{ path('anime_create') }}" title="Créer une série">Ajouter un anime</a>
+
+                <!-- Animes -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle {% if app.request.attributes.get('_route') starts with 'anime_' %} active{% endif %}"
+                       href="#" id="navbarAnime" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Animes
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="navbarAnime">
+                        <li><a class="dropdown-item" href="{{ path('anime_liste') }}">Liste des animes</a></li>
+                        <li><a class="dropdown-item" href="{{ path('anime_create') }}">Ajouter un anime</a></li>
+                    </ul>
                 </li>
             </ul>
-        </div>
 
+            <!-- ACTIONS (login/register etc., alignés à droite) -->
+            {#<ul class="navbar-nav mb-2 mb-lg-0">
+                {% if app.user %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('app_profile') }}">👤 Mon profil</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-danger" href="{{ path('app_logout') }}">Se déconnecter</a>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('app_login') }}">Se connecter</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('app_register') }}">S'inscrire</a>
+                    </li>
+                {% endif %}#}
+            </ul>
+        </div>
     </div>
 </nav>
