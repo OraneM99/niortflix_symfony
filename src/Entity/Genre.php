@@ -24,9 +24,16 @@ class Genre
     #[ORM\ManyToMany(targetEntity: Serie::class, inversedBy: 'genre')]
     private Collection $series;
 
+    /**
+     * @var Collection<int, Film>
+     */
+    #[ORM\ManyToMany(targetEntity: Film::class, mappedBy: 'genres')]
+    private Collection $films;
+
     public function __construct()
     {
         $this->series = new ArrayCollection();
+        $this->films = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -66,6 +73,33 @@ class Genre
     public function removeSeries(Serie $series): static
     {
         $this->series->removeElement($series);
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Film>
+     */
+    public function getFilms(): Collection
+    {
+        return $this->films;
+    }
+
+    public function addFilm(Film $film): static
+    {
+        if (!$this->films->contains($film)) {
+            $this->films->add($film);
+            $film->addGenre($this);
+        }
+
+        return $this;
+    }
+
+    public function removeFilm(Film $film): static
+    {
+        if ($this->films->removeElement($film)) {
+            $film->removeGenre($this);
+        }
 
         return $this;
     }

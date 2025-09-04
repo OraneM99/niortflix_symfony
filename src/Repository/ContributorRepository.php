@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Contributor;
+use App\Entity\Film;
 use App\Entity\Serie;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -23,6 +24,17 @@ class ContributorRepository extends ServiceEntityRepository
             ->innerJoin('c.series', 's')
             ->where('s.id = :serieId')
             ->setParameter('serieId', $serie->getId())
+            ->orderBy('c.name', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findByFilm(Film $film): array
+    {
+        return $this->createQueryBuilder('c')
+            ->innerJoin('c.films', 'f')
+            ->where('f.id = :filmId')
+            ->setParameter('filmId', $film->getId())
             ->orderBy('c.name', 'ASC')
             ->getQuery()
             ->getResult();

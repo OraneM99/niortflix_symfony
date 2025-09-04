@@ -19,7 +19,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-#[Route('/serie', name: 'serie')]
+#[Route('/serie', name: 'serie_')]
 final class SerieController extends AbstractController
 {
     #[Route('/test', name: 'app_serie')]
@@ -41,7 +41,7 @@ final class SerieController extends AbstractController
         return new Response('Une série a été créée en base');
     }
 
-    #[Route('/liste/{page}', name: '_liste', requirements: ['page' => '\d+'], defaults: ['page' => 1])]
+    #[Route('/liste/{page}', name: 'liste', requirements: ['page' => '\d+'], defaults: ['page' => 1])]
     public function liste(SerieRepository $serieRepository,
                           GenreRepository $genreRepository,
                           int $page, ParameterBagInterface $parameterBag, Request $request): Response
@@ -70,7 +70,7 @@ final class SerieController extends AbstractController
         ]);
     }
 
-    #[Route('/detail/{id}', name: '_detail', requirements: ['id' => '\d+'])]
+    #[Route('/detail/{id}', name: 'detail', requirements: ['id' => '\d+'])]
     public function detail(Serie $serie, ContributorRepository $contributorRepository): Response
     {
         $contributors = $contributorRepository->findBySerie($serie);
@@ -81,7 +81,7 @@ final class SerieController extends AbstractController
         ]);
     }
 
-    #[Route('/create', name: '_create')]
+    #[Route('/create', name: 'create')]
     public function create(Request $request, EntityManagerInterface $em, FileManager $fileManager): Response
     {
         $serie = new Serie();
@@ -118,8 +118,11 @@ final class SerieController extends AbstractController
     }
 
 
-    #[Route('/update/{id}', name: '_update', requirements: ['id' => '\d+'])]
-    public function update(Request $request, EntityManagerInterface $em, Serie $serie, FileManager $fileManager): Response
+    #[Route('/update/{id}', name: 'update', requirements: ['id' => '\d+'])]
+    public function update(Request $request,
+                           EntityManagerInterface $em,
+                           Serie $serie,
+                           FileManager $fileManager): Response
     {
         $serieForm = $this->createForm(SerieType::class, $serie);
         $serieForm->handleRequest($request);
@@ -149,27 +152,7 @@ final class SerieController extends AbstractController
                 'is_edit' => true]);
     }
 
-    #[Route('/contributor/create', name: 'contributor_create')]
-    public function createContributor(Request $request, EntityManagerInterface $em): Response
-    {
-        $contributor = new Contributor();
-        $form = $this->createForm(ContributorType::class, $contributor);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $em->persist($contributor);
-            $em->flush();
-
-            $this->addFlash('success', 'Le contributeur a été ajouté avec succès !');
-            return $this->redirectToRoute('serie_liste');
-        }
-
-        return $this->render('contributor/edit.html.twig', [
-            'form' => $form,
-        ]);
-    }
-
-    #[Route('/delete/{id}', name: '_delete', requirements: ['id' => '\d+'])]
+    #[Route('/delete/{id}', name: 'delete', requirements: ['id' => '\d+'])]
     public function delete(Request $request, Serie $serie, EntityManagerInterface $em): Response
     {
         if ($this->isCsrfTokenValid('delete' . $serie->getId(), $request->get('token'))) {
