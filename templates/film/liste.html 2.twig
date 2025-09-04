@@ -3,7 +3,7 @@
 {% set search = search|default('') %}
 {% set sort = sort|default('') %}
 
-{% block title %}Liste des séries{% endblock %}
+{% block title %}Liste des films{% endblock %}
 
 {% block body %}
     <div class="container my-5 position-relative"
@@ -12,7 +12,14 @@
         <!-- Overlay sombre pour lisibilité -->
         <div style="background-color: rgba(0,0,0,0.6); padding: 2rem; border-radius: 15px;">
             <!-- Titre -->
-            <h2 class="text-center mb-4 text-light">📺 Liste des séries</h2>
+            <h2 class="text-center mb-2 text-light">📺 Liste des films</h2>
+
+            <!-- Genres sous le titre -->
+            <p class="text-center text-light mb-4">
+                {% for genre in genres %}
+                    {{ genre.name }}{% if not loop.last %} · {% endif %}
+                {% endfor %}
+            </p>
 
             <!-- Barre de recherche -->
             <form method="get" class="mb-4 d-flex justify-content-center">
@@ -24,50 +31,34 @@
             <!-- Filtres en onglets -->
             <ul class="nav nav-tabs mb-4 justify-content-center" id="seriesTabs">
                 <li class="nav-item">
-                    <a class="nav-link {{ sort == 'best' ? 'active' }}" href="?sort=best">Les mieux notées</a>
+                    <a class="nav-link {{ sort == 'best' ? 'active' }}" href="?sort=best">Les mieux notés</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link {{ sort == 'fans' ? 'active' }}" href="?sort=fans">Favoris des fans</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {{ sort == 'date' ? 'active' }}" href="?sort=date">Les plus anciennes</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {{ sort == 'last' ? 'active' }}" href="?sort=last">Les plus récentes</a>
+                    <a class="nav-link {{ sort == 'date' ? 'active' }}" href="?sort=date">Les plus anciens</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link {{ sort == 'name' ? 'active' }}" href="?sort=name">A à Z</a>
                 </li>
             </ul>
 
-            <!-- Liste des séries -->
+            <!-- Liste des films -->
             <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-5 g-4">
-                {% for serie in series %}
+                {% for film in films %}
                     <div class="col">
-                        <div class="card bg-dark text-light border-0 shadow-sm position-relative" style="height: 470px;">
-                            <!-- Note en blanc -->
-                            <div class="position-absolute top-0 start-0 m-2 px-2 py-1 text-white fw-bold note-badge">
-                                ⭐ {{ serie.vote|default('N/A') }}
+                        <div class="card bg-dark text-light border-0 shadow-sm position-relative" style="height: 450px;">
+                            <!-- Note -->
+                            <div class="position-absolute top-0 start-0 m-2 px-2 py-1 bg-black bg-opacity-75">
+                                ⭐ {{ film.vote|default('N/A') }}
                             </div>
-                            <a href="{{ path('serie_detail', {id: serie.id}) }}" class="text-decoration-none text-light">
-                                <img src="{{ asset(serie_params.poster_dir ~ '/' ~ serie.poster) }}"
-                                     class="card-img-top" alt="Poster de {{ serie.name }}"
+                            <a href="{{ path('film_detail', {id: film.id}) }}" class="text-decoration-none text-light">
+                                <img src="{{ asset(film_params.poster_dir ~ '/' ~ film.poster) }}"
+                                     class="card-img-top" alt="Poster de {{ film.name }}"
                                      style="height: 350px; object-fit: cover; border-radius: 0;">
                                 <div class="card-body text-center p-2">
-                                    <h6 class="card-title mb-1">{{ serie.name }}</h6>
-
-                                    {# Affichage du ou des genres #}
-                                    <p class="text-muted small mb-0">
-                                        {% if serie.genres is defined %}
-                                            {% for genre in serie.genres %}
-                                                {{ genre.name }}{% if not loop.last %}, {% endif %}
-                                            {% endfor %}
-                                        {% elseif serie.genre is defined %}
-                                            {{ serie.genre.name }}
-                                        {% else %}
-                                            Genre inconnu
-                                        {% endif %}
-                                    </p>
+                                    <h6 class="card-title mb-1">{{ film.name }}</h6>
                                 </div>
                             </a>
                         </div>
@@ -78,13 +69,13 @@
             <!-- Pagination -->
             <div class="d-flex justify-content-between align-items-center mt-4">
                 {% if page > 1 %}
-                    <a class="btn btn-outline-light" href="{{ path('serie_liste', {'page': page - 1}) ~ '?sort=' ~ sort }}">← Page précédente</a>
+                    <a class="btn btn-outline-light" href="{{ path('film_liste', {'page': page - 1}) ~ '?sort=' ~ sort }}">← Page précédente</a>
                 {% else %}
                     <div></div>
                 {% endif %}
 
                 {% if page < nb_pages %}
-                    <a class="btn btn-outline-light ms-auto" href="{{ path('serie_liste', {'page': page + 1}) ~ '?sort=' ~ sort }}">Page suivante →</a>
+                    <a class="btn btn-outline-light ms-auto" href="{{ path('film_liste', {'page': page + 1}) ~ '?sort=' ~ sort }}">Page suivante →</a>
                 {% endif %}
             </div>
         </div>
@@ -95,14 +86,6 @@
         body {
             background-color: #121212;
         }
-
-        .note-badge {
-            background-color: rgba(0, 0, 0, 0.6);
-            color: #fff;
-            border-radius: 12px;
-            font-size: 0.9rem;
-        }
-
 
         .nav-tabs .nav-link {
             color: #fff;
@@ -118,4 +101,5 @@
             transition: transform 0.3s ease;
         }
     </style>
+
 {% endblock %}
