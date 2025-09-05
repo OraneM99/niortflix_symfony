@@ -12,6 +12,7 @@
         "doctrine/doctrine-migrations-bundle": "^3.4",
         "doctrine/orm": "^3.5",
         "fakerphp/faker": "^1.24",
+        "guzzlehttp/guzzle": "^7.10",
         "phpdocumentor/reflection-docblock": "^5.6",
         "phpstan/phpdoc-parser": "^2.2",
         "symfony/asset": "6.4.*",
