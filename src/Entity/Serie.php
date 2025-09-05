@@ -229,8 +229,8 @@ class Serie
     #[ORM\PrePersist]
     public function onPrePersist(): void
     {
-        $this->dateCreated = new \DateTimeImmutable();
-        $this->dateModified = new \DateTimeImmutable();
+        $this->dateCreated = new \DateTime();
+        $this->dateModified = new \DateTime();
     }
 
     public function getDateModified(): ?\DateTimeInterface
@@ -241,7 +241,7 @@ class Serie
     #[ORM\PreUpdate]
     public function onPreUpdate(): void
     {
-        $this->dateModified = new \DateTimeImmutable();
+        $this->dateModified = new \DateTime();
     }
 
     /**
