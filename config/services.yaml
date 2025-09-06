@@ -14,18 +14,31 @@ parameters:
     poster_dir: 'uploads/posters/films'
 
 services:
+  # Valeurs par défaut
   _defaults:
     autowire: true
     autoconfigure: true
     bind:
       string $apiKey: '%env(TMDB_API_KEY)%'
 
-  App\Utils\AppExtension:
+  # Extension Twig BackdropExtension
+  App\Utils\BackdropExtension:
+    class: App\Utils\BackdropExtension
+    arguments:
+      $projectDir: '%kernel.project_dir%'
     tags:
       - { name: twig.extension }
 
+  # Autres extensions Twig
+  App\Utils\:
+    resource: '../src/Utils/'
+    exclude:
+      - '../src/Utils/BackdropExtension.php'
+
+  # Autres services du projet
   App\:
     resource: '../src/'
     exclude:
       - '../src/DependencyInjection/'
       - '../src/Kernel.php'
+      - '../src/Utils/'

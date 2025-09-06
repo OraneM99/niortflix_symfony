@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>{% block title %}SeriesTime | Home{% endblock %}</title>
     <link rel="icon" type="image/png" href="{{ asset('images/logo.svg') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     {% block stylesheets %}
         <style>
@@ -46,7 +47,7 @@
     {% endblock %}
 </head>
 
-<body class="d-flex flex-column min-vh-100">
+<body class="d-flex flex-column min-vh-100 {% block body_class %}{% endblock %}">
 <header>
         {% for status, messages in app.flashes %}
             {% for message in messages %}
@@ -55,7 +56,6 @@
         {% endfor %}
 
         {% include('_navbar.html.twig') %}
-    </div>
 </header>
 
 <main class="flex-grow-1">

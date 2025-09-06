@@ -6,11 +6,9 @@
 {% block title %}Liste des séries{% endblock %}
 
 {% block body %}
-    <div class="container my-5 position-relative"
-         style="background: url('{{ asset('assets/images/fond.jpg') }}') center/cover no-repeat; border-radius: 15px; padding: 3rem;">
+    <div class="container my-5 position-relative p-3">
 
-        <!-- Overlay sombre pour lisibilité -->
-        <div style="background-color: rgba(0,0,0,0.6); padding: 2rem; border-radius: 15px;">
+        <div class="overlay" style="padding: 2rem; border-radius: 15px;">
             <!-- Titre -->
             <h2 class="text-center mb-4 text-light">📺 Liste des séries</h2>
 
@@ -43,8 +41,9 @@
             <!-- Liste des séries -->
             <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-5 g-4">
                 {% for serie in series %}
+
                     <div class="col">
-                        <div class="card bg-dark text-light border-0 shadow-sm position-relative" style="height: 470px;">
+                        <div class="card bg-dark text-light border-0 shadow-sm position-relative" style="height: 420px;">
                             <!-- Note en blanc -->
                             <div class="position-absolute top-0 start-0 m-2 px-2 py-1 text-white fw-bold note-badge">
                                 ⭐ {{ serie.vote|default('N/A') }}
@@ -54,20 +53,16 @@
                                      class="card-img-top" alt="Poster de {{ serie.name }}"
                                      style="height: 350px; object-fit: cover; border-radius: 0;">
                                 <div class="card-body text-center p-2">
-                                    <h6 class="card-title mb-1">{{ serie.name }}</h6>
-
-                                    {# Affichage du ou des genres #}
-                                    <p class="text-muted small mb-0">
-                                        {% if serie.genres is defined %}
-                                            {% for genre in serie.genres %}
-                                                {{ genre.name }}{% if not loop.last %}, {% endif %}
-                                            {% endfor %}
-                                        {% elseif serie.genre is defined %}
-                                            {{ serie.genre.name }}
-                                        {% else %}
-                                            Genre inconnu
-                                        {% endif %}
-                                    </p>
+                                    <h6 class="card-title mb-1 title-compact">
+                                        {{ serie.name }}
+                                        <br>
+                                        <small class="dates p-2">
+                                            {{ serie.firstAirDate ? serie.firstAirDate|date('Y') : 'Date inconnue' }}
+                                            {% if serie.lastAirDate %}
+                                            - {{ serie.lastAirDate|date('Y') }}
+                                            {% endif %}
+                                        </small>
+                                    </h6>
                                 </div>
                             </a>
                         </div>
@@ -93,7 +88,31 @@
     <!-- Styles personnalisés -->
     <style>
         body {
-            background-color: #121212;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: url('{{ asset('images/fond.jpeg') }}') center/cover no-repeat fixed;
+            position: relative;
+            font-family: Arial, sans-serif;
+        }
+
+        .overlay {
+            background-color: rgba(0, 0, 0, 0.6);
+            min-height: 100vh;
+            padding: 2rem 0;
+        }
+
+        .title-compact {
+            font-size: 1rem;
+            line-height: 1.2;
+            font-weight: bold;
+        }
+
+        .title-compact .dates {
+            display: block;
+            margin-top: 0.25rem;
+            font-size: 0.75rem;
+            color: #fff;
         }
 
         .note-badge {
@@ -102,7 +121,6 @@
             border-radius: 12px;
             font-size: 0.9rem;
         }
-
 
         .nav-tabs .nav-link {
             color: #fff;

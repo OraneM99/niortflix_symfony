@@ -23,7 +23,7 @@ class FileManager
         return $name;
     }
 
-    public function uploadPoster(UploadedFile $poster, string $dir, string $name, string $oldRessourceToDelete = ''): string
+    public function uploadPoster(UploadedFile $poster, string $dir, string $name, string $oldRessourceToDelete = null): string
     {
         $name = $this->slugger->slug($name) . '-' . uniqid() . '.' . $poster->guessExtension();
         $poster->move($dir, $name);

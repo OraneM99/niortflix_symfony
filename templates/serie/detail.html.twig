@@ -1,4 +1,5 @@
 {% extends 'base.html.twig' %}
+{% block body_class %}serie-detail-page{% endblock %}
 
 {% block title %}{{ serie.name }} | {{ parent() }}{% endblock %}
 
@@ -6,7 +7,7 @@
     {{ parent() }}
     <link rel="stylesheet" href="{{ asset('assets/css/serie-detail.css') }}">
     <style>
-        :root {
+        body.serie-detail-page {
             --backdrop-image: url("{{ asset(serie_params.backdrop_dir ~ '/' ~ serie.backdrop) }}");
         }
     </style>
@@ -19,6 +20,7 @@
 
 {% block body %}
     <div class="serie-detail-container">
+        <a href="{{ path('serie_liste') }}" class="btn-back">&lt; Retour</a>
 
         <!-- Header avec nom de l'app et genres -->
         <div class="serie-header">
@@ -32,7 +34,9 @@
         <div class="serie-main-content">
             <!-- Poster à gauche -->
             <div class="poster-section">
-                <img src="{{ asset(serie_params.poster_dir ~ '/' ~ serie.poster) }}" alt="{{ serie.name }}">
+                <img src="{{ asset(serie_params.poster_dir ~ '/' ~ serie.poster) }}"
+                     alt="{{ serie.name }}"
+                     style="max-width:400px; height:auto; display:block;">
             </div>
 
             <!-- Contenu à droite -->
@@ -136,9 +140,6 @@
                onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette série ?')">
                 🗑️ Supprimer la série
             </a>
-            <a href="{{ path('serie_liste') }}" class="btn-primary">
-                ← Retour à la liste
-            </a>
         </div>
     </div>
 
@@ -146,6 +147,30 @@
 
     <!-- Styles additionnels pour les actions des contributeurs -->
     <style>
+        /* Style pour le bouton retour */
+        .btn-back {
+            display: inline-block;
+            background-color: white;
+            color: #333;
+            padding: 8px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-back:hover {
+            background-color: #f8f9fa;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            text-decoration: none;
+            color: #333;
+        }
+
         .btn-edit-contributor,
         .btn-delete-contributor {
             background: none;
