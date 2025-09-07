@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Serie;
+use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -65,4 +66,20 @@ class SerieRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    public function findFavorisByUser(User $user): array
+    {
+        return $this->findBy(['user' => $user, 'status' => 'favoris']);
+    }
+
+    public function findAVoirByUser(User $user): array
+    {
+        return $this->findBy(['user' => $user, 'status' => 'a-voir']);
+    }
+
+    public function findEnCoursByUser(User $user): array
+    {
+        return $this->findBy(['user' => $user, 'status' => 'en-cours']);
+    }
+
 }

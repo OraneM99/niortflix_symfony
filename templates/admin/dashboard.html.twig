@@ -1,0 +1,86 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Dashboard Admin{% endblock %}
+
+{% block body %}
+    <div class="container-fluid min-vh-100">
+        <div class="row">
+            <!-- Sidebar gauche -->
+            <nav class="col-md-3 col-lg-2 d-md-block bg-dark sidebar py-4">
+                <h4 class="text-white text-center mb-4">Admin</h4>
+
+                <ul class="nav flex-column mt-4">
+                    <li class="nav-item mb-2">
+                        <a class="nav-link text-light active" href="{{ path('admin_dashboard') }}">Dashboard</a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link text-light" href="{{ path('admin_users') }}">Gestion des utilisateurs</a>
+                    </li>
+                    {# Ajouter d'autres liens admin ici #}
+                </ul>
+            </nav>
+
+            <!-- Contenu principal -->
+            <main class="col-md-9 col-lg-10 ms-sm-auto px-md-4 py-4">
+                <h1 class="mb-4">Bienvenue sur le Dashboard Admin</h1>
+
+                <div class="row">
+                    <!-- Statistiques ou cartes -->
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <div class="card bg-dark text-white p-3">
+                            <h5>Nombre d’utilisateurs</h5>
+                            <p class="display-6">{{ usersCount|default(0) }}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <div class="card bg-dark text-white p-3">
+                            <h5>Séries totales</h5>
+                            <p class="display-6">{{ seriesCount|default(0) }}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <div class="card bg-dark text-white p-3">
+                            <h5>Autre info</h5>
+                            <p class="display-6">--</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <h2>Dernières actions</h2>
+                    <p>Tu peux afficher ici un tableau avec les dernières actions ou logs des utilisateurs.</p>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <style>
+        .sidebar {
+            height: 100vh;
+            position: sticky;
+            top: 0;
+            background-color: #1c1c1c;
+            border-right: 1px solid #333;
+        }
+
+        .nav-link.active {
+            color: #7F8CAA !important;
+            font-weight: 500;
+        }
+
+        .nav-link:hover {
+            color: #739EC9 !important;
+        }
+
+        main {
+            background-color: #121212;
+            color: #fff;
+            min-height: 100vh;
+        }
+
+        .card {
+            border-radius: 0.5rem;
+            border: 1px solid #333;
+        }
+    </style>
+{% endblock %}

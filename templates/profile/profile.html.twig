@@ -1,33 +1,128 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Mon Profil{% endblock %}
+{% block title %}Mon profil{% endblock %}
 
 {% block body %}
-    <div class="container mt-5">
-        <div class="card shadow-sm p-4">
-            <h1 class="mb-4">Mon Profil</h1>
+    <div class="container-fluid min-vh-100">
+        <div class="row">
+            <!-- Sidebar gauche -->
+            <nav class="col-md-3 col-lg-2 d-md-block bg-dark sidebar py-4">
+                <div class="text-center mb-4">
+                    <div class="rounded-circle overflow-hidden mx-auto" style="width: 100px; height: 100px;">
+                        <img src="{{ asset('uploads/profile/' ~ app.user.profilePicture) }}" alt="Photo profil" class="img-fluid">
+                    </div>
+                    <h5 class="text-white mt-2">{{ app.user.username }}</h5>
+                    <p class="text-muted small">{{ app.user.email }}</p>
+                </div>
 
-            <dl class="row">
-                <dt class="col-sm-3">Email :</dt>
-                <dd class="col-sm-9">{{ app.user.email }}</dd>
+                <ul class="nav flex-column mt-4">
+                    <li class="nav-item mb-2">
+                        <a class="nav-link text-light" href="{{ path('profile_edit') }}">Modifier mon profil</a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link text-light" href="{{ path('profile_data_privacy') }}">Données et confidentialité</a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link text-light" href="{{ path('profile_security') }}">Sécurité</a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link text-light" href="{{ path('profile_delete') }}">Supprimer mon compte</a>
+                    </li>
+                    {% if is_granted('ROLE_ADMIN') %}
+                        <li class="nav-item mt-3">
+                            <a class="nav-link text-light" href="{{ path('admin_dashboard') }}">Dashboard</a>
+                        </li>
+                        <li class="nav-item mb-2">
+                            <a class="nav-link text-light" href="{{ path('admin_users') }}">Gestion des utilisateurs</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
 
-                <dt class="col-sm-3">Nom d’utilisateur :</dt>
-                <dd class="col-sm-9">{{ app.user.username ?? 'Non défini' }}</dd>
+            <!-- Contenu principal -->
+            <main class="col-md-9 col-lg-10 ms-sm-auto px-md-4 py-4">
+                <!-- Onglets dynamiques sur la même page -->
+                <ul class="nav nav-tabs mb-4" id="profileTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="favoris-tab" data-bs-toggle="tab" data-bs-target="#favoris" type="button" role="tab">Favoris</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="a-voir-tab" data-bs-toggle="tab" data-bs-target="#a-voir" type="button" role="tab">À voir</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="en-cours-tab" data-bs-toggle="tab" data-bs-target="#en-cours" type="button" role="tab">En cours</button>
+                    </li>
+                </ul>
 
-                <dt class="col-sm-3">Rôles :</dt>
-                <dd class="col-sm-9">
-                    {% for role in app.user.roles %}
-                        <span class="badge bg-primary">{{ role }}</span>
-                    {% else %}
-                        <span class="text-muted">Aucun rôle</span>
-                    {% endfor %}
-                </dd>
-            </dl>
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="favoris" role="tabpanel">
+                        <h2>Favoris</h2>
+                        <p>Vos séries ou films favoris.</p>
+                        {# Boucle sur les favoris de l'utilisateur ici #}
+                    </div>
 
-            <div class="mt-4">
-                <a href="{{ path('app_profile_edit') }}" class="btn btn-warning">Modifier mon profil</a>
-                <a href="{{ path('app_logout') }}" class="btn btn-danger">Se déconnecter</a>
-            </div>
+                    <div class="tab-pane fade" id="a-voir" role="tabpanel">
+                        <h2>À voir</h2>
+                        <p>Liste des séries ou films que vous souhaitez voir.</p>
+                    </div>
+
+                    <div class="tab-pane fade" id="en-cours" role="tabpanel">
+                        <h2>En cours</h2>
+                        <p>Vos séries ou films en cours de visionnage.</p>
+                    </div>
+                </div>
+            </main>
         </div>
     </div>
+
+    <style>
+        .sidebar {
+            height: 100vh;
+            position: sticky;
+            top: 0;
+            background-color: #1c1c1c;
+            border-right: 1px solid #333;
+        }
+
+        .nav-link.active {
+            color: #7F8CAA !important;
+            font-weight: 500;
+        }
+
+        .nav-link:hover {
+            color: #739EC9 !important;
+        }
+
+        main {
+            background-color: #121212;
+            color: #fff;
+            min-height: 100vh;
+        }
+
+        main h2 {
+            color: #FFE8DB;
+            margin-bottom: 1rem;
+        }
+
+        .tab-content p {
+            color: #CCE0F4;
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabButtons = document.querySelectorAll('#profileTabs button');
+            tabButtons.forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    tabButtons.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+
+                    document.querySelectorAll('.tab-pane').forEach(tab => tab.classList.remove('show', 'active'));
+                    const target = document.querySelector(this.dataset.bsTarget);
+                    target.classList.add('show', 'active');
+                });
+            });
+        });
+    </script>
 {% endblock %}

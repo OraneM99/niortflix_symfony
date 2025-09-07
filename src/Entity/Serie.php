@@ -28,9 +28,7 @@ class Serie
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank(message: 'Le nom est obligatoire !')]
-    #[Assert\Length(min: 3, max: 150,
-        minMessage: 'Un nom doit comporter au moins {{ limit }} caractères.',
-        maxMessage: 'Un nom ne doit pas dépasser {{ limit }} caractères.')]
+    #[Assert\Length(min: 3, max: 150)]
     private ?string $name = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
@@ -79,9 +77,13 @@ class Serie
     #[ORM\JoinTable(name: 'serie_genre')]
     private Collection $genres;
 
+    #[ORM\OneToMany(targetEntity: UserSerie::class, mappedBy: 'serie')]
+    private Collection $userSeries;
+
     public function __construct()
     {
         $this->genres = new ArrayCollection();
+        $this->userSeries = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -244,9 +246,7 @@ class Serie
         $this->dateModified = new \DateTime();
     }
 
-    /**
-     * @return Collection<int, Genre>
-     */
+    /** @return Collection<int, Genre> */
     public function getGenres(): Collection
     {
         return $this->genres;
@@ -265,6 +265,31 @@ class Serie
     {
         if ($this->genres->removeElement($genre)) {
             $genre->removeSerie($this);
+        }
+        return $this;
+    }
+
+    /** @return Collection<int, UserSerie> */
+    public function getUserSeries(): Collection
+    {
+        return $this->userSeries;
+    }
+
+    public function addUserSerie(UserSerie $userSerie): static
+    {
+        if (!$this->userSeries->contains($userSerie)) {
+            $this->userSeries->add($userSerie);
+            $userSerie->setSerie($this);
+        }
+        return $this;
+    }
+
+    public function removeUserSerie(UserSerie $userSerie): static
+    {
+        if ($this->userSeries->removeElement($userSerie)) {
+            if ($userSerie->getSerie() === $this) {
+                $userSerie->setSerie(null);
+            }
         }
         return $this;
     }

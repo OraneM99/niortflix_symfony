@@ -3,9 +3,8 @@
 {% block title %}Créer un compte{% endblock %}
 
 {% block body %}
-    <div class="min-vh-100 d-flex align-items-center justify-content-center position-relative py-4">
-        <!-- Overlay pour assombrir le fond -->
-        <div class="overlay position-absolute top-0 start-0 w-100 h-100"></div>
+    <div class="min-vh-100 d-flex align-items-center justify-content-center position-relative py-4"
+         style="background: url('{{ asset('images/fond.jpeg') }}') center/cover no-repeat fixed; background-size: cover;">
 
         <div class="container position-relative">
             <div class="row justify-content-center">
@@ -16,16 +15,16 @@
                             <!-- En-tête avec icône -->
                             <div class="text-center mb-4">
                                 <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3 auth-icon">
-                                    <i class="fas fa-user-plus text-white fs-4"></i>
+                                    <img src="{{ asset('icons/user.png') }}" alt="Utilisateur">
                                 </div>
-                                <h1 class="h3 fw-bold text-white mb-2">📺 Créer un compte</h1>
+                                <h1 class="h3 fw-bold text-white mb-2">Créer un compte</h1>
                                 <p class="text-light opacity-75 mb-0">Rejoignez SeriesTime en quelques minutes</p>
                             </div>
 
-                            {# Messages flash d'erreur de vérification email #}
+                            {# Messages flash d'erreur #}
                             {% for flash_error in app.flashes('verify_email_error') %}
                                 <div class="alert alert-danger d-flex align-items-start border-0 mb-4 custom-alert">
-                                    <i class="fas fa-exclamation-triangle text-danger me-3 mt-1"></i>
+                                    <img src="{{ asset('icons/cadenas.png') }}" class="me-2">
                                     <small>{{ flash_error }}</small>
                                 </div>
                             {% endfor %}
@@ -33,7 +32,7 @@
                             {# Messages flash de succès #}
                             {% for flash_success in app.flashes('success') %}
                                 <div class="alert alert-success d-flex align-items-start border-0 mb-4 custom-alert">
-                                    <i class="fas fa-check-circle text-success me-3 mt-1"></i>
+                                    <img src="{{ asset('icons/user.png') }}" class="me-2">
                                     <small>{{ flash_success }}</small>
                                 </div>
                             {% endfor %}
@@ -42,84 +41,56 @@
 
                             <!-- Champ Nom d'utilisateur -->
                             <div class="mb-3">
-                                {{ form_label(registrationForm.username, null, {
-                                    'label_attr': {'class': 'form-label text-light small fw-medium'}
-                                }) }}
+                                {{ form_label(registrationForm.username, null, { 'label_attr': {'class': 'form-label text-light small fw-medium'} }) }}
                                 <div class="input-icon">
-                                    <i class="fas fa-user input-icon-left"></i>
-                                    {{ form_widget(registrationForm.username, {
-                                        'attr': {
-                                            'class': 'form-control custom-form-control ps-5',
-                                            'placeholder': 'Votre nom d\'utilisateur'
-                                        }
-                                    }) }}
+                                    <img src="{{ asset('icons/user.png') }}" class="input-icon-left" alt="Nom d'utilisateur">
+                                    {{ form_widget(registrationForm.username, { 'attr': { 'class': 'form-control custom-form-control ps-5', 'placeholder': 'Votre nom d\'utilisateur' } }) }}
                                 </div>
                                 {% if form_errors(registrationForm.username) %}
                                     <div class="text-danger mt-2">
-                                        <small><i class="fas fa-exclamation-circle me-1"></i>{{ form_errors(registrationForm.username) }}</small>
+                                        <small><img src="{{ asset('icons/cadenas.png') }}" class="me-1">{{ form_errors(registrationForm.username) }}</small>
                                     </div>
                                 {% endif %}
                             </div>
 
                             <!-- Champ Email -->
                             <div class="mb-3">
-                                {{ form_label(registrationForm.email, null, {
-                                    'label_attr': {'class': 'form-label text-light small fw-medium'}
-                                }) }}
+                                {{ form_label(registrationForm.email, null, { 'label_attr': {'class': 'form-label text-light small fw-medium'} }) }}
                                 <div class="input-icon">
-                                    <i class="fas fa-envelope input-icon-left"></i>
-                                    {{ form_widget(registrationForm.email, {
-                                        'attr': {
-                                            'class': 'form-control custom-form-control ps-5',
-                                            'placeholder': 'votre@email.com'
-                                        }
-                                    }) }}
+                                    <img src="{{ asset('icons/enveloppe.png') }}" class="input-icon-left" alt="Email">
+                                    {{ form_widget(registrationForm.email, { 'attr': { 'class': 'form-control custom-form-control ps-5', 'placeholder': 'votre@email.com' } }) }}
                                 </div>
                                 {% if form_errors(registrationForm.email) %}
                                     <div class="text-danger mt-2">
-                                        <small><i class="fas fa-exclamation-circle me-1"></i>{{ form_errors(registrationForm.email) }}</small>
+                                        <small><img src="{{ asset('icons/cadenas.png') }}" class="me-1">{{ form_errors(registrationForm.email) }}</small>
                                     </div>
                                 {% endif %}
                             </div>
 
                             <!-- Champ Mot de passe -->
                             <div class="mb-3">
-                                {{ form_label(registrationForm.plainPassword.first, 'Mot de passe', {
-                                    'label_attr': {'class': 'form-label text-light small fw-medium'}
-                                }) }}
+                                {{ form_label(registrationForm.plainPassword.first, 'Mot de passe', { 'label_attr': {'class': 'form-label text-light small fw-medium'} }) }}
                                 <div class="input-icon">
-                                    <i class="fas fa-lock input-icon-left"></i>
-                                    {{ form_widget(registrationForm.plainPassword.first, {
-                                        'attr': {
-                                            'class': 'form-control custom-form-control ps-5',
-                                            'placeholder': '••••••••••'
-                                        }
-                                    }) }}
+                                    <img src="{{ asset('icons/cadenas.png') }}" class="input-icon-left" alt="Mot de passe">
+                                    {{ form_widget(registrationForm.plainPassword.first, { 'attr': { 'class': 'form-control custom-form-control ps-5', 'placeholder': '••••••••••' } }) }}
                                 </div>
                                 {% if form_errors(registrationForm.plainPassword.first) %}
                                     <div class="text-danger mt-2">
-                                        <small><i class="fas fa-exclamation-circle me-1"></i>{{ form_errors(registrationForm.plainPassword.first) }}</small>
+                                        <small><img src="{{ asset('icons/cadenas.png') }}" class="me-1">{{ form_errors(registrationForm.plainPassword.first) }}</small>
                                     </div>
                                 {% endif %}
                             </div>
 
                             <!-- Champ Confirmation mot de passe -->
                             <div class="mb-3">
-                                {{ form_label(registrationForm.plainPassword.second, 'Confirmer le mot de passe', {
-                                    'label_attr': {'class': 'form-label text-light small fw-medium'}
-                                }) }}
+                                {{ form_label(registrationForm.plainPassword.second, 'Confirmer le mot de passe', { 'label_attr': {'class': 'form-label text-light small fw-medium'} }) }}
                                 <div class="input-icon">
-                                    <i class="fas fa-shield-alt input-icon-left"></i>
-                                    {{ form_widget(registrationForm.plainPassword.second, {
-                                        'attr': {
-                                            'class': 'form-control custom-form-control ps-5',
-                                            'placeholder': '••••••••••'
-                                        }
-                                    }) }}
+                                    <img src="{{ asset('icons/cadenas.png') }}" class="input-icon-left" alt="Confirmation mot de passe">
+                                    {{ form_widget(registrationForm.plainPassword.second, { 'attr': { 'class': 'form-control custom-form-control ps-5', 'placeholder': '••••••••••' } }) }}
                                 </div>
                                 {% if form_errors(registrationForm.plainPassword.second) %}
                                     <div class="text-danger mt-2">
-                                        <small><i class="fas fa-exclamation-circle me-1"></i>{{ form_errors(registrationForm.plainPassword.second) }}</small>
+                                        <small><img src="{{ asset('icons/cadenas.png') }}" class="me-1">{{ form_errors(registrationForm.plainPassword.second) }}</small>
                                     </div>
                                 {% endif %}
                             </div>
@@ -127,27 +98,21 @@
                             <!-- Case à cocher Conditions -->
                             <div class="mb-4 p-3 custom-terms-box">
                                 <div class="form-check">
-                                    {{ form_widget(registrationForm.agreeTerms, {
-                                        'attr': {
-                                            'class': 'form-check-input custom-form-check'
-                                        }
-                                    }) }}
-                                    {{ form_label(registrationForm.agreeTerms, null, {
-                                        'label_attr': {'class': 'form-check-label text-light small'}
-                                    }) }}
+                                    {{ form_widget(registrationForm.agreeTerms, { 'attr': { 'class': 'form-check-input custom-form-check' } }) }}
+                                    {{ form_label(registrationForm.agreeTerms, null, { 'label_attr': {'class': 'form-check-label text-light small'} }) }}
                                 </div>
                                 {% if form_errors(registrationForm.agreeTerms) %}
                                     <div class="text-danger mt-2">
-                                        <small><i class="fas fa-exclamation-circle me-1"></i>{{ form_errors(registrationForm.agreeTerms) }}</small>
+                                        <small><img src="{{ asset('icons/cadenas.png') }}" class="me-1">{{ form_errors(registrationForm.agreeTerms) }}</small>
                                     </div>
                                 {% endif %}
                             </div>
 
                             <!-- Bouton d'inscription -->
-                            <button type="submit" class="btn btn-primary btn-lg w-100 fw-semibold mb-4 custom-btn">
-                                <i class="fas fa-user-plus me-2"></i>
+                            <button type="submit" class="btn btn-primary btn-lg w-100 fw-semibold mb-4 custom-btn d-flex align-items-center justify-content-center">
+                                <img src="{{ asset('icons/user.png') }}" class="me-2" alt="Créer un compte">
                                 Créer mon compte
-                                <i class="fas fa-arrow-right ms-2"></i>
+                                <img src="{{ asset('icons/arrow.png') }}" class="ms-2" alt="">
                             </button>
 
                             {{ form_end(registrationForm) }}
@@ -156,170 +121,122 @@
                             <div class="text-center mb-3">
                                 <small class="text-light opacity-75">
                                     Déjà un compte ?
-                                    <a href="{{ path('app_login') }}" class="text-decoration-none text-primary fw-medium">
+                                    <a href="{{ path('app_login') }}" style="color:#7F8CAA; text-decoration:none; font-weight:500;">
                                         Se connecter
                                     </a>
                                 </small>
                             </div>
 
-                            <!-- Indicateur de sécurité -->
+                            <!-- Indicateur sécurité -->
                             <div class="d-flex align-items-center justify-content-center security-info">
-                                <i class="fas fa-shield-alt text-success me-2"></i>
-                                <small class="text-muted">Vos données sont sécurisées et chiffrées</small>
+                                <img src="{{ asset('icons/shield.png') }}" alt="Sécurité" class="me-2" style="width:1rem;height:1rem;">
+                                <small class="text-white">Vos données sont sécurisées et chiffrées</small>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Styles personnalisés -->
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
-            background: url('{{ asset('images/fond.jpeg') }}') center/cover no-repeat fixed;
-            position: relative;
-            font-family: Arial, sans-serif;
-        }
-
-        .auth-card {
-            background-color: rgba(0, 0, 0, 0.8) !important;
-            backdrop-filter: blur(10px);
-            border-radius: 15px !important;
-            z-index: 2;
-        }
-
-        .auth-icon {
-            width: 4rem;
-            height: 4rem;
-            background-color: rgba(13, 110, 253, 0.2);
-            border: 2px solid #0d6efd;
-        }
-
-        .input-icon {
-            position: relative;
-        }
-
-        .input-icon-left {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: rgba(255, 255, 255, 0.6);
-            z-index: 10;
-        }
-
-        .custom-form-control {
-            background-color: rgba(255, 255, 255, 0.1) !important;
-            border: 1px solid rgba(255, 255, 255, 0.3) !important;
-            color: white !important;
-            border-radius: 8px !important;
-        }
-
-        .custom-form-control:focus {
-            background-color: rgba(255, 255, 255, 0.15) !important;
-            border-color: #0d6efd !important;
-            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25) !important;
-            color: white !important;
-        }
-
-        .custom-form-control:focus + .input-icon-left,
-        .input-icon:focus-within .input-icon-left {
-            color: #0d6efd !important;
-        }
-
-        .custom-form-control::placeholder {
-            color: rgba(255, 255, 255, 0.6) !important;
-        }
-
-        .custom-form-check {
-            background-color: rgba(255, 255, 255, 0.1) !important;
-            border: 1px solid rgba(255, 255, 255, 0.3) !important;
-        }
-
-        .custom-form-check:checked {
-            background-color: #0d6efd !important;
-            border-color: #0d6efd !important;
-        }
-
-        .custom-terms-box {
-            background-color: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-        }
-
-        .custom-btn {
-            background-color: #0d6efd !important;
-            border-color: #0d6efd !important;
-            border-radius: 8px !important;
-            transition: all 0.3s ease !important;
-        }
-
-        .custom-btn:hover {
-            background-color: #0b5ed7 !important;
-            border-color: #0a58ca !important;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3) !important;
-        }
-
-        .custom-btn:hover .fa-arrow-right {
-            transform: translateX(3px);
-            transition: transform 0.2s ease;
-        }
-
-        .custom-alert {
-            background-color: rgba(0, 0, 0, 0.6) !important;
-            backdrop-filter: blur(5px);
-            border-radius: 8px;
-        }
-
-        .alert-danger {
-            border-left: 4px solid #dc3545 !important;
-        }
-
-        .alert-success {
-            border-left: 4px solid #198754 !important;
-        }
-
-        .text-danger {
-            color: #ff6b6b !important;
-        }
-
-        .security-info {
-            padding: 0.5rem;
-            background-color: rgba(255, 255, 255, 0.05);
-            border-radius: 6px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        /* Animation d'entrée */
-        .auth-card {
-            animation: slideUp 0.6s ease-out;
-        }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
+        <style>
+            body {
+                margin: 0;
+                padding: 0;
+                min-height: 100vh;
+                background: url('{{ asset('images/fond.jpeg') }}') center/cover no-repeat fixed;
+                background-size: cover;
+                font-family: Arial, sans-serif;
             }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
 
-        /* Responsive */
-        @media (max-width: 768px) {
             .auth-card {
-                margin: 1rem;
+                background-color: rgba(0,0,0,0.8);
+                backdrop-filter: blur(10px);
+                border-radius: 15px;
+                z-index: 2;
+                animation: slideUp 0.6s ease-out;
             }
 
-            .card-body {
-                padding: 2rem 1.5rem !important;
+            .auth-icon {
+                width: 4rem; height: 4rem;
+                display: flex; align-items: center; justify-content: center;
+                background-color: rgb(51, 52, 70);
+                border: 2px solid #7F8CAA;
             }
-        }
-    </style>
+            .auth-icon img {
+                width: 2rem; height: 2rem;
+            }
+
+            .input-icon { position: relative; }
+            .input-icon-left {
+                position: absolute;
+                left: 15px;
+                top: 50%;
+                transform: translateY(-50%);
+                pointer-events: none;
+                width: 1.2rem; height: 1.2rem;
+            }
+
+            .custom-form-control {
+                background-color: rgba(255,255,255,0.1) !important;
+                border: 1px solid rgba(255,255,255,0.3) !important;
+                color: white !important;
+                border-radius: 8px !important;
+            }
+            .custom-form-control::placeholder { color: rgba(255,255,255,0.6) !important; }
+            .custom-form-control:focus {
+                background-color: rgba(255,255,255,0.15) !important;
+                border-color: #333446 !important;
+                box-shadow: 0 0 0 0.2rem rgb(127, 140, 170) !important;
+                color: white !important;
+            }
+
+            .custom-form-check {
+                background-color: rgba(255,255,255,0.1);
+                border:1px solid rgba(255,255,255,0.3);
+            }
+            .custom-form-check:checked {
+                background-color:#7F8CAA;
+                border-color:#7F8CAA;
+            }
+
+            .custom-btn {
+                background-color: #7F8CAA !important;
+                border-color: #7F8CAA !important;
+                border-radius: 8px;
+                transition: all 0.3s ease;
+            }
+            .custom-btn:hover {
+                background-color: #333446 !important;
+                border-color: #333446 !important;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgb(127, 140, 170);
+            }
+            .custom-btn img { width: 1rem; height: 1rem; }
+
+            .container.position-relative { position: relative; z-index:2; }
+
+            .custom-alert {
+                background-color: rgba(0,0,0,0.6);
+                backdrop-filter: blur(5px);
+                border-radius: 8px;
+            }
+            .alert-danger { border-left: 4px solid #dc3545; }
+            .alert-success { border-left: 4px solid #198754; }
+
+            .security-info {
+                padding: 0.5rem;
+                background-color: rgba(255,255,255,0.05);
+                border-radius: 6px;
+                border:1px solid rgba(255,255,255,0.1);
+            }
+            .security-info small { color:white !important; }
+
+            @keyframes slideUp { from { opacity:0; transform: translateY(30px); } to { opacity:1; transform: translateY(0); } }
+
+            @media (max-width:768px) {
+                .auth-card { margin:1rem; }
+                .card-body { padding: 2rem 1.5rem !important; }
+            }
+        </style>
+    </div>
 {% endblock %}

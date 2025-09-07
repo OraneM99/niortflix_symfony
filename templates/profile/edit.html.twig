@@ -1,28 +1,159 @@
+{# templates/profile/edit.html.twig #}
 {% extends 'base.html.twig' %}
 
 {% block title %}Modifier mon profil{% endblock %}
 
 {% block body %}
-    <div class="container mt-5">
-        <div class="card shadow-sm p-4">
-            <h1 class="mb-4">Modifier mon profil</h1>
+    <div class="container-fluid p-0">
 
-            {{ form_start(profileForm) }}
-            {{ form_row(profileForm.email) }}
-            {{ form_row(profileForm.username) }}
+        <div class="row m-0">
+            {% include 'profile/_sidebar.html.twig' %}
 
-            <hr class="my-4">
+            <main class="col-md-9 col-lg-10 px-4 py-5 d-flex justify-content-center align-items-start">
 
-            <h5>Changer le mot de passe</h5>
-            <p class="text-muted small">Laissez vide si vous ne souhaitez pas le modifier.</p>
-            {{ form_row(profileForm.currentPassword) }}
-            {{ form_row(profileForm.plainPassword) }}
+                <div class="card bg-dark border-0 shadow-lg w-100" style="max-width: 800px; margin: auto;">
+                    <div class="card-body p-5">
 
-            <div class="mt-4">
-                <button class="btn btn-success">Enregistrer</button>
-                <a href="{{ path('app_profile') }}" class="btn btn-secondary">Annuler</a>
-            </div>
-            {{ form_end(profileForm) }}
+                        <div class="text-center mb-4">
+                            <h1 class="h3 fw-bold mb-2 text-white">Modifier mon profil</h1>
+                            <p class="text-white opacity-75 mb-0">Mettez à jour vos informations</p>
+                        </div>
+
+                        {% for flash_success in app.flashes('success') %}
+                            <div class="alert alert-success d-flex align-items-start border-0 mb-4 custom-alert">
+                                <small class="text-white">{{ flash_success }}</small>
+                            </div>
+                        {% endfor %}
+
+                        {{ form_start(profileForm, {'attr': {'enctype': 'multipart/form-data'}}) }}
+
+                        <!-- Photo de profil -->
+                        <div class="mb-4 text-center">
+                            {% if app.user.profilePicture %}
+                                <img src="{{ asset(app.user.profilePicture) }}" alt="Photo de profil"
+                                     class="rounded-circle mb-3" style="width:120px;height:120px;object-fit:cover;">
+                            {% else %}
+                                <div class="rounded-circle mb-3" style="width:120px;height:120px;background-color:#333;"></div>
+                            {% endif %}
+                            {{ form_row(profileForm.profilePictureFile) }}
+                        </div>
+
+                        <!-- Email et Nom d'utilisateur -->
+                        {% for field in ['email', 'username'] %}
+                            <div class="mb-3">
+                                {{ form_label(attribute(profileForm, field), null, {'label_attr': {'class':'form-label small fw-medium text-white'}}) }}
+                                <div class="input-icon">
+                                    <img src="{{ asset('icons/' ~ (field == 'email' ? 'enveloppe.png' : 'user.png')) }}"
+                                         class="input-icon-left" alt="{{ field }}">
+                                    {% set placeholder = field == 'email' ? 'votre@email.com' : "Votre nom d'utilisateur" %}
+                                    {{ form_widget(attribute(profileForm, field), {'attr': {'class':'form-control custom-form-control ps-5', 'placeholder': placeholder}}) }}
+                                </div>
+                                {% if form_errors(attribute(profileForm, field)) %}
+                                    <div class="text-danger mt-2">
+                                        <small>{{ form_errors(attribute(profileForm, field)) }}</small>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+
+                        <hr class="my-4 border-secondary">
+
+                        <h5 class="text-white mb-3">Changer le mot de passe</h5>
+                        <p class="text-white opacity-75 small mb-4">Remplissez tous les champs pour modifier votre mot de passe.</p>
+
+                        <div class="row g-3 mb-3">
+                            <!-- Mot de passe actuel -->
+                            <div class="col-md-12">
+                                {{ form_label(profileForm.currentPassword, 'Mot de passe actuel', {'label_attr': {'class':'form-label small fw-medium text-white'}}) }}
+                                <div class="input-icon">
+                                    <img src="{{ asset('icons/cadenas.png') }}" class="input-icon-left" alt="currentPassword">
+                                    {{ form_widget(profileForm.currentPassword, {'attr': {'class':'form-control custom-form-control ps-5', 'placeholder':'••••••••••'}}) }}
+                                </div>
+                                {% if form_errors(profileForm.currentPassword) %}
+                                    <div class="text-danger mt-2">
+                                        <small>{{ form_errors(profileForm.currentPassword) }}</small>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <!-- Nouveau mot de passe -->
+                            <div class="col-md-6">
+                                {{ form_label(profileForm.plainPassword, 'Nouveau mot de passe', {'label_attr': {'class':'form-label small fw-medium text-white'}}) }}
+                                <div class="input-icon">
+                                    <img src="{{ asset('icons/cadenas.png') }}" class="input-icon-left" alt="plainPassword">
+                                    {{ form_widget(profileForm.plainPassword, {'attr': {'class':'form-control custom-form-control ps-5', 'placeholder':'••••••••••'}}) }}
+                                </div>
+                                {% if form_errors(profileForm.plainPassword) %}
+                                    <div class="text-danger mt-2">
+                                        <small>{{ form_errors(profileForm.plainPassword) }}</small>
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Confirmation mot de passe -->
+                            <div class="col-md-6">
+                                {{ form_label(profileForm.confirmPassword, 'Confirmer le mot de passe', {'label_attr': {'class':'form-label small fw-medium text-white'}}) }}
+                                <div class="input-icon">
+                                    <img src="{{ asset('icons/cadenas.png') }}" class="input-icon-left" alt="confirmPassword">
+                                    {{ form_widget(profileForm.confirmPassword, {'attr': {'class':'form-control custom-form-control ps-5', 'placeholder':'••••••••••'}}) }}
+                                </div>
+                                {% if form_errors(profileForm.confirmPassword) %}
+                                    <div class="text-danger mt-2">
+                                        <small>{{ form_errors(profileForm.confirmPassword) }}</small>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mt-4 d-grid gap-2">
+                            <button class="btn btn-primary btn-lg fw-semibold d-flex align-items-center justify-content-center">
+                                <img src="{{ asset('icons/user.png') }}" class="me-2" alt="Modifier le profil" style="width:1.4rem;height:1.4rem;">
+                                Enregistrer les modifications
+                                <img src="{{ asset('icons/arrow.png') }}" class="ms-2" alt="" style="width:1rem;height:1rem;">
+                            </button>
+                            <a href="{{ path('profile_index') }}" class="btn btn-secondary">Annuler</a>
+                        </div>
+
+                        {{ form_end(profileForm) }}
+
+                    </div>
+                </div>
+
+            </main>
         </div>
     </div>
+
+    <style>
+        body, html { margin:0; padding:0; height:100%; background-color:#121212; color:#fff; }
+
+        .input-icon { position:relative; }
+        .input-icon-left { position:absolute; left:15px; top:50%; transform:translateY(-50%); pointer-events:none; width:1.2rem; height:1.2rem; }
+
+        .custom-form-control {
+            background-color: #1c1c1c !important;
+            border:1px solid #333 !important;
+            color:#fff !important;
+            border-radius:8px !important;
+            height: calc(2.5rem + 2px);
+        }
+        .custom-form-control::placeholder { color: rgba(255,255,255,0.5) !important; }
+        .custom-form-control:focus {
+            background-color: #222 !important;
+            border-color: #7F8CAA !important;
+            box-shadow:0 0 0 0.2rem rgba(127,140,170,0.3) !important;
+            color:white !important;
+        }
+
+        .btn-primary { background-color:#7F8CAA; border-radius:8px; transition: all 0.3s ease; }
+        .btn-primary:hover { background-color:#739EC9; transform:translateY(-2px); box-shadow:0 4px 12px rgba(127,140,170,0.5); }
+
+        .btn-secondary { background-color:#333; border-radius:8px; color:#fff; }
+        .btn-secondary:hover { background-color:#444; }
+
+        hr { border-color:#333; }
+
+        .custom-alert { background-color: rgba  (127,140,170,0.1); border-radius:8px; color:#fff; }
+    </style>
 {% endblock %}
