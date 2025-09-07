@@ -1,0 +1,28 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier mon profil{% endblock %}
+
+{% block body %}
+    <div class="container mt-5">
+        <div class="card shadow-sm p-4">
+            <h1 class="mb-4">Modifier mon profil</h1>
+
+            {{ form_start(profileForm) }}
+            {{ form_row(profileForm.email) }}
+            {{ form_row(profileForm.username) }}
+
+            <hr class="my-4">
+
+            <h5>Changer le mot de passe</h5>
+            <p class="text-muted small">Laissez vide si vous ne souhaitez pas le modifier.</p>
+            {{ form_row(profileForm.currentPassword) }}
+            {{ form_row(profileForm.plainPassword) }}
+
+            <div class="mt-4">
+                <button class="btn btn-success">Enregistrer</button>
+                <a href="{{ path('app_profile') }}" class="btn btn-secondary">Annuler</a>
+            </div>
+            {{ form_end(profileForm) }}
+        </div>
+    </div>
+{% endblock %}

@@ -68,7 +68,8 @@ class SerieType extends AbstractType
                             'image/jpeg',
                             'image/jpg',
                             'image/png',
-                            'image/webp'
+                            'image/webp',
+                            'image/avif'
                         ],
                         'mimeTypesMessage' => "Le format de l'image n'est pas valide : .jpg, .jpeg, .png ou .webp",
                         'maxSizeMessage' => 'Max file size 2 MB',

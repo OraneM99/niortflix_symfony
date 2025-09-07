@@ -3,7 +3,7 @@
 {% block title %}Se connecter{% endblock %}
 
 {% block body %}
-    <div class="min-vh-100 d-flex align-items-center justify-content-center position-relative"
+    <div class="min-vh-100 d-flex align-items-center justify-content-center position-relative py-4"
          style="background: url('{{ random_background() ?: asset('images/fond.jpeg') }}') center/cover no-repeat fixed;">
 
         <!-- Overlay sombre -->
@@ -11,31 +11,31 @@
 
         <div class="container position-relative">
             <div class="row justify-content-center">
-                <div class="col-md-5 col-lg-4">
+                <div class="col-md-6 col-lg-5">
                     <!-- Carte principale -->
                     <div class="card bg-dark text-light border-0 shadow-lg auth-card">
                         <div class="card-body p-4 p-md-5">
-                            <!-- En-tête avec icône -->
+                            <!-- En-tête avec icône utilisateur -->
                             <div class="text-center mb-4">
                                 <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3 auth-icon">
-                                    <i class="fas fa-user text-white fs-4"></i>
+                                    <img src="{{ asset('icons/user.png') }}" alt="Utilisateur" style="width:2rem;height:2rem;">
                                 </div>
-                                <h1 class="h3 fw-bold text-white mb-2">📺 Connexion</h1>
-                                <p class="text-light opacity-75 mb-0">Accédez à votre espace SeriesTime</p>
+                                <h1 class="h3 fw-bold text-white mb-2">Connexion</h1>
+                                <p class="text-light opacity-75 mb-0">Accédez à votre espace</p>
                             </div>
 
-                            {# Messages d'erreur de login #}
+                            {# Messages d'erreur #}
                             {% if error %}
-                                <div class="alert alert-danger d-flex align-items-center border-0 mb-4 custom-alert">
-                                    <i class="fas fa-exclamation-triangle text-danger me-3"></i>
+                                <div class="alert alert-danger d-flex align-items-start border-0 mb-4 custom-alert">
+                                    <img src="{{ asset('icons/cadenas.png') }}" alt="Erreur" style="width:1.2rem;height:1.2rem;margin-right:0.5rem;">
                                     <small>{{ error.messageKey|trans(error.messageData, 'security') }}</small>
                                 </div>
                             {% endif %}
 
-                            {# Message si l'utilisateur est déjà connecté #}
+                            {# Message si utilisateur connecté #}
                             {% if app.user %}
-                                <div class="alert alert-success d-flex align-items-center border-0 mb-4 custom-alert">
-                                    <i class="fas fa-check-circle text-success me-3"></i>
+                                <div class="alert alert-success d-flex align-items-start border-0 mb-4 custom-alert">
+                                    <img src="{{ asset('icons/user.png') }}" alt="Connecté" style="width:1.2rem;height:1.2rem;margin-right:0.5rem;">
                                     <div>
                                         <small>Connecté en tant que <strong>{{ app.user.username }}</strong>.</small>
                                         <a href="{{ path('app_logout') }}" class="text-success text-decoration-none ms-2">
@@ -46,64 +46,59 @@
                             {% endif %}
 
                             <form method="post">
-                                <!-- Champ Email -->
+                                <!-- Email -->
                                 <div class="mb-3">
-                                    <label for="inputEmail" class="form-label text-light small fw-medium">
-                                        <i class="fas fa-envelope me-2"></i>Adresse email
-                                    </label>
-                                    <input type="email"
-                                           value="{{ last_username }}"
-                                           name="email"
-                                           id="inputEmail"
-                                           class="form-control custom-form-control"
-                                           placeholder="votre@email.com"
-                                           autocomplete="email"
-                                           required
-                                           autofocus>
+                                    <label for="inputEmail" class="form-label text-light small fw-medium">Adresse email</label>
+                                    <div class="input-icon">
+                                        <img src="{{ asset('icons/enveloppe.png') }}" class="input-icon-left" alt="Email">
+                                        <input type="email"
+                                               value="{{ last_username }}"
+                                               name="email"
+                                               id="inputEmail"
+                                               class="form-control custom-form-control ps-5"
+                                               placeholder="votre@email.com"
+                                               autocomplete="email"
+                                               required
+                                               autofocus>
+                                    </div>
                                 </div>
 
-                                <!-- Champ Mot de passe -->
+                                <!-- Mot de passe -->
                                 <div class="mb-3">
-                                    <label for="inputPassword" class="form-label text-light small fw-medium">
-                                        <i class="fas fa-lock me-2"></i>Mot de passe
-                                    </label>
-                                    <input type="password"
-                                           name="password"
-                                           id="inputPassword"
-                                           class="form-control custom-form-control"
-                                           placeholder="••••••••••"
-                                           autocomplete="current-password"
-                                           required>
+                                    <label for="inputPassword" class="form-label text-light small fw-medium">Mot de passe</label>
+                                    <div class="input-icon">
+                                        <img src="{{ asset('icons/cadenas.png') }}" class="input-icon-left" alt="Mot de passe">
+                                        <input type="password"
+                                               name="password"
+                                               id="inputPassword"
+                                               class="form-control custom-form-control ps-5"
+                                               placeholder="••••••••••"
+                                               autocomplete="current-password"
+                                               required>
+                                    </div>
                                 </div>
 
                                 <!-- Options -->
                                 <div class="d-flex justify-content-between align-items-center mb-4">
                                     <div class="form-check">
-                                        <input type="checkbox"
-                                               id="remember_me"
-                                               name="_remember_me"
+                                        <input type="checkbox" id="remember_me" name="_remember_me"
                                                class="form-check-input custom-form-check">
-                                        <label for="remember_me" class="form-check-label text-light small">
-                                            Se souvenir de moi
-                                        </label>
+                                        <label for="remember_me" class="form-check-label text-light small">Se souvenir de moi</label>
                                     </div>
-                                    <a href="#" class="text-decoration-none small text-primary">
-                                        Mot de passe oublié ?
-                                    </a>
+                                    <a href="#" class="text-decoration-none small text-primary">Mot de passe oublié ?</a>
                                 </div>
 
                                 <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
 
-                                <!-- Bouton de connexion -->
+                                <!-- Bouton connexion -->
                                 <button type="submit" class="btn btn-primary btn-lg w-100 fw-semibold mb-4 custom-btn">
-                                    <i class="fas fa-sign-in-alt me-2"></i>
+                                    <img src="{{ asset('icons/arrow.png') }}" alt="Se connecter" style="width:1rem;height:1rem;margin-right:0.5rem;">
                                     Se connecter
-                                    <i class="fas fa-arrow-right ms-2"></i>
                                 </button>
                             </form>
 
-                            <!-- Lien d'inscription -->
-                            <div class="text-center">
+                            <!-- Lien vers inscription -->
+                            <div class="text-center mb-3">
                                 <small class="text-light opacity-75">
                                     Pas encore de compte ?
                                     <a href="{{ path('app_register') }}" class="text-decoration-none text-primary fw-medium">
@@ -111,130 +106,124 @@
                                     </a>
                                 </small>
                             </div>
+
+                            <!-- Indicateur sécurité -->
+                            <div class="d-flex align-items-center justify-content-center security-info">
+                                <img src="{{ asset('icons/shield.png') }}" alt="Sécurité" style="width:1rem;height:1rem;margin-right:0.5rem;">
+                                <small class="text-muted">Vos données sont sécurisées et chiffrées</small>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- Styles personnalisés -->
+        <style>
+            body {
+                margin: 0;
+                padding: 0;
+                min-height: 100vh;
+                font-family: Arial, sans-serif;
+            }
+
+            .auth-card {
+                background-color: rgba(0,0,0,0.8) !important;
+                backdrop-filter: blur(10px);
+                border-radius: 15px !important;
+                z-index: 2;
+                animation: slideUp 0.6s ease-out;
+            }
+
+            .auth-icon {
+                width: 4rem;
+                height: 4rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background-color: rgba(13,110,253,0.2);
+                border: 2px solid #0d6efd;
+            }
+
+            .input-icon { position: relative; }
+            .input-icon-left {
+                width: 1.2rem;
+                height: 1.2rem;
+            }
+
+            .auth-icon img {
+                width: 2rem;
+                height: 2rem;
+            }
+
+            button img {
+                 width: 1rem;
+                 height: 1rem;
+             }
+
+            .security-info img {
+                width: 1rem;
+                height: 1rem;
+                margin-right: 0.5rem;
+            }
+
+            .custom-form-control {
+                background-color: rgba(255,255,255,0.1) !important;
+                border: 1px solid rgba(255,255,255,0.3) !important;
+                color: white !important;
+                border-radius: 8px !important;
+            }
+
+            .custom-form-control:focus {
+                background-color: rgba(255,255,255,0.15) !important;
+                border-color: #0d6efd !important;
+                box-shadow: 0 0 0 0.2rem rgba(13,110,253,0.25) !important;
+                color: white !important;
+            }
+
+            .custom-form-check { background-color: rgba(255,255,255,0.1) !important; border: 1px solid rgba(255,255,255,0.3) !important; }
+            .custom-form-check:checked { background-color: #0d6efd !important; border-color: #0d6efd !important; }
+
+            .custom-btn {
+                background-color: #0d6efd !important;
+                border-color: #0d6efd !important;
+                border-radius: 8px !important;
+                transition: all 0.3s ease !important;
+            }
+            .custom-btn:hover {
+                background-color: #0b5ed7 !important;
+                border-color: #0a58ca !important;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(13,110,253,0.3) !important;
+            }
+
+            .overlay {
+                position: absolute;
+                top: 0; left: 0;
+                width: 100%; height: 100%;
+                background-color: rgba(0,0,0,0.4);
+                z-index: 1;
+            }
+
+            .container.position-relative { position: relative; z-index: 2; }
+
+            .custom-alert { background-color: rgba(0,0,0,0.6) !important; backdrop-filter: blur(5px); border-radius: 8px; }
+            .alert-danger { border-left: 4px solid #dc3545 !important; }
+            .alert-success { border-left: 4px solid #198754 !important; }
+
+            .security-info {
+                padding: 0.5rem;
+                background-color: rgba(255,255,255,0.05);
+                border-radius: 6px;
+                border: 1px solid rgba(255,255,255,0.1);
+            }
+
+            @keyframes slideUp { from { opacity:0; transform: translateY(30px); } to { opacity:1; transform: translateY(0); } }
+
+            @media (max-width:768px) {
+                .auth-card { margin:1rem; }
+                .card-body { padding: 2rem 1.5rem !important; }
+            }
+        </style>
     </div>
-
-    <!-- Styles personnalisés -->
-    <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            width: 100%;
-        }
-
-        .min-vh-100 {
-            min-height: 100vh;
-            position: relative;
-            z-index: 1;
-        }
-
-        .overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.4);
-            z-index: 1;
-        }
-
-        .container.position-relative {
-            position: relative;
-            z-index: 2;
-        }
-
-        .auth-card {
-            backdrop-filter: blur(10px);
-            border-radius: 15px !important;
-            z-index: 2;
-        }
-
-        .auth-icon {
-            width: 4rem;
-            height: 4rem;
-            background-color: rgba(13, 110, 253, 0.2);
-            border: 2px solid #0d6efd;
-        }
-
-        .custom-form-control {
-            background-color: rgba(255, 255, 255, 0.1) !important;
-            border: 1px solid rgba(255, 255, 255, 0.3) !important;
-            color: white !important;
-            border-radius: 8px !important;
-        }
-
-        .custom-form-control:focus {
-            background-color: rgba(255, 255, 255, 0.15) !important;
-            border-color: #0d6efd !important;
-            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25) !important;
-            color: white !important;
-        }
-
-        .custom-form-control::placeholder {
-            color: rgba(255, 255, 255, 0.6) !important;
-        }
-
-        .custom-form-check {
-            background-color: rgba(255, 255, 255, 0.1) !important;
-            border: 1px solid rgba(255, 255, 255, 0.3) !important;
-        }
-
-        .custom-form-check:checked {
-            background-color: #0d6efd !important;
-            border-color: #0d6efd !important;
-        }
-
-        .custom-btn {
-            background-color: #0d6efd !important;
-            border-color: #0d6efd !important;
-            border-radius: 8px !important;
-            transition: all 0.3s ease !important;
-        }
-
-        .custom-btn:hover {
-            background-color: #0b5ed7 !important;
-            border-color: #0a58ca !important;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3) !important;
-        }
-
-        .custom-btn:hover .fa-arrow-right {
-            transform: translateX(3px);
-            transition: transform 0.2s ease;
-        }
-
-        .custom-alert {
-            background-color: rgba(0, 0, 0, 0.6) !important;
-            backdrop-filter: blur(5px);
-            border-radius: 8px;
-        }
-
-        .alert-danger {
-            border-left: 4px solid #dc3545 !important;
-        }
-
-        .alert-success {
-            border-left: 4px solid #198754 !important;
-        }
-
-        .auth-card {
-            animation: slideUp 0.6s ease-out;
-        }
-
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .auth-card { margin: 1rem; }
-            .card-body { padding: 2rem 1.5rem !important; }
-        }
-    </style>
 {% endblock %}

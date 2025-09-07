@@ -1,0 +1,33 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mon Profil{% endblock %}
+
+{% block body %}
+    <div class="container mt-5">
+        <div class="card shadow-sm p-4">
+            <h1 class="mb-4">Mon Profil</h1>
+
+            <dl class="row">
+                <dt class="col-sm-3">Email :</dt>
+                <dd class="col-sm-9">{{ app.user.email }}</dd>
+
+                <dt class="col-sm-3">Nom d’utilisateur :</dt>
+                <dd class="col-sm-9">{{ app.user.username ?? 'Non défini' }}</dd>
+
+                <dt class="col-sm-3">Rôles :</dt>
+                <dd class="col-sm-9">
+                    {% for role in app.user.roles %}
+                        <span class="badge bg-primary">{{ role }}</span>
+                    {% else %}
+                        <span class="text-muted">Aucun rôle</span>
+                    {% endfor %}
+                </dd>
+            </dl>
+
+            <div class="mt-4">
+                <a href="{{ path('app_profile_edit') }}" class="btn btn-warning">Modifier mon profil</a>
+                <a href="{{ path('app_logout') }}" class="btn btn-danger">Se déconnecter</a>
+            </div>
+        </div>
+    </div>
+{% endblock %}
