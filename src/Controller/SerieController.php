@@ -22,25 +22,6 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/serie', name: 'serie_')]
 final class SerieController extends AbstractController
 {
-    #[Route('/test', name: 'app_serie')]
-    public function index(EntityManagerInterface $em): Response
-    {
-        $serie = new Serie();
-        $serie->setName('La Casa de Papel')
-            ->setOverview('Beaucoup de fil à retorde pour el Professor ...')
-            ->setStatus('ended')
-            ->setVote(8.4)
-            ->setPopularity(899.2)
-            ->setFirstAirDate(new DateTime('2017-05-02'))
-            ->setLastAirDate(new DateTime('2021-12-03'))
-            ->setDateCreated(new DateTime());
-
-        $em->persist($serie);
-        $em->flush();
-
-        return new Response('Une série a été créée en base');
-    }
-
     #[Route('/liste/{page}', name: 'liste', requirements: ['page' => '\d+'], defaults: ['page' => 1])]
     public function liste(SerieRepository $serieRepository,
                           GenreRepository $genreRepository,
@@ -79,6 +60,28 @@ final class SerieController extends AbstractController
             'serie' => $serie,
             'contributors' => $contributors
         ]);
+    }
+
+    #[Route('/favorite/{id}', name: 'favorite', requirements: ['id' => '\d+'])]
+    public function favorite(Serie $serie, EntityManagerInterface $em): Response
+    {
+        $user = $this->getUser();
+        if (!$user) {
+            $this->addFlash('warning', 'Vous devez être connecté pour ajouter une série aux favoris.');
+            return $this->redirectToRoute('app_login');
+        }
+
+        if ($user->hasFavoriteSerie($serie)) {
+            $user->removeFavoriteSerie($serie);
+            $this->addFlash('info', 'La série a été retirée de vos favoris.');
+        } else {
+            $user->addFavoriteSerie($serie);
+            $this->addFlash('success', 'La série a été ajoutée à vos favoris.');
+        }
+
+        $em->flush();
+
+        return $this->redirectToRoute('serie_detail', ['id' => $serie->getId()]);
     }
 
     #[Route('/create', name: 'create')]

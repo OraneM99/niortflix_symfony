@@ -22,195 +22,183 @@
     <div class="serie-detail-container">
         <a href="{{ path('serie_liste') }}" class="btn-back">&lt; Retour</a>
 
-        <!-- Header avec nom de l'app et genres -->
+        <!-- Header -->
         <div class="serie-header">
-            <div class="serie-meta">{{ serie.name }}
+            <div class="serie-meta">
+                {{ serie.name }}
                 <span class="genre-separator">|</span>
                 <span class="serie-genres">{{ serie.genres|join(' · ') }}</span>
             </div>
         </div>
 
-        <!-- Contenu principal avec poster -->
+        <!-- Contenu principal -->
         <div class="serie-main-content">
-            <!-- Poster à gauche -->
+            <!-- Poster -->
             <div class="poster-section">
                 <img src="{{ asset(serie_params.poster_dir ~ '/' ~ serie.poster) }}"
                      alt="{{ serie.name }}"
-                     style="max-width:400px; height:auto; display:block;">
+                     class="poster-img">
+
+                {# Statut en haut à gauche #}
+                {% set status = serie.status|lower %}
+                <span class="status-overlay">
+                {% if status == 'returning' %}
+                    En cours
+                {% elseif status == 'ended' %}
+                    Terminée
+                {% elseif status == 'cancelled' %}
+                    Annulée
+                {% else %}
+                    {{ status }}
+                {% endif %}
+            </span>
             </div>
 
-            <!-- Contenu à droite -->
+            <!-- Infos -->
             <div class="content-section">
-                <!-- Informations de la série -->
                 <div class="serie-info">
-                    <!-- Titre principal de la série -->
                     <h1 class="serie-title">{{ serie.name }}</h1>
 
-                    <!-- Dates et statut -->
+                    <!-- Description -->
+                    <p class="serie-overview">{{ serie.overview }}</p>
+
+                    <!-- Dates -->
                     <div class="info-row">
-                        <span class="info-icon">📅</span>
+                        <img src="{{ asset('icons/calendar.png') }}" alt="Calendrier" class="icon-btn">
                         <div class="date-range">
                             <span>{{ serie.firstAirDate|date('d/m/Y') }}</span>
                             {% if serie.status in ['ended', 'cancelled'] and serie.lastAirDate %}
                                 <span> - {{ serie.lastAirDate|date('d/m/Y') }}</span>
                             {% endif %}
-                            <span class="status-badge status-{{ serie.status }}">
-                                {% if serie.status == 'returning' %}
-                                    En cours
-                                {% elseif serie.status == 'ended' %}
-                                    Terminée
-                                {% elseif serie.status == 'cancelled' %}
-                                    Annulée
-                                {% else %}
-                                    {{ serie.status }}
-                                {% endif %}
-                            </span>
                         </div>
                     </div>
 
-                    <!-- Note avec étoiles -->
-                    <div class="info-row">
-                        <span class="info-icon">Note : </span>
-                        <div class="stars-rating">
-                            <div class="stars">
-                                {% set rating = (serie.vote / 2)|round(0.5, 'floor') %}
-                                {% for i in 1..5 %}
-                                    {% if rating >= i %}
-                                        ⭐
-                                    {% elseif rating >= (i - 0.5) %}
-                                        ⭐
-                                    {% else %}
-                                        ☆
-                                    {% endif %}
-                                {% endfor %}
-                            </div>
-                            <span class="rating-text">{{ serie.vote }}/10</span>
-                        </div>
+                    <!-- Actions sociales -->
+                    <div class="secondary-actions">
+                        <a href="#" id="shareButton" class="action-link">
+                            <img src="{{ asset('icons/share.png') }}" alt="Partager" class="icon-btn">
+                            <span>Partager</span>
+                        </a>
+                        <a href="#" id="favoriteButton" class="action-link">
+                            <img src="{{ asset('icons/heart.png') }}" alt="Favoris" class="icon-btn">
+                            <span>Ajouter à mes favoris</span>
+                        </a>
                     </div>
 
-                    <!-- Pays -->
-                    <div class="info-row">
-                        <span class="info-icon">Pays : </span>
-                        <div class="country-info">
-                            <span class="country-flag">{{ serie.country|flag }}</span>
-                            <span>{{ serie.country }}</span>
-                        </div>
-                    </div>
-
-                <!-- Description de la série -->
-                <p class="serie-overview">{{ serie.overview }}</p>
-
-                <!-- Actions sociales -->
-                <div class="secondary-actions">
-                    <a href="#" id="shareButton" class="action-link">
-                        <span>🔗</span>
-                        <span>Partager</span>
-                    </a>
-                    <a href="#" id="favoriteButton" class="action-link">
-                        <span class="favorite-icon">🤍</span>
-                        <span class="favorite-text">Ajouter à mes favoris</span>
-                    </a>
-                </div>
-
-                    <!-- Boutons d'action principaux -->
+                    <!-- Boutons principaux -->
                     <div class="primary-actions">
                         <button id="watchButton" class="btn-watch">
-                            <span>▶</span>
+                            <img src="{{ asset('icons/play.png') }}" alt="Regarder" class="icon-btn">
                             Regarder
                         </button>
                         <button id="trailerButton" class="btn-trailer">
-                            <span>▶</span>
+                            <img src="{{ asset('icons/trailer.png') }}" alt="Bande-annonce" class="icon-btn">
                             Bande-annonce
                         </button>
                     </div>
-
                 </div>
             </div>
         </div>
 
-        <!-- Section Distribution -->
+        <!-- Distribution -->
+        <div class="distribution-section">
+            <div class="distribution-header">
+                <h2 class="distribution-title">Distribution</h2>
+                {% if is_granted('ROLE_ADMIN') %}
+                    <button class="btn-add-contributor">
+                        <img src="{{ asset('icons/add-user.png') }}" alt="Ajouter" class="icon-btn">
+                        Ajouter un membre
+                    </button>
+                {% endif %}
+            </div>
+        </div>
 
-        <!-- Actions d'administration -->
+        <!-- Admin actions -->
         <div class="admin-actions">
-            <a href="{{ path('serie_update', {id: serie.id}) }}" class="btn-outline">
-                ✏️ Modifier la série
-            </a>
-            <a href="{{ path('serie_delete', {id: serie.id, token: csrf_token('delete'~serie.id)}) }}"
-               class="btn-danger"
-               onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette série ?')">
-                🗑️ Supprimer la série
-            </a>
+            {% if is_granted('ROLE_ADMIN') %}
+                <a href="{{ path('serie_update', { id: serie.id }) }}" class="btn-outline">Modifier la série</a>
+                <a href="{{ path('serie_delete', { id: serie.id, token: csrf_token('delete' ~ serie.id) }) }}"
+                   class="btn-danger"
+                   onclick="return confirm('Voulez-vous vraiment supprimer cette série ?');">
+                    Supprimer la série
+                </a>
+            {% endif %}
         </div>
     </div>
 
-    <!-- Modal pour ajouter/modifier un contributeur -->
-
-    <!-- Styles additionnels pour les actions des contributeurs -->
     <style>
-        /* Style pour le bouton retour */
-        .btn-back {
-            display: inline-block;
-            background-color: white;
-            color: #333;
-            padding: 8px 16px;
-            border-radius: 6px;
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 500;
-            border: 1px solid rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        .poster-section {
+            position: relative;
+            width: 350px;
+            height: 500px;
+            flex: 0 0 auto;
         }
 
-        .btn-back:hover {
-            background-color: #f8f9fa;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-            text-decoration: none;
-            color: #333;
+        .poster-section::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 40%;
+            background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+            border-radius: 12px;
         }
 
-        .btn-edit-contributor,
-        .btn-delete-contributor {
-            background: none;
-            border: none;
-            padding: 0.4rem 0.6rem;
-            border-radius: 6px;
-            cursor: pointer;
+        .poster-section .poster-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            display: block;
+        }
+
+        .status-overlay {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: #7F8CAA;
+            color: #fff;
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
             font-size: 0.9rem;
-            transition: all 0.3s ease;
+            font-weight: 600;
+            z-index: 2;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.2);
         }
 
-        .btn-edit-contributor {
-            color: #3b82f6;
-            background: rgba(59, 130, 246, 0.1);
-            border: 1px solid rgba(59, 130, 246, 0.2);
+        .icon-btn {
+            width: 18px;
+            height: 18px;
+            object-fit: contain;
+            display: inline-block;
         }
 
-        .btn-edit-contributor:hover {
-            background: rgba(59, 130, 246, 0.2);
-            transform: scale(1.1);
+        .btn-watch {
+            background: linear-gradient(135deg, #ff0044, #ff3366);
+            color: #fff;
+            font-size: 1rem;
+            padding: 0.9rem 2rem;
+            border-radius: 12px;
         }
 
-        .btn-delete-contributor {
-            color: #ef4444;
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid rgba(239, 68, 68, 0.2);
+        .btn-trailer {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: #fff;
         }
 
-        .btn-delete-contributor:hover {
-            background: rgba(239, 68, 68, 0.2);
-            transform: scale(1.1);
+        .btn-watch img,
+        .btn-trailer img {
+            width: 20px;
+            height: 20px;
         }
 
-        /* Animation rainbow pour l'easter egg */
-        @keyframes rainbow {
-            0% { filter: hue-rotate(0deg); }
-            25% { filter: hue-rotate(90deg); }
-            50% { filter: hue-rotate(180deg); }
-            75% { filter: hue-rotate(270deg); }
-            100% { filter: hue-rotate(360deg); }
+        .stars img {
+            width: 16px;
+            height: 16px;
         }
     </style>
 {% endblock %}

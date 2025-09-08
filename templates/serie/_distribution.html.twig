@@ -1,0 +1,27 @@
+<div class="serie-distribution">
+    <h2>Distribution</h2>
+
+    {% if serie.contributors is not empty %}
+        <ul class="contributors-list">
+            {% for contributor in serie.contributors %}
+                <li class="contributor-item">
+                    <strong>{{ contributor.name }}</strong>
+                    <span class="contributor-role">({{ contributor.role }})</span>
+
+                    {% if is_granted('ROLE_ADMIN') %}
+                        <button class="btn-edit-contributor">✏️</button>
+                        <button class="btn-delete-contributor">🗑️</button>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Aucun contributeur renseigné.</p>
+    {% endif %}
+
+    {% if is_granted('ROLE_ADMIN') %}
+        <a href="{{ path('contributor_add', {serieId: serie.id}) }}" class="btn-outline">
+            ➕ Ajouter un contributeur
+        </a>
+    {% endif %}
+</div>

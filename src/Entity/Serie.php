@@ -73,6 +73,9 @@ class Serie
     #[ORM\Column(nullable: true)]
     private ?\DateTime $dateModified = null;
 
+    #[ORM\ManyToMany(targetEntity: Contributor::class, mappedBy: "series")]
+    private Collection $contributors;
+
     #[ORM\ManyToMany(targetEntity: Genre::class, inversedBy: 'series', cascade: ['persist'])]
     #[ORM\JoinTable(name: 'serie_genre')]
     private Collection $genres;
@@ -80,10 +83,18 @@ class Serie
     #[ORM\OneToMany(targetEntity: UserSerie::class, mappedBy: 'serie')]
     private Collection $userSeries;
 
+    /**
+     * @var Collection<int, User>
+     */
+    #[ORM\ManyToMany(targetEntity: User::class, mappedBy: 'favoriteSeries')]
+    private Collection $favoriteSeries;
+
     public function __construct()
     {
+        $this->contributors = new ArrayCollection();
         $this->genres = new ArrayCollection();
         $this->userSeries = new ArrayCollection();
+        $this->favoriteSeries = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -246,6 +257,30 @@ class Serie
         $this->dateModified = new \DateTime();
     }
 
+    public function getContributors(): Collection
+    {
+        return $this->contributors;
+    }
+
+    public function addContributor(Contributor $contributor): self
+    {
+        if (!$this->contributors->contains($contributor)) {
+            $this->contributors->add($contributor);
+            $contributor->addSerie($this);
+        }
+
+        return $this;
+    }
+
+    public function removeContributor(Contributor $contributor): self
+    {
+        if ($this->contributors->removeElement($contributor)) {
+            $contributor->removeSerie($this);
+        }
+
+        return $this;
+    }
+
     /** @return Collection<int, Genre> */
     public function getGenres(): Collection
     {
@@ -291,6 +326,33 @@ class Serie
                 $userSerie->setSerie(null);
             }
         }
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, User>
+     */
+    public function getFavoriteSeries(): Collection
+    {
+        return $this->favoriteSeries;
+    }
+
+    public function addFavoriteSeries(User $favoriteSeries): static
+    {
+        if (!$this->favoriteSeries->contains($favoriteSeries)) {
+            $this->favoriteSeries->add($favoriteSeries);
+            $favoriteSeries->addFavoriteSeries($this);
+        }
+
+        return $this;
+    }
+
+    public function removeFavoriteSeries(User $favoriteSeries): static
+    {
+        if ($this->favoriteSeries->removeElement($favoriteSeries)) {
+            $favoriteSeries->removeFavoriteSeries($this);
+        }
+
         return $this;
     }
 }

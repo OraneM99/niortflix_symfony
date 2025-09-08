@@ -11,21 +11,17 @@
             <main class="col-md-9 col-lg-10 px-4 d-flex align-items-start justify-content-center">
 
                 <div class="card bg-dark border-0 shadow-lg w-100" style="max-width: 980px;">
-                    <!-- Bandeau -->
+                    <!-- Bandeau comme sur la capture -->
                     <div class="profile-banner"></div>
 
                     <!-- En-tête noir : avatar + infos + bouton -->
                     <div class="profile-header d-flex justify-content-between align-items-center px-4 py-3">
                         <div class="d-flex align-items-center gap-3">
-                            <!-- avatar cliquable avec overlay “Modifier” -->
-                            <a href="{{ path('profile_edit') }}"
-                               class="avatar-wrap position-relative d-inline-block"
-                               aria-label="Modifier la photo de profil">
+                            <div class="avatar-wrap position-relative">
                                 {% set avatar = app.user.profilePicture ? asset('uploads/profile_pictures/' ~ app.user.profilePicture) : asset('images/default-avatar.png') %}
-                                <img src="{{ avatar }}" alt="Photo de profil" class="rounded-circle profile-avatar shadow-sm">
-                                <span class="avatar-overlay">Modifier</span>
+                                <img src="{{ avatar }}" alt="Photo de profil" class="rounded-circle profile-avatar">
                                 <span class="status-dot"></span>
-                            </a>
+                            </div>
 
                             <div class="text-white">
                                 <div class="fs-4 fw-bold">
@@ -48,7 +44,7 @@
                                 <div class="setting-label">Nom d'utilisateur</div>
                                 <div class="setting-value">{{ app.user.username }}</div>
                             </div>
-                            <a href="{{ path('profile_edit') }}" class="btn btn-secondary">Modifier</a>
+                            <a href="{{ path('profile_edit') }}" class="btn btn-secondary btn-sm">Modifier</a>
                         </div>
 
                         <div class="setting-row border-0">
@@ -56,7 +52,7 @@
                                 <div class="setting-label">E-mail</div>
                                 <div class="setting-value">{{ app.user.email }}</div>
                             </div>
-                            <a href="{{ path('profile_edit') }}" class="btn btn-secondary">Modifier</a>
+                            <a href="{{ path('profile_edit') }}" class="btn btn-secondary btn-sm">Modifier</a>
                         </div>
                     </div>
 
@@ -147,44 +143,23 @@
             border-bottom:1px solid #202225;
         }
 
-        /* Avatar (plus grand) */
+        /* Avatar */
         .profile-avatar{
-            width: 110px;               /* ↑ taille */
-            height: 110px;
-            object-fit: cover;
-            border: 5px solid #0f0f10;  /* anneau foncé */
-            border-radius: 50%;
+            width: 84px; height: 84px; object-fit: cover; border: 4px solid #0f0f10;
         }
-        .avatar-wrap{ margin-top: -55px; } /* chevauche le bandeau */
+        .avatar-wrap{ margin-top: -42px; }
         .status-dot{
-            position:absolute; right:8px; bottom:8px;
-            width:16px; height:16px; border-radius:50%;
+            position:absolute; right:6px; bottom:6px;
+            width:14px; height:14px; border-radius:50%;
             background:#2dc770; border:2px solid #0f0f10;
         }
-        /* overlay “Modifier” au survol */
-        .avatar-overlay{
-            position:absolute; inset:0;
-            display:flex; align-items:center; justify-content:center;
-            background: rgba(0,0,0,.45);
-            color:#fff; font-weight:700; font-size:.9rem;
-            border-radius:50%;
-            opacity:0; transition: opacity .18s ease-in-out;
-            text-decoration:none;
-        }
-        .avatar-wrap:hover .avatar-overlay{ opacity:1; }
 
-        /* Boutons un peu plus grands */
-        .btn-primary, .btn-secondary, .btn-danger, .btn-outline-danger {
-            padding: .7rem 1.15rem;     /* ↑ padding */
-            font-size: .95rem;          /* ↑ taille texte */
-            border-radius: 10px;
-        }
-        .btn-edit{ background:#7F8CAA; border:none; }
+        .btn-edit{ background:#7F8CAA; border:none; border-radius:10px; }
         .btn-edit:hover{ background:#739EC9; }
 
-        .btn-primary{ background:#7F8CAA; border:none; }
+        .btn-primary{ background:#7F8CAA; border:none; border-radius:8px; }
         .btn-primary:hover{ background:#739EC9; }
-        .btn-secondary{ background:#2b2b2b; color:#fff; border:none; }
+        .btn-secondary{ background:#2b2b2b; color:#fff; border:none; border-radius:8px; }
         .btn-secondary:hover{ background:#3a3a3a; }
 
         .section-title{
@@ -199,9 +174,12 @@
             border-bottom:1px solid #2a2a2a;
             display:flex; align-items:center; justify-content:space-between;
         }
-        .setting-row a.btn{ min-width: 140px; text-align:center; } /* bouton “Modifier” plus large */
         .setting-label{ color:#b9bbbe; font-size:.95rem; }
         .setting-value{ color:#fff; }
+
+        .lock-dot{
+            display:inline-block; width:10px; height:10px; border-radius:50%; background:#2dc770;
+        }
 
         hr{ border-color:#333; }
     </style>

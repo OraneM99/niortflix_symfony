@@ -48,6 +48,12 @@
                             <div class="position-absolute top-0 start-0 m-2 px-2 py-1 text-white fw-bold note-badge">
                                 ⭐ {{ serie.vote|default('N/A') }}
                             </div>
+
+                            <!-- Drapeau du pays -->
+                            <div class="position-absolute top-0 end-0 m-2 px-2 py-1 text-white fw-bold note-badge">
+                                {{ serie.country|flag }}
+                            </div>
+
                             <a href="{{ path('serie_detail', {id: serie.id}) }}" class="text-decoration-none text-light">
                                 <img src="{{ asset(serie_params.poster_dir ~ '/' ~ serie.poster) }}"
                                      class="card-img-top" alt="Poster de {{ serie.name }}"
