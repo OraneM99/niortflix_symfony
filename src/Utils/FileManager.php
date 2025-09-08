@@ -35,6 +35,21 @@ class FileManager
         return $name;
     }
 
+    public function uploadProfilePicture(UploadedFile $profilePicture, string $name, string $oldRessourceToDelete = null): string
+    {
+        $filename = $this->slugger->slug($name) . '-' . uniqid() . '.' . $profilePicture->guessExtension();
+
+        $dir = __DIR__ . '/../../public/uploads/profile_pictures';
+
+        $profilePicture->move($dir, $filename);
+
+        if ($oldRessourceToDelete) {
+            $this->delete($dir, $oldRessourceToDelete);
+        }
+
+        return $filename;
+    }
+
     public function delete(string $dir, string $name): bool
     {
         if (\file_exists($dir . '/' . $name)) {

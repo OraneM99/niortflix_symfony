@@ -12,6 +12,8 @@ parameters:
     nb_par_page: 15
     backdrop_dir: 'uploads/backdrops'
     poster_dir: 'uploads/posters/films'
+  user:
+    profil_pictures_dir: 'uploads/profile_picture'
 
 services:
   # Valeurs par défaut

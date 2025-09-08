@@ -1,0 +1,202 @@
+{% extends 'base.html.twig' %}
+{% block body_class %}serie-detail-page{% endblock %}
+
+{% block title %}{{ serie.name }} | {{ parent() }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('assets/css/serie-detail.css') }}">
+    <style>
+        body.serie-detail-page {
+            --backdrop-image: url("{{ asset(serie_params.backdrop_dir ~ '/' ~ serie.backdrop) }}");
+        }
+    </style>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('assets/js/serie-detail.js') }}" defer></script>
+{% endblock %}
+
+{% block body %}
+    <div class="serie-detail-container">
+        <a href="{{ path('film_liste') }}" class="btn-back">&lt; Retour</a>
+
+        <!-- Header avec nom de l'app et genres -->
+        <div class="serie-header">
+            <div class="serie-meta">{{ film.name }}
+                <span class="genre-separator">|</span>
+                <span class="serie-genres">{{ film.genres|join(' · ') }}</span>
+            </div>
+        </div>
+
+        <!-- Contenu principal avec poster -->
+        <div class="serie-main-content">
+            <!-- Poster à gauche -->
+            <div class="poster-section">
+                <img src="{{ asset(film_params.poster_dir ~ '/' ~ film.poster) }}"
+                     alt="{{ film.name }}"
+                     style="max-width:400px; height:auto; display:block;">
+            </div>
+
+            <!-- Contenu à droite -->
+            <div class="content-section">
+                <!-- Informations du film -->
+                <div class="serie-info">
+                    <!-- Titre principal du film -->
+                    <h1 class="serie-title">{{ film.name }}</h1>
+
+                    <!-- Dates et statut -->
+                    <div class="info-row">
+                        <span class="info-icon">📅</span>
+                        <div class="date-range">
+                            <span>{{ film.firstAirDate|date('d/m/Y') }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Note avec étoiles -->
+                    <div class="info-row">
+                        <span class="info-icon">Note : </span>
+                        <div class="stars-rating">
+                            <div class="stars">
+                                {% set rating = (film.vote)|round(0.5, 'floor') %}
+                                {% for i in 1..5 %}
+                                    {% if rating >= i %}
+                                        ⭐
+                                    {% elseif rating >= (i - 0.5) %}
+                                        ⭐
+                                    {% else %}
+                                        ☆
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <span class="rating-text">{{ film.vote }}/10</span>
+                        </div>
+                    </div>
+
+                    <!-- Pays -->
+                    <div class="info-row">
+                        <span class="info-icon">Pays : </span>
+                        <div class="country-info">
+                            <span class="country-flag">{{ film.country|flag }}</span>
+                            <span>{{ film.country }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Description de la série -->
+                    <p class="serie-overview">{{ film.overview }}</p>
+
+                    <!-- Actions sociales -->
+                    <div class="secondary-actions">
+                        <a href="#" id="shareButton" class="action-link">
+                            <span>🔗</span>
+                            <span>Partager</span>
+                        </a>
+                        <a href="#" id="favoriteButton" class="action-link">
+                            <span class="favorite-icon">🤍</span>
+                            <span class="favorite-text">Ajouter à mes favoris</span>
+                        </a>
+                    </div>
+
+                    <!-- Boutons d'action principaux -->
+                    <div class="primary-actions">
+                        <button id="watchButton" class="btn-watch">
+                            <span>▶</span>
+                            Regarder
+                        </button>
+                        <button id="trailerButton" class="btn-trailer">
+                            <span>▶</span>
+                            Bande-annonce
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Section Distribution -->
+
+        <!-- Actions d'administration -->
+        <div class="admin-actions">
+            <a href="{{ path('film_update', {id: film.id}) }}" class="btn-outline">
+                ✏️ Modifier le film
+            </a>
+            <a href="{{ path('film_delete', {id: film.id, token: csrf_token('delete'~film.id)}) }}"
+               class="btn-danger"
+               onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce film ?')">
+                🗑️ Supprimer le film
+            </a>
+        </div>
+    </div>
+
+    <!-- Modal pour ajouter/modifier un contributeur -->
+
+    <!-- Styles additionnels pour les actions des contributeurs -->
+    <style>
+        /* Style pour le bouton retour */
+        .btn-back {
+            display: inline-block;
+            background-color: white;
+            color: #333;
+            padding: 8px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-back:hover {
+            background-color: #f8f9fa;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            text-decoration: none;
+            color: #333;
+        }
+
+        .btn-edit-contributor,
+        .btn-delete-contributor {
+            background: none;
+            border: none;
+            padding: 0.4rem 0.6rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-edit-contributor {
+            color: #3b82f6;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .btn-edit-contributor:hover {
+            background: rgba(59, 130, 246, 0.2);
+            transform: scale(1.1);
+        }
+
+        .btn-delete-contributor {
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .btn-delete-contributor:hover {
+            background: rgba(239, 68, 68, 0.2);
+            transform: scale(1.1);
+        }
+
+        /* Animation rainbow pour l'easter egg */
+        @keyframes rainbow {
+            0% { filter: hue-rotate(0deg); }
+            25% { filter: hue-rotate(90deg); }
+            50% { filter: hue-rotate(180deg); }
+            75% { filter: hue-rotate(270deg); }
+            100% { filter: hue-rotate(360deg); }
+        }
+    </style>
+{% endblock %}

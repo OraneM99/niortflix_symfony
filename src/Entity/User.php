@@ -48,13 +48,21 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @var Collection<int, UserSerie>
      */
-    #[ORM\OneToMany(targetEntity: UserSerie::class, mappedBy: 'userSeries')]
+    #[ORM\OneToMany(targetEntity: UserSerie::class, mappedBy: 'user')]
     private Collection $userSeries;
+
+    #[ORM\Column(type: 'boolean')]
+    private bool $isActive = true;
+
+    #[ORM\Column(type: 'datetime_immutable')]
+    private ?\DateTimeImmutable $createdAt = null;
 
     public function __construct()
     {
         $this->user = new ArrayCollection();
         $this->userSeries = new ArrayCollection();
+        $this->createdAt = new \DateTimeImmutable();
+        $this->isActive = true;
     }
 
     public function getId(): ?int
@@ -218,6 +226,30 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
                 $userSeries->setUserSeries(null);
             }
         }
+
+        return $this;
+    }
+
+    public function isActive(): bool
+    {
+        return $this->isActive;
+    }
+
+    public function setIsActive(bool $isActive): static
+    {
+        $this->isActive = $isActive;
+
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(\DateTimeImmutable $createdAt): static
+    {
+        $this->createdAt = $createdAt;
 
         return $this;
     }

@@ -3,126 +3,206 @@
 {% block title %}Mon profil{% endblock %}
 
 {% block body %}
-    <div class="container-fluid min-vh-100">
-        <div class="row">
-            <!-- Sidebar gauche -->
-            <nav class="col-md-3 col-lg-2 d-md-block bg-dark sidebar py-4">
-                <div class="text-center mb-4">
-                    <div class="rounded-circle overflow-hidden mx-auto" style="width: 100px; height: 100px;">
-                        <img src="{{ asset('uploads/profile/' ~ app.user.profilePicture) }}" alt="Photo profil" class="img-fluid">
-                    </div>
-                    <h5 class="text-white mt-2">{{ app.user.username }}</h5>
-                    <p class="text-muted small">{{ app.user.email }}</p>
-                </div>
+    <div class="container-fluid p-0">
+        <div class="row m-0">
+            {% include 'profile/_sidebar.html.twig' %}
 
-                <ul class="nav flex-column mt-4">
-                    <li class="nav-item mb-2">
-                        <a class="nav-link text-light" href="{{ path('profile_edit') }}">Modifier mon profil</a>
-                    </li>
-                    <li class="nav-item mb-2">
-                        <a class="nav-link text-light" href="{{ path('profile_data_privacy') }}">Données et confidentialité</a>
-                    </li>
-                    <li class="nav-item mb-2">
-                        <a class="nav-link text-light" href="{{ path('profile_security') }}">Sécurité</a>
-                    </li>
-                    <li class="nav-item mb-2">
-                        <a class="nav-link text-light" href="{{ path('profile_delete') }}">Supprimer mon compte</a>
-                    </li>
-                    {% if is_granted('ROLE_ADMIN') %}
-                        <li class="nav-item mt-3">
-                            <a class="nav-link text-light" href="{{ path('admin_dashboard') }}">Dashboard</a>
-                        </li>
-                        <li class="nav-item mb-2">
-                            <a class="nav-link text-light" href="{{ path('admin_users') }}">Gestion des utilisateurs</a>
-                        </li>
-                    {% endif %}
-                </ul>
-            </nav>
+            <!-- Aligne le contenu en haut, à côté de la sidebar -->
+            <main class="col-md-9 col-lg-10 px-4 d-flex align-items-start justify-content-center">
 
-            <!-- Contenu principal -->
-            <main class="col-md-9 col-lg-10 ms-sm-auto px-md-4 py-4">
-                <!-- Onglets dynamiques sur la même page -->
-                <ul class="nav nav-tabs mb-4" id="profileTabs" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="favoris-tab" data-bs-toggle="tab" data-bs-target="#favoris" type="button" role="tab">Favoris</button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="a-voir-tab" data-bs-toggle="tab" data-bs-target="#a-voir" type="button" role="tab">À voir</button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="en-cours-tab" data-bs-toggle="tab" data-bs-target="#en-cours" type="button" role="tab">En cours</button>
-                    </li>
-                </ul>
+                <div class="card bg-dark border-0 shadow-lg w-100" style="max-width: 980px;">
+                    <!-- Bandeau -->
+                    <div class="profile-banner"></div>
 
-                <div class="tab-content">
-                    <div class="tab-pane fade show active" id="favoris" role="tabpanel">
-                        <h2>Favoris</h2>
-                        <p>Vos séries ou films favoris.</p>
-                        {# Boucle sur les favoris de l'utilisateur ici #}
+                    <!-- En-tête noir : avatar + infos + bouton -->
+                    <div class="profile-header d-flex justify-content-between align-items-center px-4 py-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <!-- avatar cliquable avec overlay “Modifier” -->
+                            <a href="{{ path('profile_edit') }}"
+                               class="avatar-wrap position-relative d-inline-block"
+                               aria-label="Modifier la photo de profil">
+                                {% set avatar = app.user.profilePicture ? asset('uploads/profile_pictures/' ~ app.user.profilePicture) : asset('images/default-avatar.png') %}
+                                <img src="{{ avatar }}" alt="Photo de profil" class="rounded-circle profile-avatar shadow-sm">
+                                <span class="avatar-overlay">Modifier</span>
+                                <span class="status-dot"></span>
+                            </a>
+
+                            <div class="text-white">
+                                <div class="fs-4 fw-bold">
+                                    {{ app.user.displayName ?? app.user.username }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <a href="{{ path('profile_edit') }}" class="btn btn-primary btn-edit">
+                            Modifier profil d'utilisateur
+                        </a>
                     </div>
 
-                    <div class="tab-pane fade" id="a-voir" role="tabpanel">
-                        <h2>À voir</h2>
-                        <p>Liste des séries ou films que vous souhaitez voir.</p>
+                    <!-- Bloc “Profil” -->
+                    <div class="px-4 py-4">
+                        <div class="section-title">Profil</div>
+
+                        <div class="setting-row">
+                            <div>
+                                <div class="setting-label">Nom d'utilisateur</div>
+                                <div class="setting-value">{{ app.user.username }}</div>
+                            </div>
+                            <a href="{{ path('profile_edit') }}" class="btn btn-secondary">Modifier</a>
+                        </div>
+
+                        <div class="setting-row border-0">
+                            <div>
+                                <div class="setting-label">E-mail</div>
+                                <div class="setting-value">{{ app.user.email }}</div>
+                            </div>
+                            <a href="{{ path('profile_edit') }}" class="btn btn-secondary">Modifier</a>
+                        </div>
                     </div>
 
-                    <div class="tab-pane fade" id="en-cours" role="tabpanel">
-                        <h2>En cours</h2>
-                        <p>Vos séries ou films en cours de visionnage.</p>
+                    <hr class="m-0 border-secondary">
+
+                    <!-- Bloc “Mot de passe et authentification” -->
+                    <div class="px-4 py-4">
+                        <div class="section-title">Mot de passe et authentification</div>
+                        <a href="{{ path('profile_edit') }}" class="btn btn-primary">Changer le mot de passe</a>
+                    </div>
+
+                    <hr class="m-0 border-secondary">
+
+                    <!-- Bloc “Suppression du compte” -->
+                    <div class="px-4 py-4">
+                        <div class="section-title">Suppression du compte</div>
+                        <p class="text-white-50 small mb-3">
+                            Désactiver ton compte signifie que tu pourras le récupérer à tout moment après sa désactivation.
+                        </p>
+
+                        <div class="d-flex flex-wrap gap-2">
+                            <!-- Désactivation -->
+                            <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalDeactivate">
+                                Désactiver le compte
+                            </button>
+                            <!-- Suppression définitive -->
+                            <button class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalDelete">
+                                Supprimer le compte
+                            </button>
+                        </div>
                     </div>
                 </div>
             </main>
         </div>
     </div>
 
+    <!-- Modals -->
+    <div class="modal fade" id="modalDeactivate" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg-dark text-white border-secondary">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title">Désactiver le compte</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                </div>
+                <div class="modal-body">
+                    Es-tu sûr de vouloir désactiver ton compte ? Tu pourras le réactiver plus tard.
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <a href="{{ path('profile_desactive') }}" class="btn btn-danger">Oui, désactiver</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalDelete" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg-dark text-white border-secondary">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title">Supprimer le compte</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                </div>
+                <div class="modal-body">
+                    Cette action est <strong>définitive</strong>. Toutes tes données seront supprimées.
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <a href="{{ path('profile_delete') }}" class="btn btn-outline-danger">Oui, supprimer</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <style>
-        .sidebar {
-            height: 100vh;
-            position: sticky;
-            top: 0;
-            background-color: #1c1c1c;
-            border-right: 1px solid #333;
+        body, html{ background:#121212; color:#fff; }
+
+        /* Bandeau bleu */
+        .profile-banner{
+            height: 140px;
+            background: linear-gradient(180deg,#8AABC7,#86A4C0);
+            border-top-left-radius: .5rem;
+            border-top-right-radius: .5rem;
         }
 
-        .nav-link.active {
-            color: #7F8CAA !important;
-            font-weight: 500;
+        /* Header noir */
+        .profile-header{
+            background:#0f0f10;
+            border-bottom:1px solid #202225;
         }
 
-        .nav-link:hover {
-            color: #739EC9 !important;
+        /* Avatar (plus grand) */
+        .profile-avatar{
+            width: 110px;               /* ↑ taille */
+            height: 110px;
+            object-fit: cover;
+            border: 5px solid #0f0f10;  /* anneau foncé */
+            border-radius: 50%;
         }
-
-        main {
-            background-color: #121212;
-            color: #fff;
-            min-height: 100vh;
+        .avatar-wrap{ margin-top: -55px; } /* chevauche le bandeau */
+        .status-dot{
+            position:absolute; right:8px; bottom:8px;
+            width:16px; height:16px; border-radius:50%;
+            background:#2dc770; border:2px solid #0f0f10;
         }
+        /* overlay “Modifier” au survol */
+        .avatar-overlay{
+            position:absolute; inset:0;
+            display:flex; align-items:center; justify-content:center;
+            background: rgba(0,0,0,.45);
+            color:#fff; font-weight:700; font-size:.9rem;
+            border-radius:50%;
+            opacity:0; transition: opacity .18s ease-in-out;
+            text-decoration:none;
+        }
+        .avatar-wrap:hover .avatar-overlay{ opacity:1; }
 
-        main h2 {
-            color: #FFE8DB;
+        /* Boutons un peu plus grands */
+        .btn-primary, .btn-secondary, .btn-danger, .btn-outline-danger {
+            padding: .7rem 1.15rem;     /* ↑ padding */
+            font-size: .95rem;          /* ↑ taille texte */
+            border-radius: 10px;
+        }
+        .btn-edit{ background:#7F8CAA; border:none; }
+        .btn-edit:hover{ background:#739EC9; }
+
+        .btn-primary{ background:#7F8CAA; border:none; }
+        .btn-primary:hover{ background:#739EC9; }
+        .btn-secondary{ background:#2b2b2b; color:#fff; border:none; }
+        .btn-secondary:hover{ background:#3a3a3a; }
+
+        .section-title{
+            font-weight:700;
             margin-bottom: 1rem;
+            font-size: 1.25rem;
+            color: white;
         }
 
-        .tab-content p {
-            color: #CCE0F4;
+        .setting-row{
+            padding: 1rem 0;
+            border-bottom:1px solid #2a2a2a;
+            display:flex; align-items:center; justify-content:space-between;
         }
+        .setting-row a.btn{ min-width: 140px; text-align:center; } /* bouton “Modifier” plus large */
+        .setting-label{ color:#b9bbbe; font-size:.95rem; }
+        .setting-value{ color:#fff; }
+
+        hr{ border-color:#333; }
     </style>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const tabButtons = document.querySelectorAll('#profileTabs button');
-            tabButtons.forEach(btn => {
-                btn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    tabButtons.forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-
-                    document.querySelectorAll('.tab-pane').forEach(tab => tab.classList.remove('show', 'active'));
-                    const target = document.querySelector(this.dataset.bsTarget);
-                    target.classList.add('show', 'active');
-                });
-            });
-        });
-    </script>
 {% endblock %}

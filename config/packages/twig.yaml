@@ -4,6 +4,7 @@ twig:
         serie_params: '%serie%'
         anime_params: '%anime%'
         film_params: '%film%'
+        user_params: '%user%'
 when@test:
     twig:
         strict_variables: true

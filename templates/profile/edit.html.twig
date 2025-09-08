@@ -1,4 +1,3 @@
-{# templates/profile/edit.html.twig #}
 {% extends 'base.html.twig' %}
 
 {% block title %}Modifier mon profil{% endblock %}
@@ -9,7 +8,7 @@
         <div class="row m-0">
             {% include 'profile/_sidebar.html.twig' %}
 
-            <main class="col-md-9 col-lg-10 px-4 py-5 d-flex justify-content-center align-items-start">
+            <main class="col-md-9 col-lg-10 px-4 d-flex justify-content-center align-items-start">
 
                 <div class="card bg-dark border-0 shadow-lg w-100" style="max-width: 800px; margin: auto;">
                     <div class="card-body p-5">
@@ -30,8 +29,10 @@
                         <!-- Photo de profil -->
                         <div class="mb-4 text-center">
                             {% if app.user.profilePicture %}
-                                <img src="{{ asset(app.user.profilePicture) }}" alt="Photo de profil"
-                                     class="rounded-circle mb-3" style="width:120px;height:120px;object-fit:cover;">
+                                <img src="{{ asset('uploads/profile_pictures/' ~ app.user.profilePicture) }}"
+                                     alt="Photo de profil"
+                                     class="rounded-circle mb-3"
+                                     style="width:120px;height:120px;object-fit:cover;">
                             {% else %}
                                 <div class="rounded-circle mb-3" style="width:120px;height:120px;background-color:#333;"></div>
                             {% endif %}
@@ -107,13 +108,41 @@
                             </div>
                         </div>
 
-                        <div class="mt-4 d-grid gap-2">
-                            <button class="btn btn-primary btn-lg fw-semibold d-flex align-items-center justify-content-center">
-                                <img src="{{ asset('icons/user.png') }}" class="me-2" alt="Modifier le profil" style="width:1.4rem;height:1.4rem;">
-                                Enregistrer les modifications
-                                <img src="{{ asset('icons/arrow.png') }}" class="ms-2" alt="" style="width:1rem;height:1rem;">
+                        <div class="mt-4 d-flex justify-content-between align-items-center">
+                            <!-- Boutons gauche -->
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-primary fw-semibold d-flex align-items-center justify-content-center px-4 py-2">
+                                    <img src="{{ asset('icons/user.png') }}" class="me-2" alt="Modifier le profil" style="width:1.2rem;height:1.2rem;">
+                                    Enregistrer les modifications
+                                    <img src="{{ asset('icons/arrow.png') }}" class="ms-2" alt="" style="width:1rem;height:1rem;">
+                                </button>
+                                <a href="{{ path('profile_index') }}" class="btn btn-secondary px-4 py-2">Annuler</a>
+                            </div>
+
+                            <!-- Bouton suppression -->
+                            <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">
+                                Désactiver mon compte
                             </button>
-                            <a href="{{ path('profile_index') }}" class="btn btn-secondary">Annuler</a>
+                        </div>
+
+                        <!-- Modal confirmation -->
+                        <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content bg-dark text-white border-secondary">
+                                    <div class="modal-header border-0">
+                                        <h5 class="modal-title" id="confirmDeleteModalLabel">Confirmer la désactivation</h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        Êtes-vous sûr de vouloir désactiver votre compte ?<br>
+                                        Vous pourrez le réactiver plus tard en contactant l’administrateur.
+                                    </div>
+                                    <div class="modal-footer border-0">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                        <a href="{{ path('profile_delete') }}" class="btn btn-danger">Oui, désactiver</a>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         {{ form_end(profileForm) }}
@@ -126,7 +155,13 @@
     </div>
 
     <style>
-        body, html { margin:0; padding:0; height:100%; background-color:#121212; color:#fff; }
+        body, html {
+            margin:0;
+            padding:0;
+            height:100%;
+            background-color:#121212;
+            color:#fff;
+        }
 
         .input-icon { position:relative; }
         .input-icon-left { position:absolute; left:15px; top:50%; transform:translateY(-50%); pointer-events:none; width:1.2rem; height:1.2rem; }
@@ -151,6 +186,19 @@
 
         .btn-secondary { background-color:#333; border-radius:8px; color:#fff; }
         .btn-secondary:hover { background-color:#444; }
+
+        .btn-outline-danger {
+            border-radius: 8px;
+            font-size: 0.85rem;
+            padding: 0.35rem 0.75rem;
+        }
+        .btn-outline-danger:hover {
+            background-color: #dc3545;
+            color: #fff;
+        }
+        .modal-content {
+            border-radius: 12px;
+        }
 
         hr { border-color:#333; }
 

@@ -9,6 +9,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: FilmRepository::class)]
+#[ORM\HasLifecycleCallbacks]
 class Film
 {
     #[ORM\Id]
@@ -43,7 +44,7 @@ class Film
     #[ORM\Column(type: Types::ARRAY, nullable: true)]
     private ?array $streamingLinks = null;
 
-    #[ORM\Column]
+    #[ORM\Column(type: 'datetime_immutable')]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column(nullable: true)]
@@ -192,6 +193,13 @@ class Film
         return $this;
     }
 
+    #[ORM\PrePersist]
+    public function onPrePersist(): void
+    {
+        $this->createdAt = new \DateTimeImmutable();
+        $this->modifiedAt = new \DateTimeImmutable();
+    }
+
     public function getModifiedAt(): ?\DateTimeImmutable
     {
         return $this->modifiedAt;
@@ -202,6 +210,12 @@ class Film
         $this->modifiedAt = $modifiedAt;
 
         return $this;
+    }
+
+    #[ORM\PreUpdate]
+    public function onPreUpdate(): void
+    {
+        $this->modifiedAt = new \DateTimeImmutable();
     }
 
     /**

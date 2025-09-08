@@ -1,15 +1,17 @@
-{# templates/profile/_sidebar.html.twig #}
-
 <nav class="col-md-3 col-lg-2 d-md-block bg-dark sidebar py-4">
     <div class="text-center mb-4">
-        <div class="rounded-circle overflow-hidden mx-auto" style="width: 100px; height: 100px;">
-            <img src="{{ asset('uploads/profile/' ~ app.user.profilePicture) }}" alt="Photo profil" class="img-fluid">
-        </div>
         <h5 class="text-white mt-2">{{ app.user.username }}</h5>
-        <p class="text-muted small">{{ app.user.email }}</p>
+        <p class="text-white small">{{ app.user.email }}</p>
     </div>
 
-    <ul class="nav flex-column mt-4">
+    <hr class="my-4 border-secondary">
+
+    <h6 class="text-uppercase text-secondary small px-3 mb-3">Paramètres utilisateur</h6>
+
+    <ul class="nav flex-column mb-4">
+        <li class="nav-item mb-2">
+            <a class="nav-link text-light" href="{{ path('profile_index') }}">Mon profil</a>
+        </li>
         <li class="nav-item mb-2">
             <a class="nav-link text-light" href="{{ path('profile_edit') }}">Modifier mon profil</a>
         </li>
@@ -19,16 +21,20 @@
         <li class="nav-item mb-2">
             <a class="nav-link text-light" href="{{ path('profile_security') }}">Sécurité</a>
         </li>
-        {% if is_granted('ROLE_ADMIN') %}
-            <li class="nav-item mt-3">
+    </ul>
+
+    {% if is_granted('ROLE_ADMIN') %}
+        <h6 class="text-uppercase text-secondary small px-3 mb-3">Portail Admin</h6>
+
+        <hr class="my-4 border-secondary">
+
+        <ul class="nav flex-column mb-4">
+            <li class="nav-item mb-2">
                 <a class="nav-link text-light" href="{{ path('admin_dashboard') }}">Dashboard</a>
             </li>
             <li class="nav-item mb-2">
                 <a class="nav-link text-light" href="{{ path('admin_users') }}">Gestion des utilisateurs</a>
             </li>
-        {% endif %}
-        <li class="nav-item mb-2">
-            <a class="nav-link text-danger" href="{{ path('profile_delete') }}">Supprimer mon compte</a>
-        </li>
-    </ul>
+        </ul>
+    {% endif %}
 </nav>

@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Form\ProfileType;
 use App\Repository\UserSerieRepository;
+use App\Utils\FileManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
@@ -12,6 +13,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Core\Security;
 
 #[Route('/profile', name: 'profile_')]
 class ProfileController extends AbstractController
@@ -41,7 +43,8 @@ class ProfileController extends AbstractController
     public function edit(
         Request $request,
         EntityManagerInterface $em,
-        UserPasswordHasherInterface $passwordHasher
+        UserPasswordHasherInterface $passwordHasher,
+        FileManager $fileManager
     ): Response {
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
 
@@ -57,15 +60,16 @@ class ProfileController extends AbstractController
             $profilePictureFile = $form->get('profilePictureFile')->getData();
 
             if ($profilePictureFile) {
-                $newFilename = uniqid().'.'.$profilePictureFile->guessExtension();
-                $profilePictureFile->move(
-                    $this->getParameter('kernel.project_dir').'/public/uploads/profile_pictures',
-                    $newFilename
+                $newFilename = $fileManager->uploadProfilePicture(
+                    $profilePictureFile,
+                    $user->getUsername(),
+                    $user->getProfilePicture() ? basename($user->getProfilePicture()) : null
                 );
-                $user->setProfilePicture('/uploads/profile_pictures/'.$newFilename);
+
+                $user->setProfilePicture($newFilename);
             }
 
-            // Gestion mot de passe
+            // Gestion du mot de passe
             $currentPassword = $form->get('currentPassword')->getData();
             $plainPassword = $form->get('plainPassword')->getData();
 
@@ -87,7 +91,7 @@ class ProfileController extends AbstractController
         }
 
         return $this->render('profile/edit.html.twig', [
-            'profileForm' => $form->createView(),
+            'profileForm' => $form
         ]);
     }
 
@@ -110,5 +114,18 @@ class ProfileController extends AbstractController
     {
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
         return $this->render('profile/delete.html.twig');
+    }
+
+    #[Route('/desactive', name: 'desactive')]
+    public function deactivate(EntityManagerInterface $em, Security $security): Response
+    {
+        $user = $security->getUser();
+        if ($user) {
+            $user->setIsActive(false);
+            $em->flush();
+            $this->addFlash('success', 'Votre compte a été désactivé.');
+        }
+
+        return $this->redirectToRoute('app_logout');
     }
 }
