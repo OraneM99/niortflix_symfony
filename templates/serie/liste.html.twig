@@ -7,49 +7,48 @@
 
 {% block body %}
     <div class="container my-5 position-relative p-3">
-
         <div class="overlay" style="padding: 2rem; border-radius: 15px;">
             <!-- Titre -->
             <h2 class="text-center mb-4 text-light">📺 Liste des séries</h2>
 
-            <!-- Barre de recherche -->
-            <form method="get" class="mb-4 d-flex justify-content-center">
-                <input type="text" name="search" value="{{ search }}" placeholder="Rechercher une série..."
-                       class="form-control form-control-dark me-2" style="max-width: 400px;">
-                <button type="submit" class="btn btn-primary">🔍</button>
-            </form>
+            <!-- Barre de recherche + Ajouter une série -->
+            <div class="d-flex justify-content-center mb-4 gap-2 flex-wrap">
+                <form method="get" class="d-flex">
+                    <input type="text" name="search" value="{{ search }}" placeholder="Rechercher une série..."
+                           class="form-control form-control-dark me-2" style="max-width: 400px;">
+                    <button type="submit" class="btn btn-primary">
+                        <img src="{{ asset('icons/search.png') }}" alt="Calendrier" class="icon-btn">
+                    </button>
+                </form>
+            </div>
 
-            <!-- Filtres en onglets -->
-            <ul class="nav nav-tabs mb-4 justify-content-center" id="seriesTabs">
-                <li class="nav-item">
-                    <a class="nav-link {{ sort == 'best' ? 'active' }}" href="?sort=best">Les mieux notées</a>
+            <!-- Filtres (liens générés par KnpPaginator) -->
+            <ul class="nav nav-tabs mb-4 justify-content-center">
+                <li class="nav-item bg-dark mx-2">
+                    {{ knp_pagination_sortable(series, 'Les mieux notées', ['s.vote'], {'class': 'nav-link'}) }}
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link {{ sort == 'fans' ? 'active' }}" href="?sort=fans">Favoris des fans</a>
+                <li class="nav-item bg-dark mx-2">
+                    {{ knp_pagination_sortable(series, 'Favoris des fans', ['s.popularity'], {'class': 'nav-link'}) }}
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link {{ sort == 'date' ? 'active' }}" href="?sort=date">Les plus anciennes</a>
+                <li class="nav-item bg-dark mx-2">
+                    {{ knp_pagination_sortable(series, 'Les plus anciennes', ['s.firstAirDate'], {'class': 'nav-link'}) }}
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link {{ sort == 'last' ? 'active' }}" href="?sort=last">Les plus récentes</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {{ sort == 'name' ? 'active' }}" href="?sort=name">A à Z</a>
+                <li class="nav-item bg-dark mx-2">
+                    {{ knp_pagination_sortable(series, 'A à Z', ['s.name'], {'class': 'nav-link'}) }}
                 </li>
             </ul>
 
             <!-- Liste des séries -->
             <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-5 g-4">
                 {% for serie in series %}
-
                     <div class="col">
                         <div class="card bg-dark text-light border-0 shadow-sm position-relative" style="height: 420px;">
-                            <!-- Note en blanc -->
+                            <!-- Note -->
                             <div class="position-absolute top-0 start-0 m-2 px-2 py-1 text-white fw-bold note-badge">
                                 ⭐ {{ serie.vote|default('N/A') }}
                             </div>
 
-                            <!-- Drapeau du pays -->
+                            <!-- Drapeau -->
                             <div class="position-absolute top-0 end-0 m-2 px-2 py-1 text-white fw-bold note-badge">
                                 {{ serie.country|flag }}
                             </div>
@@ -65,7 +64,7 @@
                                         <small class="dates p-2">
                                             {{ serie.firstAirDate ? serie.firstAirDate|date('Y') : 'Date inconnue' }}
                                             {% if serie.lastAirDate %}
-                                            - {{ serie.lastAirDate|date('Y') }}
+                                                - {{ serie.lastAirDate|date('Y') }}
                                             {% endif %}
                                         </small>
                                     </h6>
@@ -77,19 +76,18 @@
             </div>
 
             <!-- Pagination -->
-            <div class="d-flex justify-content-between align-items-center mt-4">
-                {% if page > 1 %}
-                    <a class="btn btn-outline-light" href="{{ path('serie_liste', {'page': page - 1}) ~ '?sort=' ~ sort }}">← Page précédente</a>
-                {% else %}
-                    <div></div>
-                {% endif %}
-
-                {% if page < nb_pages %}
-                    <a class="btn btn-outline-light ms-auto" href="{{ path('serie_liste', {'page': page + 1}) ~ '?sort=' ~ sort }}">Page suivante →</a>
-                {% endif %}
+            <div class="pagination-container">
+                {{ knp_pagination_render(series) }}
             </div>
         </div>
     </div>
+
+    <!-- FAB (bouton flottant) -->
+    {% if is_granted('ROLE_ADMIN') %}
+        <a href="{{ path('serie_create') }}" class="fab-add-serie" title="Ajouter une série">
+            <img src="{{ asset('icons/plus.png') }}" alt="Ajouter une série" class="icon-btn">
+        </a>
+    {% endif %}
 
     <!-- Styles personnalisés -->
     <style>
@@ -103,7 +101,6 @@
         }
 
         .overlay {
-            background-color: rgba(0, 0, 0, 0.6);
             min-height: 100vh;
             padding: 2rem 0;
         }
@@ -128,18 +125,103 @@
             font-size: 0.9rem;
         }
 
-        .nav-tabs .nav-link {
+        .nav-tabs .nav-item .nav-link {
             color: #fff;
+            border: none;
+            padding: 0.5rem 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin: 5px;
         }
 
-        .nav-tabs .nav-link.active {
-            border-color: #0d6efd;
-            color: #0d6efd;
+        .nav-tabs .nav-item .nav-link:hover {
+            background: #7F8CAA;
+            color: white;
+        }
+
+        .nav-tabs .nav-item .nav-link.sorted {
+            background: #7F8CAA;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .nav-tabs .nav-item .nav-link.sorted.asc::after {
+            content: " ▲";
+            font-size: 0.8rem;
+        }
+
+        .nav-tabs .nav-item .nav-link.sorted.desc::after {
+            content: " ▼";
+            font-size: 0.8rem;
         }
 
         .card:hover {
             transform: translateY(-5px);
             transition: transform 0.3s ease;
+        }
+
+        .btn-add-serie {
+            white-space: nowrap;
+            font-weight: 600;
+        }
+
+        .icon-btn {
+            width: 18px;
+            height: 18px;
+            object-fit: contain;
+            display: inline-block;
+        }
+
+        .pagination-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .pagination .page-link {
+            background: rgba(0,0,0,0.6);
+            border: none;
+            color: #fff;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .pagination .page-link:hover {
+            background: rgba(255,255,255,0.2);
+            color: #fff;
+        }
+
+        .pagination .active .page-link {
+            background: #7F8CAA;
+            color: #fff;
+        }
+
+        /* Floating Action Button */
+        .fab-add-serie {
+            position: fixed;
+            bottom: 50px;
+            right: 25px;
+            width: 60px;
+            height: 60px;
+            background: #7F8CAA;
+            color: #fff;
+            font-size: 2rem;
+            font-weight: bold;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            z-index: 1000;
+        }
+
+        .fab-add-serie:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+            text-decoration: none;
+            color: #fff;
         }
     </style>
 {% endblock %}

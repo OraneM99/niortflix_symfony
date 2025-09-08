@@ -2,16 +2,14 @@
 
 namespace App\Controller;
 
-use App\Entity\Contributor;
 use App\Entity\Serie;
-use App\Form\ContributorType;
 use App\Form\SerieType;
 use App\Repository\ContributorRepository;
 use App\Repository\GenreRepository;
 use App\Repository\SerieRepository;
 use App\Utils\FileManager;
-use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -22,30 +20,29 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/serie', name: 'serie_')]
 final class SerieController extends AbstractController
 {
-    #[Route('/liste/{page}', name: 'liste', requirements: ['page' => '\d+'], defaults: ['page' => 1])]
-    public function liste(SerieRepository $serieRepository,
-                          GenreRepository $genreRepository,
-                          int $page, ParameterBagInterface $parameterBag, Request $request): Response
-    {
-        $nbPerPage = $parameterBag->get('serie')['nb_par_page'];
-        $offset = ($page - 1) * $nbPerPage;
-
+    #[Route('/liste', name: 'liste')]
+    public function liste(
+        SerieRepository $serieRepository,
+        GenreRepository $genreRepository,
+        PaginatorInterface $paginator,
+        Request $request,
+        ParameterBagInterface $parameterBag
+    ): Response {
         $sort = $request->query->get('sort', null);
-
         $search = $request->query->get('search', null);
 
-        $series = $serieRepository->findSeriesWithQueryBuilder($offset, $nbPerPage, false, $sort, $search);
+        $query = $serieRepository->getQueryForSeries($sort, $search);
+
+        $series = $paginator->paginate(
+            $query,
+            $request->query->getInt('page', 1),
+            $parameterBag->get('serie')['nb_par_page']
+        );
+
         $genres = $genreRepository->findAllOrderedByName();
-
-        $nbSeries = $serieRepository->findSeriesWithQueryBuilder($offset, $nbPerPage, true, $sort, $search);
-
-        $nbPages = ceil($nbSeries[1] / $nbPerPage);
-
 
         return $this->render('serie/liste.html.twig', [
             'series' => $series,
-            'page' => $page,
-            'nb_pages' => $nbPages,
             'sort' => $sort,
             'genres' => $genres
         ]);

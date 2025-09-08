@@ -6,6 +6,7 @@ use App\Entity\Serie;
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\QueryBuilder;
 
 /**
  * @extends ServiceEntityRepository<Serie>
@@ -17,69 +18,65 @@ class SerieRepository extends ServiceEntityRepository
         parent::__construct($registry, Serie::class);
     }
 
-    public function findSeriesWithQueryBuilder(int $offset, int $nbPerPage, bool $count = false, ?string $sort = null, ?string $search = null): array
+    /**
+     * Retourne un QueryBuilder pour paginer/filtrer les séries
+     */
+    public function getQueryForSeries(?string $sort = null, ?string $search = null): QueryBuilder
     {
         $qb = $this->createQueryBuilder('s');
 
+        // Recherche par nom
         if ($search) {
             $qb->andWhere('s.name LIKE :search')
                 ->setParameter('search', '%' . $search . '%');
         }
 
-        if ($count === true) {
-            return $qb->select('count(s.id)')->getQuery()->getOneOrNullResult();
+        // Tri
+        switch ($sort) {
+            case 'best':
+                $qb->orderBy('s.vote', 'ASC');
+                break;
+            case 'fans':
+                $qb->orderBy('s.popularity', 'ASC');
+                break;
+            case 'date':
+                $qb->orderBy('s.firstAirDate', 'DESC');
+                break;
+            case 'last':
+                $qb->orderBy('s.firstAirDate', 'ASC');
+                break;
+            case 'name':
+                $qb->orderBy('s.name', 'ASC');
+                break;
+            default:
+                $qb->orderBy('s.name', 'ASC');
+                break;
         }
 
-        $allowedSorts = ['name', 'firstAirDate', 'lastAirDate', 'popularity', 'vote'];
-
-        if ($sort) {
-            switch ($sort) {
-                case 'best':
-                    $qb->orderBy('s.vote', 'DESC'); // tri par note pour recommandations
-                    break;
-                case 'fans':
-                    $qb->orderBy('s.popularity', 'ASC'); // tri par popularité
-                    break;
-                case 'date':
-                    $qb->orderBy('s.firstAirDate', 'ASC');
-                    break;
-                case 'last':
-                    $qb->orderBy('s.firstAirDate', 'DESC');
-                    break;
-                case 'name':
-                    $qb->orderBy('s.name', 'ASC');
-                    break;
-                default:
-                    if (in_array($sort, $allowedSorts)) {
-                        $qb->orderBy('s.' . $sort, 'ASC');
-                    } else {
-                        $qb->orderBy('s.name', 'ASC');
-                    }
-            }
-        } else {
-            $qb->orderBy('s.name', 'ASC');
-        }
-
-
-        return $qb->setFirstResult($offset)
-            ->setMaxResults($nbPerPage)
-            ->getQuery()
-            ->getResult();
+        return $qb;
     }
 
+    /**
+     * Séries favorites d’un utilisateur
+     */
     public function findFavorisByUser(User $user): array
     {
         return $this->findBy(['user' => $user, 'status' => 'favoris']);
     }
 
+    /**
+     * Séries à voir d’un utilisateur
+     */
     public function findAVoirByUser(User $user): array
     {
         return $this->findBy(['user' => $user, 'status' => 'a-voir']);
     }
 
+    /**
+     * Séries en cours d’un utilisateur
+     */
     public function findEnCoursByUser(User $user): array
     {
         return $this->findBy(['user' => $user, 'status' => 'en-cours']);
     }
-
 }
