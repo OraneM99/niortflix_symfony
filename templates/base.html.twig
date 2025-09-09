@@ -8,54 +8,163 @@
 
     {% block stylesheets %}
         <style>
-            body {
-                background-color: #121212;
-                color: #e0e0e0;
+            :root{
+                --ink:#ffffff; --ink-weak:#e9edf6; --bg:#333446;
+                --pri:#7F8CAA; --pri-weak:#9aa6c4;
+                --card:#222529; --panel:#222529; --panel-alpha: rgba(34,37,41,.78);
+                --ring:rgba(127,140,170,.35);
+                --radius-xs:4px; --radius-s:8px; --radius-m:10px;
             }
 
-            .header-logo {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                padding: 20px 0;
-                color: black;
-                font-size: 1.8rem;
-                font-weight: bold;
+            html,body{min-height:100%}
+            body{
+                background:
+                        radial-gradient(1200px 600px at 10% -10%, rgba(127,140,170,.25), transparent),
+                        radial-gradient(900px 500px at 110% 10%, rgba(127,140,170,.18), transparent),
+                        url('{{ asset('images/fond.jpeg') }}') center/cover no-repeat fixed;
+                background-color: var(--bg);
+                color:#e0e0e0;
+                font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, sans-serif;
+                -webkit-tap-highlight-color: transparent;
             }
 
-            .header-logo a {
-                text-decoration: none;
-                color: inherit;
+            a, a:visited, a:hover, a:active{ color: inherit !important; text-decoration: none !important; }
+
+            /* Panel / container */
+            .panel{
+                background: var(--panel-alpha);
+                backdrop-filter: blur(6px);
+                -webkit-backdrop-filter: blur(6px);
+                border:1px solid rgba(255,255,255,.08);
+                border-radius: var(--radius-m);
+                box-shadow: 0 10px 30px rgba(0,0,0,.35);
+                padding:2rem 1.25rem;
             }
 
-            .alert {
-                margin-top: 10px;
+            .page-title{ color:#fff; margin:0; font-weight:800; letter-spacing:.3px; }
+            .page-subtitle{ color:var(--ink-weak); opacity:.9; margin:.25rem 0 1.25rem; font-size:.9rem; }
+
+            /* Cards séries */
+            .card-show{ position:relative; display:flex; flex-direction:column;
+                background: var(--card); border:1px solid rgba(255,255,255,.06);
+                border-radius: var(--radius-m); overflow:hidden; height:100%;
+                transition: transform .25s, box-shadow .25s, border-color .2s; }
+            .card-show:hover{ transform: translateY(-6px); box-shadow:0 14px 30px rgba(0,0,0,.45); border-color: rgba(127,140,170,.45); }
+            .row [class*="col"]{ display:flex; }
+            .row [class*="col"] > .card-show{ width:100%; }
+
+            .card-media{ position:relative; aspect-ratio:2/3; background:#1f2030; }
+            .card-media img{ width:100%; height:100%; object-fit:cover; display:block; }
+            .media-fade{ position:absolute; inset:auto 0 0 0; height:42%;
+                background: linear-gradient(to top, rgba(0,0,0,.75), rgba(0,0,0,0)); }
+
+            .card-caption{ padding:.7rem .8rem 1rem; min-height:64px; }
+            .card-caption h6{ color:#fff !important; margin:0; line-height:1.2; }
+            .text-truncate-2{ display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+            .dates{ color:var(--ink-weak); opacity:.9; display:block; margin-top:.25rem; font-size:.85rem; }
+
+            /* Chips (score & drapeau) */
+            .chip{
+                position:absolute; top:10px; padding:.28rem .5rem; font-weight:700; font-size:.85rem;
+                background: rgba(0,0,0,.45); color:#fff; border:1px solid rgba(255,255,255,.12);
+                backdrop-filter: blur(6px); border-radius: var(--radius-s);
+                text-shadow:0 1px 2px rgba(0,0,0,.35); display:flex; align-items:center; gap:.35rem;
+            }
+            .chip-score{ left:10px; box-shadow: 0 0 0 1px rgba(127,140,170,.25) inset; }
+            .chip-flag{ right:10px; }
+            .chip-score .icon-btn{ width:14px; height:14px; object-fit:contain; filter: grayscale(1) brightness(0) invert(1); opacity:.95; }
+
+            /* Filtres (pills) sobres + état sélection */
+            .pill-link{
+                position:relative; color:#fff !important; background: rgba(255,255,255,.06) !important;
+                border:1px solid rgba(255,255,255,.10) !important; border-radius: var(--radius-s) !important;
+                padding:.45rem .9rem !important; transition: background .2s, border-color .2s, color .2s, transform .1s;
+            }
+            .pill-link:hover{ background: rgba(255,255,255,.10) !important; border-color: rgba(255,255,255,.18) !important; transform: translateY(-1px); }
+            .pill-link.sorted{
+                font-weight:700 !important; color:#fff !important; background: rgba(255,255,255,.10) !important;
+                border-color: #7F8CAA !important; box-shadow: 0 0 0 2px rgba(127,140,170,.25) inset;
+            }
+            .pill-link.sorted::after{ content:""; position:absolute; left:12px; right:12px; bottom:-6px; height:3px; border-radius:2px; background:#7F8CAA; }
+
+            /* Pagination sobre + actif */
+            .pagination .page-link{
+                background: rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.10); color:#fff;
+                border-radius: var(--radius-s) !important; padding:.5rem .85rem;
+                transition: background .2s, border-color .2s, color .2s, transform .1s;
+            }
+            .pagination .page-link:hover{ background: rgba(255,255,255,.10); border-color: rgba(255,255,255,.18); color:#fff; transform: translateY(-1px); }
+            .pagination .active .page-link{
+                background: rgba(255,255,255,.10); border-color: #7F8CAA; color:#fff; box-shadow: 0 0 0 2px rgba(127,140,170,.25) inset;
+            }
+            .pagination li.active .page-link::after{ content:""; display:block; height:3px; margin-top:6px; border-radius:2px; background:#7F8CAA; }
+
+            /* Icônes -> toujours blanches */
+            .icon-btn, .icon-circle img, .btn-watch img, .navbar .btn img{
+                width:18px; height:18px; object-fit:contain; filter: brightness(0) invert(1); opacity:1;
             }
 
-            footer {
-                padding: 1rem 0;
-                background-color: #1f1f1f;
-                text-align: center;
-                color: #aaa;
-                border-top: 1px solid #333;
+            /* Navbar */
+            .navbar{ background:#333446; }
+            .navbar .form-control{
+                border-radius: var(--radius-s); background: rgba(255,255,255,.06);
+                color:#fff; border:1px solid rgba(255,255,255,.1);
+            }
+            .navbar .form-control::placeholder{ color:#cfd5e6; }
+            .navbar .btn{ background: var(--pri); color:#fff; border:0; border-radius: var(--radius-s); }
+
+            /* Focus */
+            a:focus, a:active, .card-show:focus{ outline:none !important; box-shadow:none !important; }
+            a:focus-visible, button:focus-visible, input:focus-visible{
+                outline:none; box-shadow:0 0 0 4px var(--ring); border-radius: var(--radius-s);
+            }
+
+            /* Overlay hover sur les cartes */
+            .card-tapzone{ display:block; color:inherit; }
+            .card-overlay{
+                position:absolute; inset:0; z-index:3; display:flex; flex-direction:column; justify-content:flex-end; gap:.6rem;
+                padding:12px; background: linear-gradient(to top, #232529 36%, rgba(0,0,0,.45) 68%, rgba(0,0,0,0) 100%);
+                opacity:0; transform: translateY(6px); pointer-events:none; transition: opacity .25s ease, transform .25s ease;
+            }
+            .card-show:is(:hover,:focus-within) .card-overlay{ opacity:1; transform: translateY(0); pointer-events:auto; }
+
+            /* Bouton overlay “En savoir plus” */
+            .btn-watch{
+                display:flex; align-items:center; justify-content:center; gap:.6rem;
+                background: rgb(127,140,170); border:1px solid rgba(255,255,255,.22); color:#fff; font-weight:700;
+                border-radius: var(--radius-s); padding:.75rem 1rem; text-decoration:none;
+                transition: background .2s, border-color .2s, transform .1s;
+            }
+            .btn-watch:hover{ background:#EAEFEF; color:#333446; border-color: rgba(255,255,255,.28); transform: translateY(-1px); }
+
+            /* Icônes actions overlay */
+            .overlay-actions{ display:flex; align-items:center; gap:.6rem; }
+            .icon-circle{
+                width:44px; height:44px; display:grid; place-items:center;
+                background: rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.22);
+                border-radius: 50%; transition: background .2s, border-color .2s, transform .1s;
+            }
+            .icon-circle:hover{ background: rgba(255,255,255,.18); border-color: rgba(255,255,255,.32); transform: translateY(-1px); }
+            .icon-circle.is-active{ background: rgba(127,140,170,.28); border-color: #7F8CAA; box-shadow: 0 0 0 2px rgba(127,140,170,.25) inset; }
+
+            /* Synopsis overlay (3 lignes) */
+            .overlay-synopsis{
+                color:#fff; opacity:.95; font-size:.95rem; line-height:1.35;
+                display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;
             }
         </style>
-    {% endblock %}
-
-    {% block javascripts %}
-        {% block importmap %}{{ importmap('app') }}{% endblock %}
     {% endblock %}
 </head>
 
 <body class="d-flex flex-column min-vh-100 {% block body_class %}{% endblock %}">
 <header>
-        {% for status, messages in app.flashes %}
-            {% for message in messages %}
-                <div class="alert alert-{{ status }}">{{ message }}</div>
-            {% endfor %}
+    {% for status, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ status }}">{{ message }}</div>
         {% endfor %}
+    {% endfor %}
 
-        {% include('_navbar.html.twig') %}
+    {% include('_navbar.html.twig') %}
 </header>
 
 <main class="flex-grow-1">
@@ -64,8 +173,95 @@
     </div>
 </main>
 
-<footer class="mt-auto">
+{# Modal global pour afficher dynamiquement le détail d'une série #}
+<div class="modal fade" id="serieModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content" style="background: var(--panel-alpha); border:1px solid rgba(255,255,255,.12); border-radius: var(--radius-m);">
+            <!-- contenu injecté dynamiquement -->
+        </div>
+    </div>
+</div>
 
-</footer>
+<footer class="mt-auto"></footer>
+
+{% block javascripts %}
+    {# Bootstrap JS (pour le modal) — si déjà bundlé via importmap/Encore, retire cette ligne #}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
+
+    <script>
+        // Ouvre le modal et charge le fragment de détail
+        document.addEventListener('click', async (e) => {
+            const a = e.target.closest('.js-open-detail');
+            if (!a) return;
+
+            e.preventDefault();
+
+            const url = a.getAttribute('href');
+            const modal = document.getElementById('serieModal');
+            const content = modal.querySelector('.modal-content');
+
+            content.innerHTML = `<div class="p-4 text-center text-white-50">Chargement…</div>`;
+
+            try {
+                const res = await fetch(url + (url.includes('?') ? '&' : '?') + 'partial=1', {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const html = await res.text();
+                content.innerHTML = html;
+            } catch (err) {
+                content.innerHTML = `<div class="p-4 text-danger">Erreur de chargement.</div>`;
+            }
+
+            if (window.bootstrap && bootstrap.Modal) {
+                const instance = bootstrap.Modal.getOrCreateInstance(modal);
+                instance.show();
+            } else {
+                modal.classList.add('show');
+                modal.style.display = 'block';
+                modal.removeAttribute('aria-hidden');
+            }
+        });
+
+        // Toggle favoris via AJAX (pas de redirection)
+        document.addEventListener('click', async (e) => {
+            const a = e.target.closest('.js-favorite');
+            if (!a) return;
+
+            e.preventDefault();
+            const url = a.dataset.url || a.getAttribute('href');
+            const token = a.dataset.token || '';
+
+            try {
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    body: new URLSearchParams({ _token: token })
+                });
+
+                if (res.status === 401) {
+                    const data = await res.json().catch(() => ({}));
+                    if (data.redirect) window.location.href = data.redirect;
+                    return;
+                }
+
+                if (!res.ok) {
+                    console.error('Erreur favoris', res.status);
+                    return;
+                }
+
+                const data = await res.json();
+                if (data.ok) {
+                    a.classList.toggle('is-active', !!data.favorited);
+                    // Ex: changer l’icône si tu as /icons/heart-full.png
+                    // const img = a.querySelector('img'); if (img) img.src = data.favorited ? '{{ asset('icons/heart-full.png') }}' : '{{ asset('icons/heart.png') }}';
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        });
+    </script>
+
+    {% block importmap %}{{ importmap('app') }}{% endblock %}
+{% endblock %}
 </body>
 </html>

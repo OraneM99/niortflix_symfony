@@ -21,36 +21,32 @@ class SerieRepository extends ServiceEntityRepository
     /**
      * Retourne un QueryBuilder pour paginer/filtrer les séries
      */
-    public function getQueryForSeries(?string $sort = null, ?string $search = null): QueryBuilder
-    {
+    public function getQueryForSeries(
+        ?string $sort = null,
+        ?string $search = null,
+        array $ignoredIds = []
+    ): QueryBuilder {
+        // alias 's' pour correspondre aux champs passés à knp_pagination_sortable
         $qb = $this->createQueryBuilder('s');
 
-        // Recherche par nom
-        if ($search) {
-            $qb->andWhere('s.name LIKE :search')
-                ->setParameter('search', '%' . $search . '%');
+        // Recherche plein texte simple sur nom + synopsis
+        if (null !== $search && '' !== trim($search)) {
+            $q = mb_strtolower($search, 'UTF-8');
+            $qb->andWhere('LOWER(s.name) LIKE :q OR LOWER(s.overview) LIKE :q')
+                ->setParameter('q', '%'.$q.'%');
         }
 
-        // Tri
-        switch ($sort) {
-            case 'best':
-                $qb->orderBy('s.vote', 'ASC');
-                break;
-            case 'fans':
-                $qb->orderBy('s.popularity', 'ASC');
-                break;
-            case 'date':
-                $qb->orderBy('s.firstAirDate', 'DESC');
-                break;
-            case 'last':
-                $qb->orderBy('s.firstAirDate', 'ASC');
-                break;
-            case 'name':
-                $qb->orderBy('s.name', 'ASC');
-                break;
-            default:
-                $qb->orderBy('s.name', 'ASC');
-                break;
+        // Exclure des séries (ex: "ignorées" stockées en session)
+        if (!empty($ignoredIds)) {
+            $qb->andWhere($qb->expr()->notIn('s.id', ':ignoredIds'))
+                ->setParameter('ignoredIds', $ignoredIds);
+        }
+
+        // Tri par défaut si aucun tri Knp n'est demandé
+        if (null === $sort || '' === $sort) {
+            $qb->orderBy('s.popularity', 'DESC')
+                ->addOrderBy('s.vote', 'DESC')
+                ->addOrderBy('s.name', 'ASC');
         }
 
         return $qb;

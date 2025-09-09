@@ -15,7 +15,10 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Twig\Environment;
 
 #[Route('/serie', name: 'serie_')]
 final class SerieController extends AbstractController
@@ -49,36 +52,110 @@ final class SerieController extends AbstractController
     }
 
     #[Route('/detail/{id}', name: 'detail', requirements: ['id' => '\d+'])]
-    public function detail(Serie $serie, ContributorRepository $contributorRepository): Response
-    {
+    public function detail(
+        Serie $serie,
+        ContributorRepository $contributorRepository,
+        Request $request,
+        Environment $twig
+    ): Response {
         $contributors = $contributorRepository->findBySerie($serie);
 
+        // Mode "modal" : on renvoie le contenu de la page (bloc body) pour injection
+        if ($request->isXmlHttpRequest() || $request->query->getBoolean('partial')) {
+            $tpl = $twig->load('serie/detail.html.twig');
+            $context = [
+                'serie' => $serie,
+                'contributors' => $contributors,
+            ];
+
+            // Récupère le bloc body du template de la page
+            $body = $tpl->renderBlock('body', $context);
+
+            // Si tu as un block stylesheets spécifique à cette page, on peut aussi l’injecter
+            $styles = $tpl->hasBlock('stylesheets', $context)
+                ? $tpl->renderBlock('stylesheets', $context)
+                : '';
+
+            // Wrap dans une structure de modal Bootstrap (header + body)
+            $html = sprintf(
+                '<div class="modal-header border-0">
+                <h5 class="modal-title text-white">%s</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
+             </div>
+             <div class="modal-body">%s%s</div>',
+                htmlspecialchars($serie->getName(), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'),
+                // styles spécifiques (si présents)
+                $styles,
+                // contenu principal
+                $body
+            );
+
+            return new Response($html);
+        }
+
+        // Mode "page complète"
         return $this->render('serie/detail.html.twig', [
             'serie' => $serie,
-            'contributors' => $contributors
+            'contributors' => $contributors,
         ]);
     }
 
-    #[Route('/favorite/{id}', name: 'favorite', requirements: ['id' => '\d+'])]
-    public function favorite(Serie $serie, EntityManagerInterface $em): Response
+    #[Route('/favorite/{id}', name: 'favorite', requirements: ['id' => '\d+'], methods: ['GET','POST'])]
+    public function favorite(Serie $serie, EntityManagerInterface $em, Request $request): Response
     {
         $user = $this->getUser();
+        $isAjax = $request->isXmlHttpRequest() || str_contains((string)$request->headers->get('Accept'), 'application/json');
+
         if (!$user) {
-            $this->addFlash('warning', 'Vous devez être connecté pour ajouter une série aux favoris.');
-            return $this->redirectToRoute('app_login');
+            return $this->json([
+                'ok' => false,
+                'message' => 'Vous devez être connecté pour ajouter une série aux favoris.',
+                'redirect' => $this->generateUrl('app_login'),
+            ], Response::HTTP_UNAUTHORIZED);
         }
 
-        if ($user->hasFavoriteSerie($serie)) {
-            $user->removeFavoriteSerie($serie);
-            $this->addFlash('info', 'La série a été retirée de vos favoris.');
-        } else {
+        // CSRF seulement pour POST
+        if ($request->isMethod('POST')) {
+            $token = (string) $request->request->get('_token');
+            if (!$this->isCsrfTokenValid('favorite'.$serie->getId(), $token)) {
+                return $this->json(['ok' => false, 'message' => 'Jeton CSRF invalide.'], Response::HTTP_FORBIDDEN);
+            }
+        }
+
+        // Toggle
+        $favorited = !$user->hasFavoriteSerie($serie);
+        if ($favorited) {
             $user->addFavoriteSerie($serie);
-            $this->addFlash('success', 'La série a été ajoutée à vos favoris.');
+            $message = 'La série a été ajoutée à vos favoris.';
+            $flash   = 'success';
+        } else {
+            $user->removeFavoriteSerie($serie);
+            $message = 'La série a été retirée de vos favoris.';
+            $flash   = 'info';
         }
 
         $em->flush();
 
-        return $this->redirectToRoute('serie_detail', ['id' => $serie->getId()]);
+        if ($isAjax) {
+            return $this->json(['ok' => true, 'favorited' => $favorited, 'message' => $message]);
+        }
+
+        $this->addFlash($flash, $message);
+        $referer = $request->headers->get('referer') ?: $this->generateUrl('serie_liste');
+        return $this->redirect($referer);
+    }
+
+    #[Route('/ignore/{id}', name: 'ignore', requirements: ['id' => '\d+'])]
+    public function ignore(Serie $serie, Request $request, SessionInterface $session): Response
+    {
+        $ignored = $session->get('ignored_series', []);
+        $ignored[$serie->getId()] = true;
+        $session->set('ignored_series', $ignored);
+
+        $this->addFlash('info', sprintf('« %s » a été masquée.', $serie->getName()));
+
+        // Retour sur la liste en conservant d’éventuels paramètres de tri/recherche
+        return $this->redirectToRoute('serie_liste', $request->query->all());
     }
 
     #[Route('/create', name: 'create')]

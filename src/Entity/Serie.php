@@ -28,7 +28,7 @@ class Serie
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank(message: 'Le nom est obligatoire !')]
-    #[Assert\Length(min: 3, max: 150)]
+    #[Assert\Length(min: 1, max: 150)]
     private ?string $name = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]

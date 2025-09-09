@@ -6,29 +6,111 @@
 {% endblock %}
 
 {% block body %}
-    <div class="container mt-5">
-        <div class="row justify-content-center">
-            <div class="col-md-8 col-lg-6">
-                <div class="card bg-dark text-light shadow-sm border-secondary">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">
-                            {{ is_edit ? 'Modifier la série' : 'Créer une nouvelle série' }}
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        {{ form_start(serieForm, {'attr': {'class': 'needs-validation', 'novalidate': 'novalidate'}}) }}
-                        {{ form_widget(serieForm) }}
+    <div class="min-vh-100 d-flex align-items-center justify-content-center position-relative py-4">
+        <div class="container position-relative">
+            <div class="row justify-content-center">
+                <div class="col-md-8 col-lg-6">
+                    <!-- Carte principale -->
+                    <div class="card border-0 shadow-lg auth-card">
+                        <div class="card-body p-4 p-md-5 bg-transparent">
+                            <!-- En-tête -->
+                            <div class="text-center mb-4">
+                                <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3 auth-icon">
+                                    <img src="{{ asset('images/folder.jpg') }}" alt="Série">
+                                </div>
+                                <h1 class="h3 fw-bold text-white mb-2">
+                                    {{ is_edit ? 'Modifier la série' : 'Créer une nouvelle série' }}
+                                </h1>
+                                <p class="text-light opacity-75 mb-0">
+                                    Complétez les informations ci-dessous
+                                </p>
+                            </div>
 
-                        <div class="d-grid mt-4">
-                            <button type="submit" class="btn btn-primary">
+                            <!-- Formulaire -->
+                            {{ form_start(serieForm, {'attr': {'class': 'needs-validation', 'novalidate': 'novalidate'}}) }}
+                            {{ form_widget(serieForm, {
+                                attr: { class: 'form-control modern-input mb-3' }
+                            }) }}
+
+                            <!-- Bouton -->
+                            <button type="submit" class="btn btn-gradient btn-lg w-100 fw-semibold mb-3 d-flex align-items-center justify-content-center">
+                                <img src="{{ asset('icons/save.png') }}" alt="Valider" class="me-2">
                                 {{ is_edit ? 'Mettre à jour' : 'Enregistrer' }}
                             </button>
+                            {{ form_end(serieForm, {'render_rest': false}) }}
                         </div>
-
-                        {{ form_end(serieForm, {'render_rest': false}) }}
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- Styles modernisés -->
+        <style>
+            body {
+                margin: 0;
+                padding: 0;
+                min-height: 100vh;
+                background: url('{{ asset('images/fond.jpeg') }}') center/cover no-repeat fixed;
+                font-family: "Inter", sans-serif;
+            }
+
+            .auth-card {
+                background: rgba(0,0,0,0.35);
+                backdrop-filter: blur(20px) saturate(150%);
+                border-radius: 20px;
+                animation: slideUp 0.6s ease-out;
+            }
+
+            .auth-icon {
+                width: 4rem; height: 4rem;
+                display: flex; align-items: center; justify-content: center;
+                background: rgba(255,255,255,0.1);
+                border: 2px solid rgba(255,255,255,0.3);
+                backdrop-filter: blur(10px);
+            }
+            .auth-icon img { width: 2rem; height: 2rem; }
+
+            /* Champs modernes */
+            .modern-input {
+                background: rgba(255,255,255,0.08) !important;
+                border: 1px solid rgba(255,255,255,0.25) !important;
+                border-radius: 10px !important;
+                color: #fff !important;
+                padding: 0.75rem 1rem !important;
+                transition: all 0.3s ease;
+            }
+            .modern-input::placeholder {
+                color: rgba(255,255,255,0.6) !important;
+            }
+            .modern-input:focus {
+                background: rgba(255,255,255,0.12) !important;
+                border-color: #7F8CAA !important;
+                box-shadow: 0 4px 15px rgba(127, 140, 170, 0.4) !important;
+            }
+
+            /* Bouton dégradé */
+            .btn-gradient {
+                background: linear-gradient(135deg, #7F8CAA, #3c3f5c);
+                border: none;
+                border-radius: 10px;
+                color: white !important;
+                transition: all 0.3s ease;
+            }
+            .btn-gradient:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 20px rgba(127,140,170,0.4);
+            }
+            .btn-gradient img { width: 1rem; height: 1rem; }
+
+            @keyframes slideUp {
+                from { opacity:0; transform: translateY(30px); }
+                to { opacity:1; transform: translateY(0); }
+            }
+
+            @media (max-width:768px) {
+                .auth-card { margin:1rem; }
+                .card-body { padding: 2rem 1.5rem !important; }
+            }
+        </style>
     </div>
 {% endblock %}

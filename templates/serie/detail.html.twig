@@ -4,8 +4,9 @@
 {% block title %}{{ serie.name }} | {{ parent() }}{% endblock %}
 
 {% block stylesheets %}
-    {{ parent() }}
-    <link rel="stylesheet" href="{{ asset('assets/css/serie-detail.css') }}">
+    {% if not app.request.isXmlHttpRequest() and not app.request.query.get('partial') %}
+        {{ parent() }}
+    {% endif %}
     <style>
         body.serie-detail-page {
             --backdrop-image: url("{{ asset(serie_params.backdrop_dir ~ '/' ~ serie.backdrop) }}");
@@ -174,26 +175,6 @@
             height: 18px;
             object-fit: contain;
             display: inline-block;
-        }
-
-        .btn-watch {
-            background: linear-gradient(135deg, #ff0044, #ff3366);
-            color: #fff;
-            font-size: 1rem;
-            padding: 0.9rem 2rem;
-            border-radius: 12px;
-        }
-
-        .btn-trailer {
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.3);
-            color: #fff;
-        }
-
-        .btn-watch img,
-        .btn-trailer img {
-            width: 20px;
-            height: 20px;
         }
 
         .stars img {
