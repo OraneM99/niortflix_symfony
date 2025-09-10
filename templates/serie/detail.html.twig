@@ -1,185 +1,244 @@
 {% extends 'base.html.twig' %}
 {% block body_class %}serie-detail-page{% endblock %}
-
 {% block title %}{{ serie.name }} | {{ parent() }}{% endblock %}
 
+{# CSS via <head> hors modal #}
 {% block stylesheets %}
-    {% if not app.request.isXmlHttpRequest() and not app.request.query.get('partial') %}
+    {% if not (app.request.isXmlHttpRequest() or app.request.query.getBoolean('partial')) %}
         {{ parent() }}
+        <link rel="stylesheet" href="{{ asset('assets/css/serie-detail.css') }}?v={{ 'now'|date('U') }}">
+        <style>body.serie-detail-page{ background-color:#393E46; }</style>
     {% endif %}
-    <style>
-        body.serie-detail-page {
-            --backdrop-image: url("{{ asset(serie_params.backdrop_dir ~ '/' ~ serie.backdrop) }}");
-        }
-    </style>
 {% endblock %}
 
+{# JS commun déjà dans base.html.twig; rien de spécifique ici #}
 {% block javascripts %}
-    {{ parent() }}
-    <script src="{{ asset('assets/js/serie-detail.js') }}" defer></script>
+    {% if not (app.request.isXmlHttpRequest() or app.request.query.getBoolean('partial')) %}
+        {{ parent() }}
+    {% endif %}
 {% endblock %}
 
 {% block body %}
-    <div class="serie-detail-container">
-        <a href="{{ path('serie_liste') }}" class="btn-back">&lt; Retour</a>
+    {# En modal, on (re)charge la CSS pour garantir le style #}
+    {% if app.request.isXmlHttpRequest() or app.request.query.getBoolean('partial') %}
+        <link rel="stylesheet" href="{{ asset('assets/css/serie-detail.css') }}?v={{ 'now'|date('U') }}">
+    {% endif %}
 
-        <!-- Header -->
-        <div class="serie-header">
-            <div class="serie-meta">
-                {{ serie.name }}
-                <span class="genre-separator">|</span>
-                <span class="serie-genres">{{ serie.genres|join(' · ') }}</span>
+    {% set backdrop = asset(serie_params.backdrop_dir ~ '/' ~ serie.backdrop) %}
+    {% set status = serie.status|lower %}
+    {% set statusLabel = status == 'returning' ? 'En cours'
+        : (status == 'ended' ? 'Terminée'
+        : (status == 'cancelled' ? 'Annulée' : serie.status)) %}
+
+    <div class="detail-sheet{% if app.request.isXmlHttpRequest() or app.request.query.getBoolean('partial') %} is-modal{% endif %}">
+
+        {# HERO avec image de fond #}
+        <section class="series-hero" style="--hero: url('{{ backdrop }}')">
+            <div class="hero-inner">
+
+                <div class="hero-title">
+                    <h1>{{ serie.name }}</h1>
+
+                    <div class="hero-meta">
+                        <div class="meta-item">
+                            <img class="icon-16" src="{{ asset('icons/calendar.png') }}" alt="">
+                            <span>
+                                {{ serie.firstAirDate ? serie.firstAirDate|date('d/m/Y') : 'Date inconnue' }}
+                                {% if serie.lastAirDate %} – {{ serie.lastAirDate|date('d/m/Y') }}{% endif %}
+                            </span>
+                        </div>
+
+                        {% if serie.genres is defined and serie.genres|length > 0 %}
+                            <div class="meta-item">
+                                <img class="icon-16" src="{{ asset('icons/tag.png') }}" alt="">
+                                <span>{{ serie.genres|join(' · ') }}</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="status-badge">{{ statusLabel }}</div>
+            </div>
+
+            {# Note en haut à droite #}
+            <span class="hero-score">
+                <img src="{{ asset('icons/star.png') }}" alt="">
+                {{ serie.vote|default('N/A') }}
+            </span>
+        </section>
+
+        {# Où regarder #}
+        <section class="section">
+            <h2>Où regarder</h2>
+
+            {# Rendu de la liste + admin (partial) #}
+            {% include 'serie/_watch_links.html.twig' with {
+                watchLinks: watchLinks,
+                links: links,
+                serie: serie
+            } %}
+        </section>
+
+        {# Synopsis #}
+        {% if serie.overview %}
+            <section class="section">
+                <h2>Synopsis</h2>
+                <p class="synopsis">{{ serie.overview }}</p>
+            </section>
+        {% endif %}
+
+        {# Onglets Distribution / Suivi #}
+        <div class="tabs" data-tabs>
+            <div class="tab-triggers">
+                <button type="button" class="tab-trigger is-active" data-tab="cast">Distribution</button>
+                <button type="button" class="tab-trigger" data-tab="track">Suivi</button>
+            </div>
+
+            <div class="tab-panel is-active" data-panel="cast">
+                {% if contributors is defined and contributors %}
+                    <div class="cast-grid">
+                        {% for c in contributors %}
+                            <div class="cast-card">
+                                <p class="cast-name">{{ c.name }}</p>
+                                {% if c.role %}<p class="cast-role">{{ c.role }}</p>{% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <span class="text-muted">Aucune information de distribution.</span>
+                {% endif %}
+            </div>
+
+            <div class="tab-panel" data-panel="track">
+                <div class="track-actions">
+                    <a href="{{ path('serie_favorite', {id: serie.id}) }}"
+                       class="btn-primary js-favorite"
+                       data-url="{{ path('serie_favorite', {id: serie.id}) }}"
+                       data-token="{{ csrf_token('favorite' ~ serie.id) }}">
+                        <img src="{{ asset('icons/heart.png') }}" alt="">
+                        {{ app.user and app.user.hasFavoriteSerie(serie) ? 'Retirer des favoris' : 'Ajouter aux favoris' }}
+                    </a>
+
+                    <a href="{{ path('serie_ignore', {id: serie.id}) }}" class="btn-ghost">
+                        <img class="icon-16" src="{{ asset('icons/stop.png') }}" alt="">
+                        Ignorer
+                    </a>
+
+                    <a href="#" class="btn-ghost">
+                        <img class="icon-16" src="{{ asset('icons/check.png') }}" alt="">
+                        Marquer comme vu
+                    </a>
+                </div>
             </div>
         </div>
+    </div>
 
-        <!-- Contenu principal -->
-        <div class="serie-main-content">
-            <!-- Poster -->
-            <div class="poster-section">
-                <img src="{{ asset(serie_params.poster_dir ~ '/' ~ serie.poster) }}"
-                     alt="{{ serie.name }}"
-                     class="poster-img">
-
-                {# Statut en haut à gauche #}
-                {% set status = serie.status|lower %}
-                <span class="status-overlay">
-                {% if status == 'returning' %}
-                    En cours
-                {% elseif status == 'ended' %}
-                    Terminée
-                {% elseif status == 'cancelled' %}
-                    Annulée
-                {% else %}
-                    {{ status }}
-                {% endif %}
-            </span>
-            </div>
-
-            <!-- Infos -->
-            <div class="content-section">
-                <div class="serie-info">
-                    <h1 class="serie-title">{{ serie.name }}</h1>
-
-                    <!-- Description -->
-                    <p class="serie-overview">{{ serie.overview }}</p>
-
-                    <!-- Dates -->
-                    <div class="info-row">
-                        <img src="{{ asset('icons/calendar.png') }}" alt="Calendrier" class="icon-btn">
-                        <div class="date-range">
-                            <span>{{ serie.firstAirDate|date('d/m/Y') }}</span>
-                            {% if serie.status in ['ended', 'cancelled'] and serie.lastAirDate %}
-                                <span> - {{ serie.lastAirDate|date('d/m/Y') }}</span>
-                            {% endif %}
-                        </div>
+    {# Modal "Ajouter un lien" (affiché uniquement si admin) #}
+    {% if is_granted('ROLE_ADMIN') %}
+        <div class="modal fade" id="addLinkModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content" style="background:#222831; color:#EEE;">
+                    <div class="modal-header border-0">
+                        <h5 class="modal-title">Ajouter un lien</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
                     </div>
-
-                    <!-- Actions sociales -->
-                    <div class="secondary-actions">
-                        <a href="#" id="shareButton" class="action-link">
-                            <img src="{{ asset('icons/share.png') }}" alt="Partager" class="icon-btn">
-                            <span>Partager</span>
-                        </a>
-                        <a href="#" id="favoriteButton" class="action-link">
-                            <img src="{{ asset('icons/heart.png') }}" alt="Favoris" class="icon-btn">
-                            <span>Ajouter à mes favoris</span>
-                        </a>
-                    </div>
-
-                    <!-- Boutons principaux -->
-                    <div class="primary-actions">
-                        <button id="watchButton" class="btn-watch">
-                            <img src="{{ asset('icons/play.png') }}" alt="Regarder" class="icon-btn">
-                            Regarder
-                        </button>
-                        <button id="trailerButton" class="btn-trailer">
-                            <img src="{{ asset('icons/trailer.png') }}" alt="Bande-annonce" class="icon-btn">
-                            Bande-annonce
-                        </button>
+                    <div class="modal-body">
+                        {{ form_start(linkForm, {attr: {id: 'js-add-link-form'}}) }}
+                        {{ form_row(linkForm.provider) }}
+                        {{ form_row(linkForm.url) }}
+                        {{ form_row(linkForm.enabled) }}
+                        <button type="submit" class="btn btn-mini btn-primary">Ajouter</button>
+                        {{ form_end(linkForm) }}
                     </div>
                 </div>
             </div>
         </div>
+    {% endif %}
 
-        <!-- Distribution -->
-        <div class="distribution-section">
-            <div class="distribution-header">
-                <h2 class="distribution-title">Distribution</h2>
-                {% if is_granted('ROLE_ADMIN') %}
-                    <button class="btn-add-contributor">
-                        <img src="{{ asset('icons/add-user.png') }}" alt="Ajouter" class="icon-btn">
-                        Ajouter un membre
-                    </button>
-                {% endif %}
-            </div>
-        </div>
+    {# JS minimal pour onglets + gestion AJAX des liens #}
+    <script>
+        (function(){
+            const root = document.currentScript.closest('.detail-sheet') || document;
 
-        <!-- Admin actions -->
-        <div class="admin-actions">
-            {% if is_granted('ROLE_ADMIN') %}
-                <a href="{{ path('serie_update', { id: serie.id }) }}" class="btn-outline">Modifier la série</a>
-                <a href="{{ path('serie_delete', { id: serie.id, token: csrf_token('delete' ~ serie.id) }) }}"
-                   class="btn-danger"
-                   onclick="return confirm('Voulez-vous vraiment supprimer cette série ?');">
-                    Supprimer la série
-                </a>
-            {% endif %}
-        </div>
-    </div>
+            // Onglets
+            const tabs = root.querySelector('[data-tabs]');
+            if (tabs){
+                tabs.addEventListener('click', (e) => {
+                    const btn = e.target.closest('.tab-trigger'); if(!btn) return;
+                    const name = btn.dataset.tab;
+                    tabs.querySelectorAll('.tab-trigger').forEach(b => b.classList.toggle('is-active', b === btn));
+                    tabs.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('is-active', p.dataset.panel === name));
+                });
+            }
 
-    <style>
-        .poster-section {
-            position: relative;
-            width: 350px;
-            height: 500px;
-            flex: 0 0 auto;
-        }
+            // Ouvrir le modal "Ajouter un lien"
+            root.addEventListener('click', (e) => {
+                const btn = e.target.closest('[data-link-open]');
+                if (!btn) return;
+                e.preventDefault();
+                const modal = document.getElementById('addLinkModal');
+                if (modal) bootstrap.Modal.getOrCreateInstance(modal).show();
+            });
 
-        .poster-section::after {
-            content: "";
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 40%;
-            background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
-            border-radius: 12px;
-        }
+            // Soumission AJAX du form d'ajout
+            const form = root.querySelector('#js-add-link-form');
+            if (form) {
+                form.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const resp = await fetch(form.action, {
+                        method: 'POST',
+                        headers: {'X-Requested-With':'XMLHttpRequest'},
+                        body: new FormData(form)
+                    });
+                    const data = await resp.json().catch(()=>({}));
+                    if (data.ok) {
+                        const section = root.querySelector('.section'); // bloc "Où regarder"
+                        if (section) {
+                            const doc = new DOMParser().parseFromString(data.html, 'text/html');
+                            // replace watch-list
+                            const newList = doc.body.querySelector('.watch-list');
+                            if (newList) section.querySelector('.watch-list')?.replaceWith(newList);
+                            // replace admin block
+                            const newAdmin = doc.body.querySelector('.watch-admin');
+                            const oldAdmin = section.querySelector('.watch-admin');
+                            if (newAdmin && oldAdmin) oldAdmin.replaceWith(newAdmin);
+                            else if (newAdmin && !oldAdmin) section.appendChild(newAdmin);
+                        }
+                        const modal = document.getElementById('addLinkModal');
+                        if (modal) bootstrap.Modal.getOrCreateInstance(modal).hide();
+                        form.reset();
+                    } else {
+                        alert(data.message || 'Erreur lors de l’ajout.');
+                    }
+                });
+            }
 
-        .poster-section .poster-img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 12px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
-            display: block;
-        }
-
-        .status-overlay {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background: #7F8CAA;
-            color: #fff;
-            padding: 0.4rem 0.8rem;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            z-index: 2;
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255,255,255,0.2);
-        }
-
-        .icon-btn {
-            width: 18px;
-            height: 18px;
-            object-fit: contain;
-            display: inline-block;
-        }
-
-        .stars img {
-            width: 16px;
-            height: 16px;
-        }
-    </style>
+            // Suppression AJAX d’un lien
+            root.addEventListener('submit', async (e) => {
+                const del = e.target.closest('form[data-link-delete]');
+                if (!del) return;
+                e.preventDefault();
+                const resp = await fetch(del.action, {
+                    method: 'POST',
+                    headers: {'X-Requested-With':'XMLHttpRequest'},
+                    body: new FormData(del)
+                });
+                const data = await resp.json().catch(()=>({}));
+                if (data.ok) {
+                    const section = root.querySelector('.section');
+                    if (section) {
+                        const doc = new DOMParser().parseFromString(data.html, 'text/html');
+                        const newList = doc.body.querySelector('.watch-list');
+                        if (newList) section.querySelector('.watch-list')?.replaceWith(newList);
+                        const newAdmin = doc.body.querySelector('.watch-admin');
+                        const oldAdmin = section.querySelector('.watch-admin');
+                        if (newAdmin && oldAdmin) oldAdmin.replaceWith(newAdmin);
+                        else if (newAdmin && !oldAdmin) section.appendChild(newAdmin);
+                    }
+                } else {
+                    alert(data.message || 'Suppression impossible.');
+                }
+            });
+        })();
+    </script>
 {% endblock %}

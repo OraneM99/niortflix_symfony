@@ -36,6 +36,7 @@ class Serie
 
     #[ORM\Column(length: 255)]
     #[Assert\Choice(choices: ['returning', 'ended', 'cancelled'], message: "Le choix n'est pas valable")]
+    #[Assert\NotBlank(message: 'Choisissez un statut.')]
     private ?string $status = null;
 
     #[ORM\Column(nullable: true)]
@@ -43,9 +44,11 @@ class Serie
     private ?float $vote = null;
 
     #[ORM\Column(nullable: true)]
+    #[Assert\PositiveOrZero(message: 'La popularité doit être positive.')]
     private ?float $popularity = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[Assert\NotNull(message: 'La date de première diffusion est requise.')]
     #[Assert\LessThan('today', message: 'La date ne doit pas être postérieure à aujourd\'hui')]
     private ?\DateTimeInterface $firstAirDate = null;
 
@@ -228,9 +231,9 @@ class Serie
         return $this->streamingLinks;
     }
 
-    public function setStreamingLinks(?array $streamingLinks): static
+    public function setStreamingLinks(?array $links): self
     {
-        $this->streamingLinks = $streamingLinks;
+        $this->streamingLinks = $links ?: [];
         return $this;
     }
 

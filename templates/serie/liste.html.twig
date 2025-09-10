@@ -2,6 +2,12 @@
 
 {% block title %}Liste des séries{% endblock %}
 
+{% block body_class %}page-series{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('assets/css/serie-list.css') }}">
+{% endblock %}
+
 {% block body %}
     <div class="container my-5 position-relative p-3">
         <div class="panel">

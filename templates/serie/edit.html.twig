@@ -1,116 +1,176 @@
 {% extends 'base.html.twig' %}
 {% form_theme serieForm 'bootstrap_5_layout.html.twig' %}
 
-{% block title %}
-    {{ is_edit ? 'Modifier une série' : 'Créer une série' }}
+{% block title %}{{ is_edit ? 'Modifier une série' : 'Créer une série' }}{% endblock %}
+{% block body_class %}page-series-edit{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('assets/css/serie-edit.css') }}?v={{ 'now'|date('U') }}">
 {% endblock %}
 
 {% block body %}
-    <div class="min-vh-100 d-flex align-items-center justify-content-center position-relative py-4">
-        <div class="container position-relative">
-            <div class="row justify-content-center">
-                <div class="col-md-8 col-lg-6">
-                    <!-- Carte principale -->
-                    <div class="card border-0 shadow-lg auth-card">
-                        <div class="card-body p-4 p-md-5 bg-transparent">
-                            <!-- En-tête -->
-                            <div class="text-center mb-4">
-                                <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3 auth-icon">
-                                    <img src="{{ asset('images/folder.jpg') }}" alt="Série">
-                                </div>
-                                <h1 class="h3 fw-bold text-white mb-2">
-                                    {{ is_edit ? 'Modifier la série' : 'Créer une nouvelle série' }}
-                                </h1>
-                                <p class="text-light opacity-75 mb-0">
-                                    Complétez les informations ci-dessous
-                                </p>
-                            </div>
+    {# Prévisualisations si édition #}
+    {% set currentPoster   = is_edit and attribute(serieForm.vars.data, 'poster')   ? asset(serie_params.poster_dir   ~ '/' ~ attribute(serieForm.vars.data, 'poster'))   : '' %}
+    {% set currentBackdrop = is_edit and attribute(serieForm.vars.data, 'backdrop') ? asset(serie_params.backdrop_dir ~ '/' ~ attribute(serieForm.vars.data, 'backdrop')) : '' %}
 
-                            <!-- Formulaire -->
-                            {{ form_start(serieForm, {'attr': {'class': 'needs-validation', 'novalidate': 'novalidate'}}) }}
-                            {{ form_widget(serieForm, {
-                                attr: { class: 'form-control modern-input mb-3' }
+    <div class="container py-4">
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-10">
+                <div class="edit-card shadow-lg">
+
+                    <div class="edit-card__header d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <div>
+                            <h1 class="edit-card__title mb-0">{{ is_edit ? 'Modifier la série' : 'Créer une nouvelle série' }}</h1>
+                            <p class="edit-card__subtitle mb-0">Complétez les informations ci-dessous</p>
+                        </div>
+                        <div class="edit-card__icon"><img src="{{ asset('images/folder.jpg') }}" alt=""></div>
+                    </div>
+
+                    {# Message global si invalide #}
+                    {% if not serieForm.vars.valid %}
+                        <div class="alert alert-danger mb-3">Veuillez corriger les champs signalés ci-dessous.</div>
+                    {% endif %}
+
+                    {{ form_start(serieForm, {
+                        attr: { class: 'series-edit-form needs-validation', novalidate: 'novalidate' }
+                    }) }}
+
+                    <div class="row g-3">
+                        <div class="col-12 col-lg-7">
+                            {{ form_row(serieForm.name, {
+                                attr: { placeholder: 'Ex : The Last Of Us' }
                             }) }}
 
-                            <!-- Bouton -->
-                            <button type="submit" class="btn btn-gradient btn-lg w-100 fw-semibold mb-3 d-flex align-items-center justify-content-center">
-                                <img src="{{ asset('icons/save.png') }}" alt="Valider" class="me-2">
-                                {{ is_edit ? 'Mettre à jour' : 'Enregistrer' }}
-                            </button>
-                            {{ form_end(serieForm, {'render_rest': false}) }}
+                            {{ form_row(serieForm.overview, {
+                                attr: { rows: 6, maxlength: 600, 'data-counter': 'true', placeholder: 'Résumé / pitch… (600 caractères max)' }
+                            }) }}
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    {{ form_row(serieForm.status) }}
+                                </div>
+                                <div class="col-md-6">
+                                    {{ form_row(serieForm.country) }}
+                                </div>
+                            </div>
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    {{ form_row(serieForm.vote) }}
+                                </div>
+                                <div class="col-md-6">
+                                    {{ form_row(serieForm.popularity) }}
+                                </div>
+                            </div>
+
+                            <div class="row g-3">
+                                <div class="col-md-6">{{ form_row(serieForm.firstAirDate) }}</div>
+                                <div class="col-md-6">{{ form_row(serieForm.lastAirDate) }}</div>
+                            </div>
+
+                            {{ form_row(serieForm.genres) }}
+
+                            {# Info : liens de streaming maintenant gérés sur la fiche détail #}
+                            <div class="alert alert-info mt-2" role="note" style="background: rgba(0,173,181,.08); border-color: rgba(0,173,181,.35); color:#EEE;">
+                                Les <strong>liens de streaming</strong> se gèrent depuis la fiche de la série.
+                                {% if is_edit %}
+                                    <a class="btn btn-mini btn-primary ms-1" href="{{ path('serie_detail', { id: attribute(serieForm.vars.data, 'id') }) }}">Ouvrir la fiche</a>
+                                {% else %}
+                                    Enregistre d’abord la série, puis ouvre sa fiche pour ajouter des liens.
+                                {% endif %}
+                            </div>
                         </div>
+
+                        {# Poster #}
+                        <div class="media-uploader">
+                            <label class="form-label">Poster</label>
+                            <div class="dropzone" data-preview="#posterPreview">
+                                {{ form_widget(serieForm.poster_file, { attr: { class: 'form-control', accept: 'image/*' } }) }}
+                                <img id="posterPreview" alt="Aperçu poster" class="dz-preview"
+                                     {% if currentPoster %}src="{{ currentPoster }}" style="display:block"{% endif %}/>
+                            </div>
+                            {% if currentPoster %}
+                                <small class="form-text">Poster actuel affiché ci-dessus.</small>
+                            {% endif %}
+                        </div>
+
+                        {# Backdrop #}
+                        <div class="media-uploader mt-3">
+                            <label class="form-label">Backdrop</label>
+                            <div class="dropzone" data-preview="#backdropPreview">
+                                {{ form_widget(serieForm.backdrop_file, { attr: { class: 'form-control', accept: 'image/*' } }) }}
+                                <img id="backdropPreview" alt="Aperçu backdrop" class="dz-preview wide"
+                                     {% if currentBackdrop %}src="{{ currentBackdrop }}" style="display:block"{% endif %}/>
+                            </div>
+                            {% if currentBackdrop %}
+                                <small class="form-text">Backdrop actuel affiché ci-dessus.</small>
+                            {% endif %}
+                        </div>
+
                     </div>
+
+                    <button type="submit" class="btn btn-save w-100 mt-3">
+                        <img src="{{ asset('icons/save.png') }}" alt="" class="btn-ico">
+                        {{ is_edit ? 'Mettre à jour' : 'Enregistrer' }}
+                    </button>
+
+                    {# IMPORTANT : on laisse form_end sans render_rest:false pour inclure le CSRF token #}
+                    {{ form_end(serieForm) }}
+
                 </div>
             </div>
         </div>
-
-        <!-- Styles modernisés -->
-        <style>
-            body {
-                margin: 0;
-                padding: 0;
-                min-height: 100vh;
-                background: url('{{ asset('images/fond.jpeg') }}') center/cover no-repeat fixed;
-                font-family: "Inter", sans-serif;
-            }
-
-            .auth-card {
-                background: rgba(0,0,0,0.35);
-                backdrop-filter: blur(20px) saturate(150%);
-                border-radius: 20px;
-                animation: slideUp 0.6s ease-out;
-            }
-
-            .auth-icon {
-                width: 4rem; height: 4rem;
-                display: flex; align-items: center; justify-content: center;
-                background: rgba(255,255,255,0.1);
-                border: 2px solid rgba(255,255,255,0.3);
-                backdrop-filter: blur(10px);
-            }
-            .auth-icon img { width: 2rem; height: 2rem; }
-
-            /* Champs modernes */
-            .modern-input {
-                background: rgba(255,255,255,0.08) !important;
-                border: 1px solid rgba(255,255,255,0.25) !important;
-                border-radius: 10px !important;
-                color: #fff !important;
-                padding: 0.75rem 1rem !important;
-                transition: all 0.3s ease;
-            }
-            .modern-input::placeholder {
-                color: rgba(255,255,255,0.6) !important;
-            }
-            .modern-input:focus {
-                background: rgba(255,255,255,0.12) !important;
-                border-color: #7F8CAA !important;
-                box-shadow: 0 4px 15px rgba(127, 140, 170, 0.4) !important;
-            }
-
-            /* Bouton dégradé */
-            .btn-gradient {
-                background: linear-gradient(135deg, #7F8CAA, #3c3f5c);
-                border: none;
-                border-radius: 10px;
-                color: white !important;
-                transition: all 0.3s ease;
-            }
-            .btn-gradient:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 8px 20px rgba(127,140,170,0.4);
-            }
-            .btn-gradient img { width: 1rem; height: 1rem; }
-
-            @keyframes slideUp {
-                from { opacity:0; transform: translateY(30px); }
-                to { opacity:1; transform: translateY(0); }
-            }
-
-            @media (max-width:768px) {
-                .auth-card { margin:1rem; }
-                .card-body { padding: 2rem 1.5rem !important; }
-            }
-        </style>
     </div>
+
+    {% block javascripts %}
+        {{ parent() }}
+        <script>
+            (() => {
+                // Validation HTML5 (Bootstrap) + focus 1er invalide
+                const form = document.querySelector('.series-edit-form');
+                if (form) {
+                    form.addEventListener('submit', (e) => {
+                        if (!form.checkValidity()) {
+                            e.preventDefault(); e.stopPropagation();
+                            const firstInvalid = form.querySelector(':invalid');
+                            if (firstInvalid) firstInvalid.focus({preventScroll:false});
+                        }
+                        form.classList.add('was-validated');
+                    });
+                }
+
+                // Compteur de caractères overview
+                document.querySelectorAll('textarea[data-counter="true"]').forEach(area => {
+                    const max = parseInt(area.getAttribute('maxlength') || '0', 10);
+                    const counter = document.createElement('div');
+                    counter.className = 'char-counter';
+                    area.parentElement.appendChild(counter);
+                    const update = () => counter.textContent = `${area.value.length}${max ? ' / ' + max : ''}`;
+                    area.addEventListener('input', update);
+                    update();
+                });
+
+                // Preview fichiers + drag & drop
+                document.querySelectorAll('.dropzone input[type="file"]').forEach(inp => {
+                    inp.addEventListener('change', (ev) => {
+                        const file = ev.target.files && ev.target.files[0];
+                        const wrap = ev.target.closest('.dropzone');
+                        const sel = wrap?.getAttribute('data-preview');
+                        const img = sel ? document.querySelector(sel) : null;
+                        if (file && img) { img.src = URL.createObjectURL(file); img.style.display = 'block'; }
+                    });
+                    const dz = inp.closest('.dropzone');
+                    ['dragenter','dragover'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.add('is-hover'); }));
+                    ['dragleave','drop'].forEach(ev => dz.addEventListener(ev, e => { dz.classList.remove('is-hover'); }));
+                    dz.addEventListener('drop', e => {
+                        e.preventDefault();
+                        if (e.dataTransfer.files.length) {
+                            inp.files = e.dataTransfer.files;
+                            inp.dispatchEvent(new Event('change'));
+                        }
+                    });
+                });
+            })();
+        </script>
+    {% endblock %}
 {% endblock %}

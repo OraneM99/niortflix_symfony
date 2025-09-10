@@ -21,32 +21,30 @@ class SerieRepository extends ServiceEntityRepository
     /**
      * Retourne un QueryBuilder pour paginer/filtrer les séries
      */
+// src/Repository/SerieRepository.php
+
     public function getQueryForSeries(
         ?string $sort = null,
         ?string $search = null,
         array $ignoredIds = []
     ): QueryBuilder {
-        // alias 's' pour correspondre aux champs passés à knp_pagination_sortable
         $qb = $this->createQueryBuilder('s');
 
-        // Recherche plein texte simple sur nom + synopsis
+        $qb->addSelect('LOWER(s.name) AS HIDDEN name_sort');
+
         if (null !== $search && '' !== trim($search)) {
             $q = mb_strtolower($search, 'UTF-8');
             $qb->andWhere('LOWER(s.name) LIKE :q OR LOWER(s.overview) LIKE :q')
                 ->setParameter('q', '%'.$q.'%');
         }
 
-        // Exclure des séries (ex: "ignorées" stockées en session)
         if (!empty($ignoredIds)) {
             $qb->andWhere($qb->expr()->notIn('s.id', ':ignoredIds'))
                 ->setParameter('ignoredIds', $ignoredIds);
         }
 
-        // Tri par défaut si aucun tri Knp n'est demandé
-        if (null === $sort || '' === $sort) {
-            $qb->orderBy('s.popularity', 'DESC')
-                ->addOrderBy('s.vote', 'DESC')
-                ->addOrderBy('s.name', 'ASC');
+        if ($sort === null || $sort === '') {
+            $qb->addOrderBy('name_sort', 'ASC');
         }
 
         return $qb;

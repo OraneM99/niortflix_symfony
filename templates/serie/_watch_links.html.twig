@@ -1,0 +1,42 @@
+{# watchLinks : liens prêts à être affichés (label, icon, url)
+   links      : tableau brut stocké en base (provider, url, enabled)
+   serie      : entité (pour CSRF)
+#}
+
+<div class="watch-list">
+    {% if watchLinks is not empty %}
+        {% for p in watchLinks %}
+            <a href="{{ p.url }}" class="watch-chip" target="_blank" rel="noopener">
+                <img src="{{ asset(p.icon) }}" alt="">
+                {{ p.label }}
+            </a>
+        {% endfor %}
+    {% else %}
+        <span class="text-muted">Aucun lien de streaming disponible.</span>
+    {% endif %}
+</div>
+
+{% if is_granted('ROLE_ADMIN') %}
+    <div class="watch-admin">
+        <button class="btn btn-mini btn-primary" data-link-open>Add. un lien</button>
+        {% if links is not empty %}
+            <ul class="watch-admin-list">
+                {% for l in links %}
+                    <li>
+                        <span class="badge bg-secondary me-2">{{ l.provider|default('') }}</span>
+                        <a href="{{ l.url|default('#') }}" target="_blank" rel="noopener" class="me-2">
+                            {{ l.url|default('') }}
+                        </a>
+                        {% set idx = loop.index0 %}
+                        <form class="d-inline" method="post"
+                              action="{{ path('serie_link_delete', {id: serie.id, index: idx}) }}"
+                              data-link-delete>
+                            <input type="hidden" name="_token" value="{{ csrf_token('del_link_' ~ serie.id ~ '_' ~ idx) }}">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Supprimer</button>
+                        </form>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </div>
+{% endif %}

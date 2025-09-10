@@ -18,16 +18,16 @@ class AppExtension extends AbstractExtension
     public function getStreamingLogo(string $platform): string
     {
         $logos = [
-            'Netflix'   => '/images/streaming/netflix.png',
-            'Prime Video'     => '/images/streaming/prime.png',
-            'Disney+'    => '/images/streaming/disney.webp',
-            'Crunchyroll' => '/images/streaming/crunchyroll.png',
-            'Canal'     => '/images/streaming/canal.jpg',
-            'Hbo Max'       => '/images/streaming/hbo.png',
-            'Paramount+' => '/images/streaming/paramount.png',
-            'Youtube' => '/images/streaming/youtube.jpeg',
-            'ADN' => '/images/streaming/adn.png',
-            'AppleTV' => '/images/streaming/apple.png',
+            'Netflix'   => '/images/providers/netflix.png',
+            'Prime Video'     => '/images/providers/prime.png',
+            'Disney+'    => '/images/providers/disney.webp',
+            'Crunchyroll' => '/images/providers/crunchyroll.png',
+            'Canal'     => '/images/providers/canal.jpg',
+            'Hbo Max'       => '/images/providers/hbo.png',
+            'Paramount+' => '/images/providers/paramount.png',
+            'Youtube' => '/images/providers/youtube.jpeg',
+            'ADN' => '/images/providers/adn.png',
+            'AppleTV' => '/images/providers/apple.png',
         ];
 
         return isset($logos[strtolower($platform)])
