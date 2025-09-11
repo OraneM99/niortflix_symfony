@@ -8,6 +8,7 @@ use App\Form\StreamingLinkType;
 use App\Repository\ContributorRepository;
 use App\Repository\GenreRepository;
 use App\Repository\SerieRepository;
+use App\Service\SerieService;
 use App\Utils\FileManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Component\Pager\PaginatorInterface;
@@ -69,13 +70,25 @@ final class SerieController extends AbstractController
         ParameterBagInterface $parameterBag,
         SessionInterface $session
     ): Response {
-        $sort     = $request->query->get('sort');
-        $search   = $request->query->get('search');
-        $genreId  = $request->query->getInt('genre', 0);
-
+        $sort    = $request->query->get('sort');
+        $search  = $request->query->get('search');
+        $genreId = $request->query->getInt('genre', 0);
+        $type    = $request->query->get('type');
         $ignoredIds = array_keys($session->get('ignored_series', []));
 
-        $query = $serieRepository->getQueryForSeries($sort, $search, $ignoredIds, $genreId);
+        // 👉 Si un filtre est appliqué, on "reset" les autres
+        if ($search) {
+            $genreId = 0;
+            $type = null;
+        } elseif ($genreId) {
+            $search = null;
+            $type = null;
+        } elseif ($type) {
+            $search = null;
+            $genreId = 0;
+        }
+
+        $query = $serieRepository->getQueryForSeries($sort, $search, $ignoredIds, $genreId, $type);
 
         $series = $paginator->paginate(
             $query,
@@ -90,6 +103,8 @@ final class SerieController extends AbstractController
             'sort'    => $sort,
             'genres'  => $genres,
             'genreId' => $genreId,
+            'search'  => $search,
+            'type'    => $type,
         ]);
     }
 
@@ -139,50 +154,67 @@ final class SerieController extends AbstractController
         ]);
     }
 
-    #[Route('/favorite/{id}', name: 'favorite', requirements: ['id' => '\d+'], methods: ['GET','POST'])]
-    public function favorite(Serie $serie, EntityManagerInterface $em, Request $request): Response
+    #[Route('/favorite/{id}', name: 'favorite', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function favorite(Serie $serie, EntityManagerInterface $em, Request $request): JsonResponse
     {
         $user = $this->getUser();
-        $isAjax = $request->isXmlHttpRequest() || str_contains((string) $request->headers->get('Accept'), 'application/json');
-
         if (!$user) {
-            $payload = [
-                'ok'       => false,
-                'message'  => 'Vous devez être connecté pour ajouter une série aux favoris.',
-                'redirect' => $this->generateUrl('app_login'),
-            ];
-            return $isAjax ? new JsonResponse($payload, 401) : $this->redirectToRoute('app_login');
+            return new JsonResponse(['ok' => false, 'redirect' => $this->generateUrl('app_login')], 401);
         }
 
-        if ($request->isMethod('POST')) {
-            $token = (string) $request->request->get('_token');
-            if (!$this->isCsrfTokenValid('favorite' . $serie->getId(), $token)) {
-                return $isAjax
-                    ? new JsonResponse(['ok' => false, 'message' => 'Jeton CSRF invalide.'], 403)
-                    : $this->redirectToRoute('serie_detail', ['id' => $serie->getId()]);
-            }
-        }
-
-        $favorited = !$user->hasFavoriteSerie($serie);
-        if ($favorited) {
-            $user->addFavoriteSerie($serie);
-            $message = 'La série a été ajoutée à vos favoris.';
-            $flash   = 'success';
-        } else {
+        if ($user->hasFavoriteSerie($serie)) {
             $user->removeFavoriteSerie($serie);
-            $message = 'La série a été retirée de vos favoris.';
-            $flash   = 'info';
+            $status = 'removed';
+        } else {
+            $user->addFavoriteSerie($serie);
+            $status = 'added';
         }
 
         $em->flush();
 
-        if ($isAjax) {
-            return new JsonResponse(['ok' => true, 'favorited' => $favorited, 'message' => $message]);
+        return new JsonResponse(['ok' => true, 'status' => $status]);
+    }
+
+    #[Route('/random', name: 'random', methods: ['GET'])]
+    public function random(SerieService $serieService): Response
+    {
+        $user  = $this->getUser();
+        $serie = $serieService->getRandomSerie($user);
+
+        if (!$serie) {
+            $this->addFlash('info', 'Aucune série disponible.');
+            return $this->redirectToRoute('serie_liste');
         }
 
-        $this->addFlash($flash, $message);
-        $referer = $request->headers->get('referer') ?: $this->generateUrl('serie_liste');
-        return $this->redirect($referer);
+        return $this->redirectToRoute('serie_detail', ['id' => $serie->getId()]);
+    }
+
+    #[Route('/suggest', name: 'suggest', methods: ['GET'])]
+    public function suggest(Request $request, SerieRepository $repo): JsonResponse
+    {
+        $q = trim((string) $request->query->get('q', ''));
+        if (mb_strlen($q) < 2) {
+            return new JsonResponse([]);
+        }
+
+        // Recherche uniquement par titre
+        $series = $repo->createQueryBuilder('s')
+            ->where('s.name LIKE :q')
+            ->setParameter('q', '%' . $q . '%')
+            ->setMaxResults(10)
+            ->getQuery()
+            ->getResult();
+
+        $results = array_map(fn(Serie $s) => [
+            'id'     => $s->getId(),
+            'title'  => $s->getName(),
+            'year'   => $s->getFirstAirDate()?->format('Y')
+                . ($s->getLastAirDate() ? ' – '.$s->getLastAirDate()->format('Y') : ''),
+            'poster' => $s->getPoster() ? '/uploads/posters/series/'.$s->getPoster() : null,
+            'url'    => $this->generateUrl('serie_detail', ['id' => $s->getId()]),
+        ], $series);
+
+        return new JsonResponse($results);
     }
 
     #[Route('/ignore/{id}', name: 'ignore', requirements: ['id' => '\d+'])]
