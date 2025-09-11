@@ -30,7 +30,7 @@ final class SerieController extends AbstractController
         'appletv'     => ['label' => 'Apple TV+',   'icon' => 'icons/providers/apple.png'],
         'canal'       => ['label' => 'Canal+',      'icon' => 'icons/providers/canal.jpg'],
         'crunchyroll' => ['label' => 'Crunchyroll', 'icon' => 'icons/providers/crunchyroll.png'],
-        'disney'      => ['label' => 'Disney+',     'icon' => 'icons/providers/disney.webp'],
+        'disney'      => ['label' => 'Disney+',     'icon' => 'icons/providers/disney.png'],
         'hbo'         => ['label' => 'HBO',     'icon' => 'icons/providers/hbo.png'],
         'netflix'     => ['label' => 'Netflix',     'icon' => 'icons/providers/netflix.png'],
         'paramount'   => ['label' => 'Paramount',     'icon' => 'icons/providers/paramount.png'],
@@ -41,16 +41,23 @@ final class SerieController extends AbstractController
     /** Transforme les données brutes (JSON en base) en liens affichables. */
     private function buildWatchLinks(Serie $serie): array
     {
-        $watchLinks = [];
+        $out = [];
         foreach (($serie->getStreamingLinks() ?? []) as $l) {
             if (!is_array($l) || empty($l['enabled']) || empty($l['provider']) || empty($l['url'])) {
                 continue;
             }
-            $key  = strtolower((string) $l['provider']);
+
+            $key = strtolower(preg_replace('/[^a-z0-9]+/','', (string)$l['provider']));
             $meta = self::PROVIDER_META[$key] ?? ['label' => ucfirst($key), 'icon' => 'icons/providers/generic.png'];
-            $watchLinks[] = ['label' => $meta['label'], 'icon' => $meta['icon'], 'url' => (string) $l['url']];
+
+            $out[] = [
+                'key'   => $key,
+                'label' => $meta['label'],
+                'icon'  => $meta['icon'],
+                'url'   => (string)$l['url'],
+            ];
         }
-        return $watchLinks;
+        return $out;
     }
 
     #[Route('/liste', name: 'liste')]
@@ -62,12 +69,13 @@ final class SerieController extends AbstractController
         ParameterBagInterface $parameterBag,
         SessionInterface $session
     ): Response {
-        $sort   = $request->query->get('sort');
-        $search = $request->query->get('search');
+        $sort     = $request->query->get('sort');
+        $search   = $request->query->get('search');
+        $genreId  = $request->query->getInt('genre', 0);
 
         $ignoredIds = array_keys($session->get('ignored_series', []));
 
-        $query = $serieRepository->getQueryForSeries($sort, $search, $ignoredIds);
+        $query = $serieRepository->getQueryForSeries($sort, $search, $ignoredIds, $genreId);
 
         $series = $paginator->paginate(
             $query,
@@ -78,9 +86,10 @@ final class SerieController extends AbstractController
         $genres = $genreRepository->findAllOrderedByName();
 
         return $this->render('serie/liste.html.twig', [
-            'series' => $series,
-            'sort'   => $sort,
-            'genres' => $genres,
+            'series'  => $series,
+            'sort'    => $sort,
+            'genres'  => $genres,
+            'genreId' => $genreId,
         ]);
     }
 
@@ -94,20 +103,17 @@ final class SerieController extends AbstractController
         $contributors = $contributorRepository->findBySerie($serie);
         $watchLinks   = $this->buildWatchLinks($serie);
 
-        // Formulaire léger "Ajouter un lien" (affiché dans un modal)
         $linkForm = $this->createForm(StreamingLinkType::class, null, [
             'action' => $this->generateUrl('serie_link_add', ['id' => $serie->getId()]),
             'method' => 'POST',
         ]);
 
-        // Mode fragment (injection dans le modal)
         if ($request->isXmlHttpRequest() || $request->query->getBoolean('partial')) {
             $tpl = $twig->load('serie/detail.html.twig');
             $context = [
                 'serie'        => $serie,
                 'contributors' => $contributors,
                 'watchLinks'   => $watchLinks,
-                'links'        => $serie->getStreamingLinks() ?? [],
                 'linkForm'     => $linkForm->createView(),
             ];
             $body   = $tpl->renderBlock('body', $context);
@@ -120,19 +126,15 @@ final class SerieController extends AbstractController
                  </div>
                  <div class="modal-body">%s%s</div>',
                 htmlspecialchars($serie->getName(), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'),
-                $styles,
-                $body
+                $styles, $body
             );
-
             return new Response($html);
         }
 
-        // Page complète
         return $this->render('serie/detail.html.twig', [
             'serie'        => $serie,
             'contributors' => $contributors,
             'watchLinks'   => $watchLinks,
-            'links'        => $serie->getStreamingLinks() ?? [],
             'linkForm'     => $linkForm->createView(),
         ]);
     }

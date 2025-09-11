@@ -43,15 +43,10 @@ final class FilmController extends AbstractController
         ]);
     }
 
-    #[Route('/detail/{id}', name: '_detail', requirements: ['id' => '\d+'])]
-    public function detail(Film $film, Request $request, ContributorRepository $contributorRepository): Response
+    #[Route('/detail/{id}', name: 'detail', requirements: ['id' => '\d+'])]
+    public function detail(Film $film): Response
     {
-        $contributors = $contributorRepository->findByFilm($film);
-
-        return $this->render('film/detail.html.twig', [
-            'film' => $film,
-            'contributors' => $contributors
-        ]);
+        return $this->render('film/detail.html.twig', ['film' => $film]);
     }
 
     #[Route('/create', name: 'create', methods: ['GET','POST'])]

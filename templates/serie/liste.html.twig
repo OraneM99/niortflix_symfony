@@ -60,15 +60,14 @@
                             {# Overlay au survol #}
                             <div class="card-overlay">
                                 {# En savoir plus -> fiche détail #}
-                                <a href="{{ path('serie_detail', {id: serie.id}) }}"
-                                   class="btn-watch js-open-detail"
-                                   aria-label="En savoir plus sur {{ serie.name }}">
+                                <a href="{{ path('serie_detail', { id: serie.id }) }}"
+                                   class="btn-watch js-open-detail">
                                     <img src="{{ asset('icons/info.png') }}" alt="">
                                     En savoir plus
                                 </a>
 
                                 <div class="overlay-actions">
-                                    {# Ajouter/retirer des favoris #}
+                                    {# Favoris #}
                                     <a href="{{ path('serie_favorite', {id: serie.id}) }}"
                                        class="icon-circle js-favorite"
                                        data-url="{{ path('serie_favorite', {id: serie.id}) }}"
@@ -77,11 +76,21 @@
                                         <img src="{{ asset('icons/heart.png') }}" alt="">
                                     </a>
 
-                                    {# Ne plus me proposer (masquer) #}
+                                    {# Ignorer #}
                                     <a href="{{ path('serie_ignore', {id: serie.id}) }}"
-                                       class="icon-circle" title="Ne plus me proposer" aria-label="Ne plus me proposer">
+                                       class="icon-circle"
+                                       title="Ne plus me proposer" aria-label="Ne plus me proposer">
                                         <img src="{{ asset('icons/stop.png') }}" alt="">
                                     </a>
+
+                                    {# Éditer (ADMIN uniquement) #}
+                                    {% if is_granted('ROLE_ADMIN') %}
+                                        <a href="{{ path('serie_update', { id: serie.id }) }}"
+                                           class="icon-circle"
+                                           title="Modifier la série" aria-label="Modifier la série">
+                                            <img src="{{ asset('icons/edit.png') }}" alt="Modifier">
+                                        </a>
+                                    {% endif %}
                                 </div>
 
                                 <p class="overlay-synopsis">

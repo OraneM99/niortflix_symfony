@@ -21,34 +21,44 @@ class SerieRepository extends ServiceEntityRepository
     /**
      * Retourne un QueryBuilder pour paginer/filtrer les séries
      */
-// src/Repository/SerieRepository.php
-
     public function getQueryForSeries(
         ?string $sort = null,
         ?string $search = null,
-        array $ignoredIds = []
+        array $ignoredIds = [],
+        ?int $genreId = null
     ): QueryBuilder {
         $qb = $this->createQueryBuilder('s');
 
-        $qb->addSelect('LOWER(s.name) AS HIDDEN name_sort');
-
-        if (null !== $search && '' !== trim($search)) {
+        // Recherche texte
+        if ($search !== null && trim($search) !== '') {
             $q = mb_strtolower($search, 'UTF-8');
             $qb->andWhere('LOWER(s.name) LIKE :q OR LOWER(s.overview) LIKE :q')
                 ->setParameter('q', '%'.$q.'%');
         }
 
+        // Filtre genre
+        if ($genreId) {
+            $qb->leftJoin('s.genres', 'g')
+                ->andWhere('g.id = :gid')
+                ->setParameter('gid', $genreId)
+                ->groupBy('s.id'); // évite les doublons si plusieurs genres matchent
+        }
+
+        // Exclusions (ignorées)
         if (!empty($ignoredIds)) {
             $qb->andWhere($qb->expr()->notIn('s.id', ':ignoredIds'))
                 ->setParameter('ignoredIds', $ignoredIds);
         }
 
+        // Tri par défaut A → Z
         if ($sort === null || $sort === '') {
-            $qb->addOrderBy('name_sort', 'ASC');
+            $qb->orderBy('s.name', 'ASC')
+                ->addOrderBy('s.popularity', 'DESC');
         }
 
         return $qb;
     }
+
 
     /**
      * Séries favorites d’un utilisateur

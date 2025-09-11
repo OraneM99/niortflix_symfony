@@ -2,24 +2,20 @@
 {% block body_class %}serie-detail-page{% endblock %}
 {% block title %}{{ serie.name }} | {{ parent() }}{% endblock %}
 
-{# CSS via <head> hors modal #}
 {% block stylesheets %}
     {% if not (app.request.isXmlHttpRequest() or app.request.query.getBoolean('partial')) %}
         {{ parent() }}
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="{{ asset('assets/css/serie-detail.css') }}?v={{ 'now'|date('U') }}">
         <style>body.serie-detail-page{ background-color:#393E46; }</style>
     {% endif %}
 {% endblock %}
 
-{# JS commun déjà dans base.html.twig; rien de spécifique ici #}
-{% block javascripts %}
-    {% if not (app.request.isXmlHttpRequest() or app.request.query.getBoolean('partial')) %}
-        {{ parent() }}
-    {% endif %}
-{% endblock %}
+{% block javascripts %}{% if not (app.request.isXmlHttpRequest() or app.request.query.getBoolean('partial')) %}{{ parent() }}{% endif %}{% endblock %}
 
 {% block body %}
-    {# En modal, on (re)charge la CSS pour garantir le style #}
     {% if app.request.isXmlHttpRequest() or app.request.query.getBoolean('partial') %}
         <link rel="stylesheet" href="{{ asset('assets/css/serie-detail.css') }}?v={{ 'now'|date('U') }}">
     {% endif %}
@@ -32,54 +28,39 @@
 
     <div class="detail-sheet{% if app.request.isXmlHttpRequest() or app.request.query.getBoolean('partial') %} is-modal{% endif %}">
 
-        {# HERO avec image de fond #}
         <section class="series-hero" style="--hero: url('{{ backdrop }}')">
             <div class="hero-inner">
-
                 <div class="hero-title">
                     <h1>{{ serie.name }}</h1>
+
+                    {# Genres “display” sous le titre si tu veux les afficher ici #}
+                    {% if serie.genres is defined and serie.genres|length %}
+                        <div class="hero-genres">
+                            {% for g in serie.genres %}
+                                <a href="{{ path('serie_liste', { genre: g }) }}" class="genre-badge">{{ g }}</a>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
 
                     <div class="hero-meta">
                         <div class="meta-item">
                             <img class="icon-16" src="{{ asset('icons/calendar.png') }}" alt="">
                             <span>
-                                {{ serie.firstAirDate ? serie.firstAirDate|date('d/m/Y') : 'Date inconnue' }}
+                {{ serie.firstAirDate ? serie.firstAirDate|date('d/m/Y') : 'Date inconnue' }}
                                 {% if serie.lastAirDate %} – {{ serie.lastAirDate|date('d/m/Y') }}{% endif %}
-                            </span>
+              </span>
                         </div>
-
-                        {% if serie.genres is defined and serie.genres|length > 0 %}
-                            <div class="meta-item">
-                                <img class="icon-16" src="{{ asset('icons/tag.png') }}" alt="">
-                                <span>{{ serie.genres|join(' · ') }}</span>
-                            </div>
-                        {% endif %}
                     </div>
                 </div>
-
-                <div class="status-badge">{{ statusLabel }}</div>
             </div>
 
-            {# Note en haut à droite #}
+            <div class="status-badge">{{ statusLabel }}</div>
             <span class="hero-score">
-                <img src="{{ asset('icons/star.png') }}" alt="">
-                {{ serie.vote|default('N/A') }}
-            </span>
+        <img src="{{ asset('icons/star.png') }}" alt="">
+        {{ serie.vote|default('N/A') }}
+      </span>
         </section>
 
-        {# Où regarder #}
-        <section class="section">
-            <h2>Où regarder</h2>
-
-            {# Rendu de la liste + admin (partial) #}
-            {% include 'serie/_watch_links.html.twig' with {
-                watchLinks: watchLinks,
-                links: links,
-                serie: serie
-            } %}
-        </section>
-
-        {# Synopsis #}
         {% if serie.overview %}
             <section class="section">
                 <h2>Synopsis</h2>
@@ -87,26 +68,45 @@
             </section>
         {% endif %}
 
-        {# Onglets Distribution / Suivi #}
+        <section class="section">
+            <h2>Où regarder</h2>
+            <div id="watchLinksContainer">
+                {% include 'serie/_watch_links.html.twig' with { serie: serie, watchLinks: watchLinks } %}
+            </div>
+
+            {% if is_granted('ROLE_ADMIN') %}
+                <div class="d-flex justify-content-end mt-2">
+                    <button type="button" class="btn btn-teal" data-link-open>Ajouter un lien</button>
+                </div>
+
+                <div class="modal fade" id="addLinkModal" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content" style="background:#222831; border:1px solid rgba(255,255,255,.12);">
+                            <div class="modal-header border-0">
+                                <h5 class="modal-title text-white">Ajouter un lien de streaming</h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                {{ form_start(linkForm, { attr: { id: 'js-add-link-form', class: 'needs-validation', novalidate: 'novalidate' } }) }}
+                                {{ form_row(linkForm.provider) }}
+                                {{ form_row(linkForm.url) }}
+                                {{ form_row(linkForm.enabled) }}
+                                <div class="d-flex justify-content-end gap-2 mt-2">
+                                    <button type="button" class="btn btn-ghost-teal" data-bs-dismiss="modal">Annuler</button>
+                                    <button type="submit" class="btn btn-teal">Ajouter</button>
+                                </div>
+                                {{ form_end(linkForm) }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </section>
+
         <div class="tabs" data-tabs>
             <div class="tab-triggers">
                 <button type="button" class="tab-trigger is-active" data-tab="cast">Distribution</button>
                 <button type="button" class="tab-trigger" data-tab="track">Suivi</button>
-            </div>
-
-            <div class="tab-panel is-active" data-panel="cast">
-                {% if contributors is defined and contributors %}
-                    <div class="cast-grid">
-                        {% for c in contributors %}
-                            <div class="cast-card">
-                                <p class="cast-name">{{ c.name }}</p>
-                                {% if c.role %}<p class="cast-role">{{ c.role }}</p>{% endif %}
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <span class="text-muted">Aucune information de distribution.</span>
-                {% endif %}
             </div>
 
             <div class="tab-panel" data-panel="track">
@@ -130,115 +130,89 @@
                     </a>
                 </div>
             </div>
+
+            <div class="tab-panel" data-panel="track">
+                <div class="track-actions">
+                    <a href="{{ path('serie_favorite', {id: serie.id}) }}"
+                       class="btn-primary js-favorite"
+                       data-url="{{ path('serie_favorite', {id: serie.id}) }}"
+                       data-token="{{ csrf_token('favorite' ~ serie.id) }}">
+                        <img src="{{ asset('icons/heart.png') }}" alt="">
+                        {{ app.user and app.user.hasFavoriteSerie(serie) ? 'Retirer des favoris' : 'Ajouter aux favoris' }}
+                    </a>
+
+                    <a href="{{ path('serie_ignore', {id: serie.id}) }}" class="btn-ghost">
+                        <img class="icon-16" src="{{ asset('icons/stop.png') }}" alt=""> Ignorer
+                    </a>
+
+                    <a href="#" class="btn-ghost">
+                        <img class="icon-16" src="{{ asset('icons/check.png') }}" alt=""> Marquer comme vu
+                    </a>
+                </div>
+
+                {% if is_granted('ROLE_ADMIN') %}
+                    <div class="admin-actions">
+                        <a href="{{ path('serie_update', { id: serie.id }) }}" class="btn-outline">Modifier la série</a>
+                        <a href="{{ path('serie_delete', { id: serie.id, token: csrf_token('delete' ~ serie.id) }) }}"
+                           class="btn-danger"
+                           onclick="return confirm('Voulez-vous vraiment supprimer cette série ?');">
+                            Supprimer la série
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
         </div>
     </div>
 
-    {# Modal "Ajouter un lien" (affiché uniquement si admin) #}
-    {% if is_granted('ROLE_ADMIN') %}
-        <div class="modal fade" id="addLinkModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content" style="background:#222831; color:#EEE;">
-                    <div class="modal-header border-0">
-                        <h5 class="modal-title">Ajouter un lien</h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
-                    </div>
-                    <div class="modal-body">
-                        {{ form_start(linkForm, {attr: {id: 'js-add-link-form'}}) }}
-                        {{ form_row(linkForm.provider) }}
-                        {{ form_row(linkForm.url) }}
-                        {{ form_row(linkForm.enabled) }}
-                        <button type="submit" class="btn btn-mini btn-primary">Ajouter</button>
-                        {{ form_end(linkForm) }}
-                    </div>
-                </div>
-            </div>
-        </div>
-    {% endif %}
-
-    {# JS minimal pour onglets + gestion AJAX des liens #}
     <script>
-        (function(){
-            const root = document.currentScript.closest('.detail-sheet') || document;
+        (function () {
+            // Empêche les doubles bindings si le script est ré-exécuté
+            if (window.__detailModalBound) return;
+            window.__detailModalBound = true;
 
-            // Onglets
-            const tabs = root.querySelector('[data-tabs]');
-            if (tabs){
-                tabs.addEventListener('click', (e) => {
-                    const btn = e.target.closest('.tab-trigger'); if(!btn) return;
-                    const name = btn.dataset.tab;
-                    tabs.querySelectorAll('.tab-trigger').forEach(b => b.classList.toggle('is-active', b === btn));
-                    tabs.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('is-active', p.dataset.panel === name));
-                });
-            }
+            let ctrl = null; // AbortController pour annuler une requête précédente
 
-            // Ouvrir le modal "Ajouter un lien"
-            root.addEventListener('click', (e) => {
-                const btn = e.target.closest('[data-link-open]');
-                if (!btn) return;
+            document.addEventListener('click', async (e) => {
+                const a = e.target.closest('a.js-open-detail');
+                if (!a) return;
+
                 e.preventDefault();
-                const modal = document.getElementById('addLinkModal');
-                if (modal) bootstrap.Modal.getOrCreateInstance(modal).show();
-            });
+                e.stopPropagation();
 
-            // Soumission AJAX du form d'ajout
-            const form = root.querySelector('#js-add-link-form');
-            if (form) {
-                form.addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    const resp = await fetch(form.action, {
-                        method: 'POST',
-                        headers: {'X-Requested-With':'XMLHttpRequest'},
-                        body: new FormData(form)
+                const modal   = document.getElementById('serieModal');
+                if (!modal) return;
+
+                const content = modal.querySelector('.modal-content');
+                const url     = a.getAttribute('href');
+
+                // Annule la requête précédente si nécessaire
+                if (ctrl) ctrl.abort();
+                ctrl = new AbortController();
+
+                content.innerHTML = '<div class="p-4 text-center text-muted">Chargement…</div>';
+
+                try {
+                    const res = await fetch(url + (url.includes('?') ? '&' : '?') + 'partial=1', {
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                        signal: ctrl.signal
                     });
-                    const data = await resp.json().catch(()=>({}));
-                    if (data.ok) {
-                        const section = root.querySelector('.section'); // bloc "Où regarder"
-                        if (section) {
-                            const doc = new DOMParser().parseFromString(data.html, 'text/html');
-                            // replace watch-list
-                            const newList = doc.body.querySelector('.watch-list');
-                            if (newList) section.querySelector('.watch-list')?.replaceWith(newList);
-                            // replace admin block
-                            const newAdmin = doc.body.querySelector('.watch-admin');
-                            const oldAdmin = section.querySelector('.watch-admin');
-                            if (newAdmin && oldAdmin) oldAdmin.replaceWith(newAdmin);
-                            else if (newAdmin && !oldAdmin) section.appendChild(newAdmin);
-                        }
-                        const modal = document.getElementById('addLinkModal');
-                        if (modal) bootstrap.Modal.getOrCreateInstance(modal).hide();
-                        form.reset();
-                    } else {
-                        alert(data.message || 'Erreur lors de l’ajout.');
-                    }
-                });
-            }
+                    if (!res.ok) throw new Error('HTTP ' + res.status);
 
-            // Suppression AJAX d’un lien
-            root.addEventListener('submit', async (e) => {
-                const del = e.target.closest('form[data-link-delete]');
-                if (!del) return;
-                e.preventDefault();
-                const resp = await fetch(del.action, {
-                    method: 'POST',
-                    headers: {'X-Requested-With':'XMLHttpRequest'},
-                    body: new FormData(del)
-                });
-                const data = await resp.json().catch(()=>({}));
-                if (data.ok) {
-                    const section = root.querySelector('.section');
-                    if (section) {
-                        const doc = new DOMParser().parseFromString(data.html, 'text/html');
-                        const newList = doc.body.querySelector('.watch-list');
-                        if (newList) section.querySelector('.watch-list')?.replaceWith(newList);
-                        const newAdmin = doc.body.querySelector('.watch-admin');
-                        const oldAdmin = section.querySelector('.watch-admin');
-                        if (newAdmin && oldAdmin) oldAdmin.replaceWith(newAdmin);
-                        else if (newAdmin && !oldAdmin) section.appendChild(newAdmin);
-                    }
-                } else {
-                    alert(data.message || 'Suppression impossible.');
+                    const html = await res.text();
+                    content.innerHTML = html;
+                    bootstrap.Modal.getOrCreateInstance(modal).show();
+                } catch (err) {
+                    if (err.name === 'AbortError') return; // clic suivant → on ignore
+                    content.innerHTML = '<div class="p-4 text-danger">Erreur de chargement.</div>';
+                    bootstrap.Modal.getOrCreateInstance(modal).show();
                 }
-            });
+
+                // Nettoyage à la fermeture (une seule fois)
+                modal.addEventListener('hidden.bs.modal', () => {
+                    content.innerHTML = '';
+                }, { once: true });
+            }, { passive: false });
         })();
     </script>
+
 {% endblock %}
