@@ -1,19 +1,20 @@
 {% extends 'base.html.twig' %}
+
 {% block body_class %}serie-detail-page{% endblock %}
 {% block title %}{{ serie.name }} | {{ parent() }}{% endblock %}
 
 {% block stylesheets %}
     {% if not (app.request.isXmlHttpRequest() or app.request.query.getBoolean('partial')) %}
         {{ parent() }}
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="{{ asset('assets/css/serie-detail.css') }}?v={{ 'now'|date('U') }}">
         <style>body.serie-detail-page{ background-color:#393E46; }</style>
     {% endif %}
 {% endblock %}
 
-{% block javascripts %}{% if not (app.request.isXmlHttpRequest() or app.request.query.getBoolean('partial')) %}{{ parent() }}{% endif %}{% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+{% endblock %}
+
 
 {% block body %}
     {% if app.request.isXmlHttpRequest() or app.request.query.getBoolean('partial') %}
@@ -28,12 +29,12 @@
 
     <div class="detail-sheet{% if app.request.isXmlHttpRequest() or app.request.query.getBoolean('partial') %} is-modal{% endif %}">
 
+        {# --- HERO --- #}
         <section class="series-hero" style="--hero: url('{{ backdrop }}')">
             <div class="hero-inner">
                 <div class="hero-title">
                     <h1>{{ serie.name }}</h1>
 
-                    {# Genres “display” sous le titre si tu veux les afficher ici #}
                     {% if serie.genres is defined and serie.genres|length %}
                         <div class="hero-genres">
                             {% for g in serie.genres %}
@@ -46,9 +47,9 @@
                         <div class="meta-item">
                             <img class="icon-16" src="{{ asset('icons/calendar.png') }}" alt="">
                             <span>
-                {{ serie.firstAirDate ? serie.firstAirDate|date('d/m/Y') : 'Date inconnue' }}
+                                {{ serie.firstAirDate ? serie.firstAirDate|date('d/m/Y') : 'Date inconnue' }}
                                 {% if serie.lastAirDate %} – {{ serie.lastAirDate|date('d/m/Y') }}{% endif %}
-              </span>
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -56,38 +57,44 @@
 
             <div class="status-badge">{{ statusLabel }}</div>
             <span class="hero-score">
-        <img src="{{ asset('icons/star.png') }}" alt="">
-        {{ serie.vote|default('N/A') }}
-      </span>
+                <img src="{{ asset('icons/star.png') }}" alt="">
+                {{ serie.vote|default('N/A') }}
+            </span>
         </section>
 
-        {% if serie.overview %}
-            <section class="section">
-                <h2>Synopsis</h2>
-                <p class="synopsis">{{ serie.overview }}</p>
-            </section>
-        {% endif %}
-
+        {# --- Streaming --- #}
         <section class="section">
             <h2>Où regarder</h2>
-            <div id="watchLinksContainer">
-                {% include 'serie/_watch_links.html.twig' with { serie: serie, watchLinks: watchLinks } %}
+            <div class="watch-list">
+                {% if watchLinks is not empty %}
+                    {% for p in watchLinks %}
+                        {% set iconPath = p.icon starts with('http') ? p.icon : asset(p.icon) %}
+                        <a href="{{ p.url }}" class="watch-chip is-{{ p.key }}" target="_blank" rel="noopener">
+                            <img src="{{ iconPath }}" alt="{{ p.label }}">
+                            {{ p.label }}
+                        </a>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">Aucun lien de streaming disponible.</p>
+                {% endif %}
             </div>
 
-            {% if is_granted('ROLE_ADMIN') %}
+            {% if is_granted('ROLE_ADMIN') and watchLinks is empty %}
                 <div class="d-flex justify-content-end mt-2">
-                    <button type="button" class="btn btn-teal" data-link-open>Ajouter un lien</button>
+                    <button type="button" class="btn btn-add-link" data-bs-toggle="modal" data-bs-target="#addLinkModal">
+                        ➕ Ajouter un lien
+                    </button>
                 </div>
 
                 <div class="modal fade" id="addLinkModal" tabindex="-1" aria-hidden="true">
                     <div class="modal-dialog">
-                        <div class="modal-content" style="background:#222831; border:1px solid rgba(255,255,255,.12);">
+                        <div class="modal-content modal-dark">
                             <div class="modal-header border-0">
                                 <h5 class="modal-title text-white">Ajouter un lien de streaming</h5>
                                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                             </div>
-                            <div class="modal-body">
-                                {{ form_start(linkForm, { attr: { id: 'js-add-link-form', class: 'needs-validation', novalidate: 'novalidate' } }) }}
+                            <div class="modal-body text-white">
+                                {{ form_start(linkForm, { attr: { class: 'needs-validation', novalidate: 'novalidate' } }) }}
                                 {{ form_row(linkForm.provider) }}
                                 {{ form_row(linkForm.url) }}
                                 {{ form_row(linkForm.enabled) }}
@@ -103,31 +110,36 @@
             {% endif %}
         </section>
 
+        {# --- Synopsis --- #}
+        {% if serie.overview %}
+            <section class="section">
+                <h2>Synopsis</h2>
+                <p class="synopsis">{{ serie.overview }}</p>
+            </section>
+        {% endif %}
+
+        {# --- Onglets Distribution / Suivi --- #}
         <div class="tabs" data-tabs>
             <div class="tab-triggers">
                 <button type="button" class="tab-trigger is-active" data-tab="cast">Distribution</button>
                 <button type="button" class="tab-trigger" data-tab="track">Suivi</button>
             </div>
 
-            <div class="tab-panel" data-panel="track">
-                <div class="track-actions">
-                    <a href="{{ path('serie_favorite', {id: serie.id}) }}"
-                       class="btn-primary js-favorite"
-                       data-url="{{ path('serie_favorite', {id: serie.id}) }}"
-                       data-token="{{ csrf_token('favorite' ~ serie.id) }}">
-                        <img src="{{ asset('icons/heart.png') }}" alt="">
-                        {{ app.user and app.user.hasFavoriteSerie(serie) ? 'Retirer des favoris' : 'Ajouter aux favoris' }}
-                    </a>
-
-                    <a href="{{ path('serie_ignore', {id: serie.id}) }}" class="btn-ghost">
-                        <img class="icon-16" src="{{ asset('icons/stop.png') }}" alt="">
-                        Ignorer
-                    </a>
-
-                    <a href="#" class="btn-ghost">
-                        <img class="icon-16" src="{{ asset('icons/check.png') }}" alt="">
-                        Marquer comme vu
-                    </a>
+            <div class="tab-panel is-active" data-panel="cast">
+                <div class="cast-grid">
+                    {% for c in contributors %}
+                        <div class="cast-card{% if not c.picture %} no-photo{% endif %}">
+                            {% if c.picture %}
+                                <img src="{{ asset(c.picture) }}" class="cast-photo" alt="{{ c.name }}">
+                            {% endif %}
+                            <div class="cast-overlay">
+                                <h5 class="cast-name">{{ c.name }}</h5>
+                                <div class="cast-role">{{ c.role }}</div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">Aucun acteur enregistré.</p>
+                    {% endfor %}
                 </div>
             </div>
 
@@ -140,79 +152,14 @@
                         <img src="{{ asset('icons/heart.png') }}" alt="">
                         {{ app.user and app.user.hasFavoriteSerie(serie) ? 'Retirer des favoris' : 'Ajouter aux favoris' }}
                     </a>
-
                     <a href="{{ path('serie_ignore', {id: serie.id}) }}" class="btn-ghost">
                         <img class="icon-16" src="{{ asset('icons/stop.png') }}" alt=""> Ignorer
                     </a>
-
                     <a href="#" class="btn-ghost">
                         <img class="icon-16" src="{{ asset('icons/check.png') }}" alt=""> Marquer comme vu
                     </a>
                 </div>
-
-                {% if is_granted('ROLE_ADMIN') %}
-                    <div class="admin-actions">
-                        <a href="{{ path('serie_update', { id: serie.id }) }}" class="btn-outline">Modifier la série</a>
-                        <a href="{{ path('serie_delete', { id: serie.id, token: csrf_token('delete' ~ serie.id) }) }}"
-                           class="btn-danger"
-                           onclick="return confirm('Voulez-vous vraiment supprimer cette série ?');">
-                            Supprimer la série
-                        </a>
-                    </div>
-                {% endif %}
             </div>
         </div>
     </div>
-
-    <script>
-        (function () {
-            // Empêche les doubles bindings si le script est ré-exécuté
-            if (window.__detailModalBound) return;
-            window.__detailModalBound = true;
-
-            let ctrl = null; // AbortController pour annuler une requête précédente
-
-            document.addEventListener('click', async (e) => {
-                const a = e.target.closest('a.js-open-detail');
-                if (!a) return;
-
-                e.preventDefault();
-                e.stopPropagation();
-
-                const modal   = document.getElementById('serieModal');
-                if (!modal) return;
-
-                const content = modal.querySelector('.modal-content');
-                const url     = a.getAttribute('href');
-
-                // Annule la requête précédente si nécessaire
-                if (ctrl) ctrl.abort();
-                ctrl = new AbortController();
-
-                content.innerHTML = '<div class="p-4 text-center text-muted">Chargement…</div>';
-
-                try {
-                    const res = await fetch(url + (url.includes('?') ? '&' : '?') + 'partial=1', {
-                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                        signal: ctrl.signal
-                    });
-                    if (!res.ok) throw new Error('HTTP ' + res.status);
-
-                    const html = await res.text();
-                    content.innerHTML = html;
-                    bootstrap.Modal.getOrCreateInstance(modal).show();
-                } catch (err) {
-                    if (err.name === 'AbortError') return; // clic suivant → on ignore
-                    content.innerHTML = '<div class="p-4 text-danger">Erreur de chargement.</div>';
-                    bootstrap.Modal.getOrCreateInstance(modal).show();
-                }
-
-                // Nettoyage à la fermeture (une seule fois)
-                modal.addEventListener('hidden.bs.modal', () => {
-                    content.innerHTML = '';
-                }, { once: true });
-            }, { passive: false });
-        })();
-    </script>
-
 {% endblock %}

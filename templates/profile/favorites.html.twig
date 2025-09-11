@@ -1,0 +1,53 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mes Favoris | SerieTime{% endblock %}
+
+{% block body %}
+    <div class="container py-4">
+
+        <h1 class="mb-4 text-white">📌 Mes Séries favorites</h1>
+
+        {% if favoris is not empty %}
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+                {% for fav in favoris %}
+                    {% set serie = fav.serie ?? fav %} {# compatibilité UserSerie vs Serie directe #}
+                    <div class="col">
+                        <div class="card h-100 bg-dark text-light border-0 shadow-sm">
+                            {% if serie.poster %}
+                                <a href="{{ path('serie_detail', {id: serie.id}) }}">
+                                    <img src="{{ asset('uploads/posters/series/' ~ serie.poster) }}"
+                                         class="card-img-top"
+                                         alt="{{ serie.name }}">
+                                </a>
+                            {% endif %}
+
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title mb-2">
+                                    <a href="{{ path('serie_detail', {id: serie.id}) }}" class="stretched-link text-decoration-none text-light">
+                                        {{ serie.name }}
+                                    </a>
+                                </h5>
+                                <p class="card-text text-muted small mb-3">
+                                    {{ serie.overview|slice(0,120) ~ '...' }}
+                                </p>
+
+                                <form action="{{ path('serie_favorite', {id: serie.id}) }}" method="post" class="mt-auto">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('favorite' ~ serie.id) }}">
+                                    <button class="btn btn-sm btn-outline-danger w-100" type="submit">
+                                        Retirer des favoris
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                Vous n’avez encore ajouté aucune série à vos favoris.
+                <a href="{{ path('serie_liste') }}" class="alert-link">Découvrez des séries</a> ⭐
+            </div>
+        {% endif %}
+
+    </div>
+{% endblock %}

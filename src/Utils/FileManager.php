@@ -11,7 +11,7 @@ class FileManager
     {
     }
 
-    public function upload(UploadedFile $file, string $dir, string $name, string $oldRessourceToDelete = null): string
+    public function upload(UploadedFile $file, string $dir, string $name, ?string $oldRessourceToDelete = null): string
     {
         $name = $this->slugger->slug($name) . '-' . uniqid() . '.' . $file->guessExtension();
         $file->move($dir, $name);
@@ -23,7 +23,7 @@ class FileManager
         return $name;
     }
 
-    public function uploadPoster(UploadedFile $poster, string $dir, string $name, string $oldRessourceToDelete = null): string
+    public function uploadPoster(UploadedFile $poster, string $dir, string $name, ?string $oldRessourceToDelete = null): string
     {
         $name = $this->slugger->slug($name) . '-' . uniqid() . '.' . $poster->guessExtension();
         $poster->move($dir, $name);
@@ -35,7 +35,7 @@ class FileManager
         return $name;
     }
 
-    public function uploadProfilePicture(UploadedFile $profilePicture, string $name, string $oldRessourceToDelete = null): string
+    public function uploadProfilePicture(UploadedFile $profilePicture, string $name, ?string $oldRessourceToDelete = null): string
     {
         $filename = $this->slugger->slug($name) . '-' . uniqid() . '.' . $profilePicture->guessExtension();
 

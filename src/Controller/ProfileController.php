@@ -32,7 +32,7 @@ class ProfileController extends AbstractController
         $aVoir   = $userSerieRepository->findByUserAndStatus($user, 'a-voir');
         $enCours = $userSerieRepository->findByUserAndStatus($user, 'en-cours');
 
-        return $this->render('profile/profile.html.twig', [
+        return $this->render('profile/index.html.twig', [
             'favoris' => $favoris,
             'aVoir' => $aVoir,
             'enCours' => $enCours,
@@ -92,6 +92,19 @@ class ProfileController extends AbstractController
 
         return $this->render('profile/edit.html.twig', [
             'profileForm' => $form
+        ]);
+    }
+
+    #[Route('/favorites', name: 'favorites')]
+    public function favorites(UserSerieRepository $userSerieRepository): Response
+    {
+        $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
+
+        $user = $this->getUser();
+        $favoris = $userSerieRepository->findByUserAndStatus($user, 'favoris');
+
+        return $this->render('profile/favorites.html.twig', [
+            'favoris' => $favoris,
         ]);
     }
 

@@ -1,84 +1,70 @@
-{% set avatarSrc =
-    app.user and app.user.profilePicture
-    ? asset(app.user.profilePicture)
-    : asset('/images/avatar.png')
-%}
+<!-- Overlay pour fermer la sidebar -->
+<div id="sidebar-overlay" class="sidebar-overlay"></div>
 
-<script src="{{ asset('assets/js/navbar.js') }}" defer></script>
+<!-- Navbar avec bouton hamburger intégré -->
+<nav class="nx-navbar">
+    <div class="nx-container">
 
-<nav class="navbar navbar-expand-lg nx sticky-top">
-    <div class="container-fluid">
+            <!-- Bouton hamburger -->
+            <button id="hamburger-btn" class="hamburger-btn">
+                <span></span><span></span><span></span>
+            </button>
 
-        <a class="navbar-brand nx-brand" href="{{ path('serie_home') }}">SERIESTIME</a>
+            <!-- Logo -->
+            <a href="{{ path('serie_home') }}" class="nx-logo">
+                <span class="logo-text">SeriesTime</span>
+            </a>
 
-        <button class="navbar-toggler nx-toggler" type="button" data-bs-toggle="collapse"
-                data-bs-target="#navbarMain" aria-controls="navbarMain"
-                aria-expanded="false" aria-label="Menu">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-
-        <div class="collapse navbar-collapse" id="navbarMain">
-
-            <ul class="navbar-nav nx-menu mx-auto">
-                <li class="nav-item">
-                    <a class="nav-link{% if app.request.attributes.get('_route') == 'serie_home' %} active{% endif %}"
-                       href="{{ path('serie_home') }}">Accueil</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link{% if app.request.attributes.get('_route') starts with 'serie_' %} active{% endif %}"
-                       href="{{ path('serie_liste') }}">Séries</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link{% if app.request.attributes.get('_route') starts with 'film_' %} active{% endif %}"
-                       href="{{ path('film_liste') }}">Films</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link{% if app.request.attributes.get('_route') starts with 'anime_' %} active{% endif %}"
-                       href="{{ path('anime_liste') }}">Animes</a>
-                </li>
-                <li class="nav-item"><a class="nav-link" href="#">Nouveautés les plus regardées</a></li>
-                <li class="nav-item"><a class="nav-link" href="#">Ma liste</a></li>
-                <li class="nav-item"><a class="nav-link" href="#">Explorer par langue</a></li>
-            </ul>
-
-            <div class="nx-right">
-                {# Recherche compacte (GET vers la liste) #}
-                <form class="nx-search" action="{{ path('serie_liste') }}" method="get" role="search">
-                    <button type="button" class="nx-icon js-nx-search-btn" aria-label="Rechercher">
-                        <img src="{{ asset('icons/search.png') }}" alt="">
-                    </button>
-                    <input class="nx-search-input" type="text" name="search"
-                           value="{{ app.request.query.get('search', '') }}"
-                           placeholder="Titres, personnes, genres…"
-                           aria-label="Rechercher">
-                </form>
-
-                {# Notifications #}
-                <a class="nx-icon" href="#" aria-label="Notifications">
-                    <img src="{{ asset('icons/clock.png') }}" alt="">
-                </a>
-
-                {# Avatar + menu #}
-                <div class="dropdown">
-                    <a class="nx-avatar dropdown-toggle d-flex align-items-center"
-                       href="#" id="nxProfile" role="button"
-                       data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
-                        <img src="{{ avatarSrc }}" alt="Profil">
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark" aria-labelledby="nxProfile">
-                        {% if app.user %}
-                            <li><a class="dropdown-item" href="{{ path('profile_index') }}">Profil</a></li>
-                            <li><a class="dropdown-item" href="{{ path('profile_edit') }}">Éditer le profil</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item text-danger" href="{{ path('app_logout') }}">Se déconnecter</a></li>
-                        {% else %}
-                            <li><a class="dropdown-item" href="{{ path('app_login') }}">Se connecter</a></li>
-                            <li><a class="dropdown-item" href="{{ path('app_register') }}">S’inscrire</a></li>
-                        {% endif %}
-                    </ul>
-                </div>
+        <!-- Barre de recherche -->
+        <div class="nx-search">
+            <div class="search-container">
+                <img src="{{ asset('icons/search.png') }}" alt="Search" width="20">
+                <input type="text" placeholder="Rechercher une série, un acteur..." class="search-input">
             </div>
+        </div>
 
+        <!-- Actions rapides -->
+        <div class="nx-actions">
+            <button class="nx-action-btn" title="Notifications">
+                <img src="{{ asset('icons/clock.png') }}" alt="Notifications" width="22">
+                <span class="notification-badge">3</span>
+            </button>
+            <button class="nx-action-btn" title="Mes favoris">
+                <img src="{{ asset('icons/favoris.png') }}" alt="Favoris" width="22">
+            </button>
+            <button class="nx-action-btn" title="Lecture aléatoire">
+                <img src="{{ asset('icons/random.png') }}" alt="Random" width="22">
+            </button>
+        </div>
+
+        {# Zone droite (auth) #}
+        <div class="nx-auth">
+            {% if app.user %}
+            <div class="nx-dropdown">
+                <button class="nx-user-btn">
+                    <div class="user-avatar">👤</div>
+                    <span class="user-name">{{ app.user.username }}</span>
+                </button>
+                <div class="nx-dropdown-content">
+                    <a href="{{ path('profile_index') }}" class="dropdown-item">
+                        <img src="{{ asset('icons/user.png') }}" width="16"> Mon profil
+                    </a>
+                    <a href="{{ path('profile_edit') }}" class="dropdown-item">
+                        <img src="{{ asset('icons/param.png') }}" width="16"> Paramètres
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a href="{{ path('app_logout') }}" class="dropdown-item danger">
+                        <img src="{{ asset('icons/arrow.png') }}" width="16"> Se déconnecter
+                    </a>
+                </div>
+            {% else %}
+                <a href="{{ path('app_login') }}" class="nx-btn">Se connecter</a>
+                <a href="{{ path('app_register') }}" class="nx-btn-outline">S'inscrire</a>
+            {% endif %}
         </div>
     </div>
+    </div>
 </nav>
+
+<!-- Votre sidebar existante avec l'id ajouté -->
+{% include '_sidebar.html.twig' %}

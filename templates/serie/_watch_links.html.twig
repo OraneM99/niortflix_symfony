@@ -1,9 +1,16 @@
-<div class="watch-list">
+{% block stylesheets %}
+    {% if not (app.request.isXmlHttpRequest() or app.request.query.getBoolean('partial')) %}
+        {{ parent() }}
+        <link rel="stylesheet" href="{{ asset('assets/css/serie-watch-links.css') }}?v={{ 'now'|date('U') }}">
+    {% endif %}
+{% endblock %}
+
+<div class="serie-watch-links">
     {% if watchLinks is not empty %}
         {% for p in watchLinks %}
             {% set key = (p.provider ?? p.key ?? p.label)|lower|replace({' ':'','+':'','.':''}) %}
             {% set iconPath = p.icon starts with('http') ? p.icon : asset(p.icon) %}
-            <a href="{{ p.url }}" class="watch-chip watch-chip--lg is-{{ key }}" target="_blank" rel="noopener">
+            <a href="{{ p.url }}" class="serie-watch-chip is-{{ key }}" target="_blank" rel="noopener">
                 <img src="{{ iconPath }}" alt="{{ p.label }}">
                 {{ p.label }}
             </a>
@@ -14,27 +21,39 @@
 </div>
 
 {% if is_granted('ROLE_ADMIN') %}
-    {% set rawLinks = serie.streamingLinks ?? [] %}
-    <div class="watch-admin">
-        <strong>Gestion des liens</strong>
-        {% if rawLinks %}
-            <ul class="watch-admin-list">
-                {% for link in rawLinks %}
-                    <li class="d-flex align-items-center gap-2">
-                        <code>{{ link.provider|default('') }}</code>
-                        {% if link.enabled %}<span class="badge bg-success">actif</span>{% else %}<span class="badge bg-secondary">inactif</span>{% endif %}
-                        <form method="post"
-                              action="{{ path('serie_link_delete', { id: serie.id, index: loop.index0 }) }}"
-                              data-link-delete
-                              class="ms-auto">
-                            <input type="hidden" name="_token" value="{{ csrf_token('del_link_' ~ serie.id ~ '_' ~ loop.index0) }}">
-                            <button type="submit" class="btn btn-outline-teal btn-sm">Supprimer</button>
-                        </form>
-                    </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <em class="text-muted d-block mt-1">Aucun lien enregistré.</em>
-        {% endif %}
+    <div class="d-flex justify-content-end mt-2">
+        <button type="button" class="btn-add-link" data-bs-toggle="modal" data-bs-target="#addLinkModal">
+            ➕ Ajouter un lien
+        </button>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="addLinkModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title">Ajouter un lien de streaming</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    {{ form_start(linkForm, {
+                        action: path('serie_link_add', { id: serie.id }),
+                        method: 'POST',
+                        attr: { class: 'needs-validation', novalidate: 'novalidate' }
+                    }) }}
+
+                    {{ form_row(linkForm.provider) }}
+                    {{ form_row(linkForm.url) }}
+                    {{ form_row(linkForm.enabled) }}
+
+                    <div class="d-flex justify-content-end gap-2 mt-2">
+                        <button type="button" class="btn-ghost-teal" data-bs-dismiss="modal">Annuler</button>
+                        <button type="submit" class="btn-add-link">Ajouter</button>
+                    </div>
+
+                    {{ form_end(linkForm) }}
+                </div>
+            </div>
+        </div>
     </div>
 {% endif %}
