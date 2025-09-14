@@ -81,4 +81,39 @@ class AdminController extends AbstractController
             'users' => $users,
         ]);
     }
+
+    #[Route('/notifications', name: 'notifications')]
+    public function notifications(): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        // TODO ⚠️ Pour l'instant on ne fait qu’un affichage statique (branchement de la logique plus tard)
+        $notifications = [
+            ['id' => 1, 'title' => 'Nouvelle série ajoutée', 'date' => new \DateTime('-2 hours')],
+            ['id' => 2, 'title' => 'Un utilisateur s’est inscrit', 'date' => new \DateTime('-1 day')],
+            ['id' => 3, 'title' => 'Un contributeur a été modifié', 'date' => new \DateTime('-3 days')],
+        ];
+
+        return $this->render('admin/notifications.html.twig', [
+            'notifications' => $notifications,
+        ]);
+    }
+
+    #[Route('/settings', name: 'settings')]
+    public function settings(): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        // TODO : Pour l’instant : version statique/dummy
+        $settings = [
+            ['name' => 'Mode maintenance', 'value' => false, 'description' => 'Activer/désactiver le site pour les visiteurs'],
+            ['name' => 'Inscription', 'value' => true, 'description' => 'Autoriser les nouveaux comptes utilisateurs'],
+            ['name' => 'Taille max upload', 'value' => '2 Mo', 'description' => 'Poids maximum des fichiers uploadés'],
+        ];
+
+        return $this->render('admin/settings.html.twig', [
+            'settings' => $settings,
+        ]);
+    }
+
 }

@@ -1,0 +1,36 @@
+<nav class="admin-nav">
+    <div class="admin-nav-container">
+        <ul class="admin-nav-list">
+            <li>
+                <a href="{{ path('admin_dashboard') }}" class="{% if app.request.get('_route') starts with 'admin_dashboard' %}active{% endif %}">
+                    <img src="{{ asset('icons/dashboard.png') }}" alt="Dashboard"> Dashboard
+                </a>
+            </li>
+
+            <li>
+                <a href="{{ path('admin_users') }}" class="{% if app.request.get('_route') starts with 'admin_users' %}active{% endif %}">
+                    <img src="{{ asset('icons/admin.png') }}" alt="Utilisateurs"> Gestion utilisateurs
+                </a>
+            </li>
+
+            <li>
+                <a href="{{ path('admin_notifications') }}" class="{% if app.request.get('_route') starts with 'admin_notifications' %}active{% endif %}">
+                    <img src="{{ asset('icons/clock.png') }}" alt="Notifications"> Notifications
+                </a>
+            </li>
+
+            <li>
+                <a href="{{ path('contributor_index') }}" class="{% if app.request.get('_route') starts with 'contributor_' %}active{% endif %}">
+                    <img src="{{ asset('icons/trailer.png') }}" alt="Contributeurs"> Gestion contributeurs
+                </a>
+            </li>
+
+            <li>
+                <a href="{{ path('admin_settings') }}" class="{% if app.request.get('_route') starts with 'admin_settings' %}active{% endif %}">
+                    <img src="{{ asset('icons/param.png') }}" alt="Paramètres"> Paramètres
+                </a>
+            </li>
+
+        </ul>
+    </div>
+</nav>

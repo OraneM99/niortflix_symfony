@@ -45,8 +45,8 @@ class ContributorType extends AbstractType
             ->add('biography', TextareaType::class, [
                 'label' => 'Synopsis',
                 'required' => false,
-                'attr'  => ['rows' => 5, 'maxlength' => 800, 'data-counter' => 'true'],
-                'help'  => '800 caractères max.',
+                'attr'  => ['rows' => 5, 'maxlength' => 1500, 'data-counter' => 'true'],
+                'help'  => '1500 caractères max.',
             ])
             ->add('photo', FileType::class, [
                 'label'    => 'Photo',

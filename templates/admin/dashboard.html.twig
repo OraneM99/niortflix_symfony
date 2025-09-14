@@ -8,19 +8,9 @@
 {% endblock %}
 
 {% block body %}
-    <div class="admin-wrapper">
-        <!-- Aside navigation -->
-        <aside class="admin-aside">
-            <h2 class="aside-title">Admin</h2>
-            <ul class="aside-nav">
-                <li><a href="{{ path('admin_dashboard') }}" class="active">🏠 Dashboard</a></li>
-                <li><a href="{{ path('admin_users') }}">👤 Gestion utilisateurs</a></li>
-                <li><a href="{{ path('contributor_show', {id: 1}) }}">🎬 Contributeurs</a></li>
-                <li><a href="{{ path('serie_liste') }}">📺 Séries</a></li>
-                <li><a href="#">⚙️ Paramètres</a></li>
-            </ul>
-        </aside>
+    {% include 'admin/_admin-nav.html.twig' %}
 
+    <div class="admin-wrapper">
         <!-- Contenu principal -->
         <main class="admin-main">
             <div class="admin-container">

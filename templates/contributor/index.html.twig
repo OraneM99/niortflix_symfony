@@ -1,45 +1,52 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Contributor index{% endblock %}
+{% block title %}Gestion des contributeurs{% endblock %}
+{% block body_class %}page-contributors{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('assets/css/contributor-index.css') }}?v={{ 'now'|date('U') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/dashboard.css') }}?v={{ 'now'|date('U') }}">
+{% endblock %}
 
 {% block body %}
-    <h1>Contributor index</h1>
+    {% include 'admin/_admin-nav.html.twig' %}
 
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>Name</th>
-                <th>Role</th>
-                <th>BirthDate</th>
-                <th>Country</th>
-                <th>Biography</th>
-                <th>Photo</th>
-                <th>actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for contributor in contributors %}
-            <tr>
-                <td>{{ contributor.id }}</td>
-                <td>{{ contributor.name }}</td>
-                <td>{{ contributor.role }}</td>
-                <td>{{ contributor.birthDate ? contributor.birthDate|date('Y-m-d H:i:s') : '' }}</td>
-                <td>{{ contributor.country }}</td>
-                <td>{{ contributor.biography }}</td>
-                <td>{{ contributor.photo }}</td>
-                <td>
-                    <a href="{{ path('app_contributor_show', {'id': contributor.id}) }}">show</a>
-                    <a href="{{ path('app_contributor_edit', {'id': contributor.id}) }}">edit</a>
-                </td>
-            </tr>
-        {% else %}
-            <tr>
-                <td colspan="8">no records found</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+    <div class="contributor-container">
+        <div class="contributor-header">
+            <h1>Gestion des contributeurs</h1>
+            <a href="{{ path('contributor_new') }}" class="btn btn-primary">➕ Ajouter un contributeur</a>
+        </div>
 
-    <a href="{{ path('app_contributor_new') }}">Create new</a>
+        <div class="contributor-table table-responsive">
+            <table class="table table-dark table-striped align-middle">
+                <thead>
+                <tr>
+                    <th>Nom</th>
+                    <th>Pays</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for contributor in contributors %}
+                    <tr>
+                        <td>{{ contributor.name }}</td>
+                        <td>{{ contributor.country ?: '—' }}</td>
+                        <td class="text-end contributor-actions">
+                            <a href="{{ path('contributor_show', {'id': contributor.id}) }}" class="btn btn-sm btn-outline-info">Voir</a>
+                            <a href="{{ path('contributor_edit', {'id': contributor.id}) }}" class="btn btn-sm btn-outline-warning">Modifier</a>
+                            <form method="post" action="{{ path('contributor_delete', {'id': contributor.id}) }}" class="d-inline" onsubmit="return confirm('Voulez-vous vraiment supprimer ce contributeur ?');">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ contributor.id) }}">
+                                <button class="btn btn-sm btn-outline-danger">Supprimer</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="3" class="text-center text-muted">Aucun contributeur trouvé</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 {% endblock %}

@@ -1,8 +1,14 @@
 {% extends 'base.html.twig' %}
 
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('assets/css/dashboard.css') }}?v={{ 'now'|date('U') }}">
+{% endblock %}
+
 {% block title %}Gestion des utilisateurs{% endblock %}
 
 {% block body %}
+    {% include 'admin/_admin-nav.html.twig' %}
+
     <h1>Gestion des utilisateurs</h1>
     <table class="table table-dark">
         <thead>
