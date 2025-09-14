@@ -1,47 +1,71 @@
 {% extends 'base.html.twig' %}
 
 {% block title %}Dashboard Admin{% endblock %}
+{% block body_class %}admin-dashboard{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('assets/css/dashboard.css') }}?v={{ 'now'|date('U') }}">
+{% endblock %}
 
 {% block body %}
-    <div class="container-fluid min-vh-100">
-        <div class="row m-0">
-            {% include 'profile/_sidebar.html.twig' %}
+    <div class="admin-wrapper">
+        <!-- Aside navigation -->
+        <aside class="admin-aside">
+            <h2 class="aside-title">Admin</h2>
+            <ul class="aside-nav">
+                <li><a href="{{ path('admin_dashboard') }}" class="active">🏠 Dashboard</a></li>
+                <li><a href="{{ path('admin_users') }}">👤 Gestion utilisateurs</a></li>
+                <li><a href="{{ path('contributor_show', {id: 1}) }}">🎬 Contributeurs</a></li>
+                <li><a href="{{ path('serie_liste') }}">📺 Séries</a></li>
+                <li><a href="#">⚙️ Paramètres</a></li>
+            </ul>
+        </aside>
 
-            <!-- Contenu principal -->
-            <main class="col-md-9 col-lg-10 ms-sm-auto px-md-4 py-4">
-                <h1 class="mb-4">Bienvenue sur le Dashboard Admin</h1>
+        <!-- Contenu principal -->
+        <main class="admin-main">
+            <div class="admin-container">
+                <h1 class="mb-4">Dashboard Admin</h1>
 
-                <div class="row">
-                    <!-- Statistiques ou cartes -->
-                    <div class="col-md-6 col-lg-4 mb-3">
-                        <div class="card bg-dark text-white p-3">
-                            <h5>Nombre d’utilisateurs</h5>
-                            <p class="display-6">{{ usersCount|default(0) }}</p>
+                <!-- Statistiques -->
+                <div class="row g-4 mb-4">
+                    <div class="col-md-4">
+                        <div class="stat-card">
+                            <h5>Utilisateurs</h5>
+                            <p class="stat-value">{{ usersCount|default(0) }}</p>
                         </div>
                     </div>
-                    <div class="col-md-6 col-lg-4 mb-3">
-                        <div class="card bg-dark text-white p-3">
-                            <h5>Séries totales</h5>
-                            <p class="display-6">{{ seriesCount|default(0) }}</p>
+                    <div class="col-md-4">
+                        <div class="stat-card">
+                            <h5>Séries</h5>
+                            <p class="stat-value">{{ seriesCount|default(0) }}</p>
                         </div>
                     </div>
-                    <div class="col-md-6 col-lg-4 mb-3">
-                        <div class="card bg-dark text-white p-3">
-                            <h5>Nombre de films</h5>
-                            <p class="display-6">{{ filmsCount|default(0) }}</p>
+                    <div class="col-md-4">
+                        <div class="stat-card">
+                            <h5>Films</h5>
+                            <p class="stat-value">{{ filmsCount|default(0) }}</p>
                         </div>
                     </div>
                 </div>
 
-                <div class="mt-5">
-                    <h2>Dernières inscriptions</h2>
+                <!-- Contributeurs -->
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2>Contributeurs</h2>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addContributorModal">
+                        ➕ Créer un contributeur
+                    </button>
+                </div>
+
+                <!-- Derniers utilisateurs -->
+                <div class="card-section mt-5">
+                    <h2>Derniers utilisateurs</h2>
                     <div class="table-responsive">
                         <table class="table table-dark table-striped align-middle">
                             <thead>
                             <tr>
                                 <th>Nom d’utilisateur</th>
                                 <th>Email</th>
-                                <th>Date d’inscription</th>
+                                <th>Date</th>
                                 <th>Statut</th>
                             </tr>
                             </thead>
@@ -61,46 +85,23 @@
                                 </tr>
                             {% else %}
                                 <tr>
-                                    <td colspan="4" class="text-center text-muted">
-                                        Aucun utilisateur trouvé
-                                    </td>
+                                    <td colspan="4" class="text-center text-muted">Aucun utilisateur trouvé</td>
                                 </tr>
                             {% endfor %}
                             </tbody>
                         </table>
                     </div>
                 </div>
-            </main>
-        </div>
+            </div>
+        </main>
     </div>
 
-    <style>
-        .sidebar {
-            height: 100vh;
-            position: sticky;
-            top: 0;
-            background-color: #1c1c1c;
-            border-right: 1px solid #333;
-        }
-
-        .nav-link.active {
-            color: #7F8CAA !important;
-            font-weight: 500;
-        }
-
-        .nav-link:hover {
-            color: #739EC9 !important;
-        }
-
-        main {
-            background-color: #121212;
-            color: #fff;
-            min-height: 100vh;
-        }
-
-        .card {
-            border-radius: 0.5rem;
-            border: 1px solid #333;
-        }
-    </style>
+    <!-- Modal ajout contributeur -->
+    <div class="modal fade" id="addContributorModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content admin-modal">
+                {% include 'admin/_contributor-form.html.twig' %}
+            </div>
+        </div>
+    </div>
 {% endblock %}

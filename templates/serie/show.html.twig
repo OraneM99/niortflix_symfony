@@ -1,0 +1,127 @@
+{# templates/serie/show.html.twig #}
+{% extends 'base.html.twig' %}
+
+{% block body_class %}serie-show-page{% endblock %}
+{% block title %}{{ serie.name }} | SeriesTime{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('assets/css/serie-show.css') }}?v={{ 'now'|date('U') }}">
+    <style>
+        body.serie-show-page { background: #222831; color: #fff; }
+    </style>
+{% endblock %}
+
+{% block body %}
+    {% set backdrop = serie.backdrop ? asset(serie_params.backdrop_dir ~ '/' ~ serie.backdrop) : null %}
+    {% set poster   = serie.poster ? asset('uploads/posters/series/' ~ serie.poster) : asset('images/no-poster.png') %}
+    {% set status   = serie.status|lower %}
+    {% set statusLabel = status == 'returning' ? 'En cours'
+        : (status == 'ended' ? 'Terminée'
+        : (status == 'cancelled' ? 'Annulée' : serie.status)) %}
+
+    <section class="serie-hero" style="background-image: url('{{ backdrop }}')">
+        <div class="hero-overlay">
+            <div class="container hero-content">
+                <div class="poster-col">
+                    <img src="{{ poster }}" alt="{{ serie.name }}" class="poster-img">
+                </div>
+                <div class="info-col">
+                    <h1 class="serie-title">{{ serie.name }}</h1>
+
+                    <div class="meta">
+                        <span class="status-badge">{{ statusLabel }}</span>
+                        <span class="rating">
+                            ⭐ {{ serie.vote|default('N/A') }}
+                        </span>
+                    </div>
+
+                    {% if serie.genres|length %}
+                        <div class="genres">
+                            {% for g in serie.genres %}
+                                <a href="{{ path('serie_liste', { genre: g }) }}" class="genre-badge">{{ g }}</a>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <div class="dates">
+                        <img class="icon-16" src="{{ asset('icons/calendar.png') }}" alt="">
+                        <span>
+                            {{ serie.firstAirDate ? serie.firstAirDate|date('d/m/Y') : 'Date inconnue' }}
+                            {% if serie.lastAirDate %} – {{ serie.lastAirDate|date('d/m/Y') }}{% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <main class="container py-4">
+
+        {# Streaming #}
+        <section class="section">
+            <h2>Où regarder</h2>
+            <div class="watch-list">
+                {% if watchLinks is not empty %}
+                    {% for p in watchLinks %}
+                        {% set iconPath = p.icon starts with('http') ? p.icon : asset(p.icon) %}
+                        <a href="{{ p.url }}" class="watch-chip is-{{ p.key }}" target="_blank" rel="noopener">
+                            <img src="{{ iconPath }}" alt="{{ p.label }}">
+                            {{ p.label }}
+                        </a>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">Aucun lien de streaming disponible.</p>
+                {% endif %}
+            </div>
+        </section>
+
+        {# Synopsis #}
+        {% if serie.overview %}
+            <section class="section">
+                <h2>Synopsis</h2>
+                <p class="synopsis">{{ serie.overview }}</p>
+            </section>
+        {% endif %}
+
+        {# Distribution #}
+        <section class="section">
+            <h2>Distribution</h2>
+            <div class="cast-grid">
+                {% for c in contributors %}
+                    <div class="cast-card{% if not c.picture %} no-photo{% endif %}">
+                        {% if c.picture %}
+                            <img src="{{ asset(c.picture) }}" class="cast-photo" alt="{{ c.name }}">
+                        {% endif %}
+                        <div class="cast-overlay">
+                            <h5 class="cast-name">{{ c.name }}</h5>
+                            <div class="cast-role">{{ c.role }}</div>
+                        </div>
+                    </div>
+                {% else %}
+                    <p class="text-muted">Aucun acteur enregistré.</p>
+                {% endfor %}
+            </div>
+        </section>
+
+        {# Actions de suivi #}
+        <section class="section">
+            <h2>Suivi</h2>
+            <div class="track-actions">
+                <a href="{{ path('serie_favorite', {id: serie.id}) }}"
+                   class="btn-primary js-favorite"
+                   data-url="{{ path('serie_favorite', {id: serie.id}) }}"
+                   data-token="{{ csrf_token('favorite' ~ serie.id) }}">
+                    <img src="{{ asset('icons/heart.png') }}" alt="">
+                    {{ app.user and app.user.hasFavoriteSerie(serie) ? 'Retirer des favoris' : 'Ajouter aux favoris' }}
+                </a>
+                <a href="{{ path('serie_ignore', {id: serie.id}) }}" class="btn-ghost">
+                    <img class="icon-16" src="{{ asset('icons/stop.png') }}" alt=""> Ignorer
+                </a>
+                <a href="#" class="btn-ghost">
+                    <img class="icon-16" src="{{ asset('icons/check.png') }}" alt=""> Marquer comme vu
+                </a>
+            </div>
+        </section>
+    </main>
+{% endblock %}

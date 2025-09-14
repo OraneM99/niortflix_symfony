@@ -108,6 +108,19 @@ final class SerieController extends AbstractController
         ]);
     }
 
+    #[Route('/show/{id}', name: 'show', requirements: ['id' => '\d+'])]
+    public function show(Serie $serie, ContributorRepository $contributorRepository): Response
+    {
+        $contributors = $contributorRepository->findBySerie($serie);
+        $watchLinks   = $this->buildWatchLinks($serie);
+
+        return $this->render('serie/show.html.twig', [
+            'serie'        => $serie,
+            'contributors' => $contributors,
+            'watchLinks'   => $watchLinks,
+        ]);
+    }
+
     #[Route('/detail/{id}', name: 'detail', requirements: ['id' => '\d+'])]
     public function detail(
         Serie $serie,
@@ -186,7 +199,7 @@ final class SerieController extends AbstractController
             return $this->redirectToRoute('serie_liste');
         }
 
-        return $this->redirectToRoute('serie_detail', ['id' => $serie->getId()]);
+        return $this->redirectToRoute('serie_show', ['id' => $serie->getId()]);
     }
 
     #[Route('/suggest', name: 'suggest', methods: ['GET'])]

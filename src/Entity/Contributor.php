@@ -5,7 +5,6 @@ namespace App\Entity;
 use App\Repository\ContributorRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ContributorRepository::class)]
@@ -16,38 +15,33 @@ class Contributor
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 150)]
     private ?string $name = null;
 
-    #[ORM\Column(length: 50)]
+    #[ORM\Column(length: 50, nullable: true)]
     private ?string $role = null;
 
-    #[ORM\Column(nullable: true)]
-    private ?\DateTime $birthDate = null;
+    #[ORM\Column(type: 'date', nullable: true)]
+    private ?\DateTimeInterface $birthDate = null;
 
     #[ORM\Column(length: 100, nullable: true)]
     private ?string $country = null;
 
-    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[ORM\Column(type: 'text', nullable: true)]
     private ?string $biography = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $photo = null;
 
-    #[ORM\ManyToMany(targetEntity: Serie::class, inversedBy: "contributors")]
+    #[ORM\ManyToMany(targetEntity: Serie::class, inversedBy: 'contributors')]
+    #[ORM\JoinTable(name: 'serie_contributor')]
     private Collection $series;
-
-    /**
-     * @var Collection<int, Film>
-     */
-    #[ORM\ManyToMany(targetEntity: Film::class, mappedBy: 'contributors')]
-    private Collection $films;
 
     public function __construct()
     {
         $this->series = new ArrayCollection();
-        $this->films = new ArrayCollection();
     }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -61,7 +55,6 @@ class Contributor
     public function setName(string $name): static
     {
         $this->name = $name;
-
         return $this;
     }
 
@@ -70,22 +63,20 @@ class Contributor
         return $this->role;
     }
 
-    public function setRole(string $role): static
+    public function setRole(?string $role): static
     {
         $this->role = $role;
-
         return $this;
     }
 
-    public function getBirthDate(): ?\DateTime
+    public function getBirthDate(): ?\DateTimeInterface
     {
         return $this->birthDate;
     }
 
-    public function setBirthDate(?\DateTime $birthDate): static
+    public function setBirthDate(?\DateTimeInterface $birthDate): static
     {
         $this->birthDate = $birthDate;
-
         return $this;
     }
 
@@ -97,7 +88,6 @@ class Contributor
     public function setCountry(?string $country): static
     {
         $this->country = $country;
-
         return $this;
     }
 
@@ -109,68 +99,44 @@ class Contributor
     public function setBiography(?string $biography): static
     {
         $this->biography = $biography;
-
         return $this;
     }
 
-    public function getPhoto(): ?string
+    public function getphoto(): ?string
     {
         return $this->photo;
     }
 
-    public function setPhoto(?string $photo): static
+    public function setphoto(?string $photo): static
     {
         $this->photo = $photo;
-
         return $this;
     }
 
+    /**
+     * @return Collection<int, Serie>
+     */
     public function getSeries(): Collection
     {
         return $this->series;
     }
 
-    public function addSerie(Serie $serie): self
+    public function addSerie(Serie $serie): static
     {
         if (!$this->series->contains($serie)) {
             $this->series->add($serie);
+            $serie->addContributor($this);
         }
 
         return $this;
     }
 
-    public function removeSerie(Serie $serie): self
+    public function removeSerie(Serie $serie): static
     {
-        $this->series->removeElement($serie);
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, Film>
-     */
-    public function getFilms(): Collection
-    {
-        return $this->films;
-    }
-
-    public function addFilm(Film $film): static
-    {
-        if (!$this->films->contains($film)) {
-            $this->films->add($film);
-            $film->addContributor($this);
+        if ($this->series->removeElement($serie)) {
+            $serie->removeContributor($this);
         }
 
         return $this;
     }
-
-    public function removeFilm(Film $film): static
-    {
-        if ($this->films->removeElement($film)) {
-            $film->removeContributor($this);
-        }
-
-        return $this;
-    }
-
 }

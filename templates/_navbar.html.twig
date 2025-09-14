@@ -1,3 +1,5 @@
+{% include '_sidebar.html.twig' %}
+
 <!-- Overlay pour fermer la sidebar -->
 <div id="sidebar-overlay" class="sidebar-overlay"></div>
 
@@ -5,15 +7,15 @@
 <nav class="nx-navbar">
     <div class="nx-container">
 
-            <!-- Bouton hamburger -->
-            <button id="hamburger-btn" class="hamburger-btn">
-                <span></span><span></span><span></span>
-            </button>
+        <!-- Bouton hamburger -->
+        <button id="hamburger-btn" class="hamburger-btn">
+            <span></span><span></span><span></span>
+        </button>
 
-            <!-- Logo -->
-            <a href="{{ path('serie_home') }}" class="nx-logo">
-                <span class="logo-text">SeriesTime</span>
-            </a>
+        <!-- Logo -->
+        <a href="{{ path('serie_home') }}" class="nx-logo">
+            <span class="logo-text">SeriesTime</span>
+        </a>
 
         <!-- Barre de recherche -->
         <form class="nx-search"
@@ -41,7 +43,9 @@
             <div class="nx-suggest" hidden>
                 <ul class="nx-suggest-list" role="listbox"></ul>
                 <div class="nx-suggest-footer">
-                    <a class="see-all" href="#" data-see-all>Voir tous les résultats</a>
+                    <a class="see-all" href="{{ path('serie_liste') }}" data-see-all>
+                        Voir tous les résultats
+                    </a>
                 </div>
             </div>
         </form>
@@ -58,34 +62,41 @@
             <a href="{{ path('serie_random') }}" class="nx-action-btn" title="Lecture aléatoire">
                 <img src="{{ asset('icons/random.png') }}" alt="Random" width="22">
             </a>
+
+            {# Onglet Dashboard visible uniquement pour les admins #}
+            {% if is_granted('ROLE_ADMIN') %}
+                <a href="{{ path('admin_dashboard') }}" class="nx-action-btn" title="Dashboard">
+                    <img src="{{ asset('icons/admin.png') }}" alt="Dashboard" width="22">
+                </a>
+            {% endif %}
         </div>
 
         {# Zone droite (auth) #}
         <div class="nx-auth">
             {% if app.user %}
-            <div class="nx-dropdown">
-                <button class="nx-user-btn">
-                    <div class="user-avatar">👤</div>
-                    <span class="user-name">{{ app.user.username }}</span>
-                </button>
-                <div class="nx-dropdown-content">
-                    <a href="{{ path('profile_index') }}" class="dropdown-item">
-                        <img src="{{ asset('icons/user.png') }}" width="16"> Mon profil
-                    </a>
-                    <a href="{{ path('profile_edit') }}" class="dropdown-item">
-                        <img src="{{ asset('icons/param.png') }}" width="16"> Paramètres
-                    </a>
-                    <div class="dropdown-divider"></div>
-                    <a href="{{ path('app_logout') }}" class="dropdown-item danger">
-                        <img src="{{ asset('icons/arrow.png') }}" width="16"> Se déconnecter
-                    </a>
+                <div class="nx-dropdown">
+                    <button class="nx-user-btn">
+                        <div class="user-avatar">👤</div>
+                        <span class="user-name">{{ app.user.username }}</span>
+                    </button>
+                    <div class="nx-dropdown-content">
+                        <a href="{{ path('profile_index') }}" class="dropdown-item">
+                            <img src="{{ asset('icons/user.png') }}" width="16"> Mon profil
+                        </a>
+                        <a href="{{ path('profile_edit') }}" class="dropdown-item">
+                            <img src="{{ asset('icons/param.png') }}" width="16"> Paramètres
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="{{ path('app_logout') }}" class="dropdown-item danger">
+                            <img src="{{ asset('icons/arrow.png') }}" width="16"> Se déconnecter
+                        </a>
+                    </div>
                 </div>
             {% else %}
                 <a href="{{ path('app_login') }}" class="nx-btn">Se connecter</a>
                 <a href="{{ path('app_register') }}" class="nx-btn-outline">S'inscrire</a>
             {% endif %}
         </div>
-    </div>
     </div>
 </nav>
 
@@ -195,6 +206,5 @@
         });
     })();
 </script>
-<link rel="stylesheet" href="{{ asset('assets/css/navbar.css') }}?v={{ 'now'|date('U') }}">
 
-{% include '_sidebar.html.twig' %}
+<link rel="stylesheet" href="{{ asset('assets/css/navbar.css') }}?v={{ 'now'|date('U') }}">

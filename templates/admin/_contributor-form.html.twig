@@ -1,0 +1,67 @@
+{% form_theme contributorForm 'bootstrap_5_layout.html.twig' %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('assets/css/contributor-form.css') }}?v={{ 'now'|date('U') }}">
+{% endblock %}
+
+{% block body %}
+<div class="edit-card shadow-lg">
+
+    <div class="edit-card__header d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <div>
+            <h1 class="edit-card__title mb-0">Créer un contributeur</h1>
+            <p class="edit-card__subtitle mb-0">Complétez les informations ci-dessous</p>
+        </div>
+        <div class="edit-card__icon"><img src="{{ asset('images/user.png') }}" alt=""></div>
+    </div>
+
+    {% if not contributorForm.vars.valid %}
+        <div class="alert alert-danger mb-3">
+            Veuillez corriger les champs signalés ci-dessous.
+        </div>
+    {% endif %}
+
+    {{ form_start(contributorForm, {
+        attr: { class: 'contributor-form needs-validation', novalidate: 'novalidate' }
+    }) }}
+
+    <div class="row g-3">
+        <div class="col-md-6">
+            {{ form_row(contributorForm.name, { attr: { placeholder: 'Ex : Bryan Cranston' } }) }}
+        </div>
+        <div class="col-md-6">
+            {{ form_row(contributorForm.role, { attr: { placeholder: 'Acteur, Réalisateur…' } }) }}
+        </div>
+        <div class="col-md-6">
+            {{ form_row(contributorForm.birthDate) }}
+        </div>
+        <div class="col-md-6">
+            {{ form_row(contributorForm.country) }}
+        </div>
+        <div class="col-12">
+            {{ form_row(contributorForm.biography, {
+                attr: { rows: 5, maxlength: 600, 'data-counter': 'true', placeholder: 'Biographie (600 caractères max)' }
+            }) }}
+        </div>
+
+        {# Photo #}
+        <div class="media-uploader mt-3">
+            <label class="form-label">Photo</label>
+            <div class="dropzone" data-preview="#photoPreview">
+                {{ form_widget(contributorForm.photo, { attr: { class: 'form-control', accept: 'image/*' } }) }}
+                <img id="photoPreview" alt="Aperçu photo" class="dz-preview"
+                     style="display:none; max-height:200px; object-fit:cover; border-radius:10px;"/>
+            </div>
+            <small class="form-text">JPG/PNG/WEBP • 2 Mo max</small>
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-save w-100 mt-3">
+        <img src="{{ asset('icons/save.png') }}" alt="" class="btn-ico">
+        Enregistrer
+    </button>
+
+    {{ form_end(contributorForm) }}
+
+</div>
+{% endblock %}

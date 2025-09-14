@@ -76,7 +76,7 @@ class Serie
     #[ORM\Column(nullable: true)]
     private ?\DateTime $dateModified = null;
 
-    #[ORM\ManyToMany(targetEntity: Contributor::class, mappedBy: "series")]
+    #[ORM\ManyToMany(targetEntity: Contributor::class, mappedBy: 'series')]
     private Collection $contributors;
 
     #[ORM\ManyToMany(targetEntity: Genre::class, inversedBy: 'series', cascade: ['persist'])]

@@ -133,7 +133,10 @@
                                 <img src="{{ asset(c.picture) }}" class="cast-photo" alt="{{ c.name }}">
                             {% endif %}
                             <div class="cast-overlay">
-                                <h5 class="cast-name">{{ c.name }}</h5>
+                                <a href="{{ path('contributor_show', {id: c.id}) }}">
+                                    {{ c.name }}
+                                </a>
+
                                 <div class="cast-role">{{ c.role }}</div>
                             </div>
                         </div>
