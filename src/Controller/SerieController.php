@@ -27,16 +27,22 @@ final class SerieController extends AbstractController
 {
     /** Métadonnées d’icônes/labels pour les plateformes. */
     private const PROVIDER_META = [
-        'adn'         => ['label' => 'ADN',     'icon' => 'icons/providers/ad .png'],
+        'adn'         => ['label' => 'ADN',         'icon' => 'icons/providers/ad .png'],
         'appletv'     => ['label' => 'Apple TV+',   'icon' => 'icons/providers/apple.png'],
         'canal'       => ['label' => 'Canal+',      'icon' => 'icons/providers/canal.jpg'],
         'crunchyroll' => ['label' => 'Crunchyroll', 'icon' => 'icons/providers/crunchyroll.png'],
         'disney'      => ['label' => 'Disney+',     'icon' => 'icons/providers/disney.png'],
-        'hbo'         => ['label' => 'HBO',     'icon' => 'icons/providers/hbo.png'],
+        'francetv'    => ['label' => 'France TV',   'icon' => 'icons/providers/francetv.webp'],
+        'hbo'         => ['label' => 'HBO',         'icon' => 'icons/providers/hbo.jpg'],
+        'm6'          => ['label' => 'M6+',         'icon' => 'icons/providers/m6.svg'],
         'netflix'     => ['label' => 'Netflix',     'icon' => 'icons/providers/netflix.png'],
-        'paramount'   => ['label' => 'Paramount',     'icon' => 'icons/providers/paramount.png'],
-        'prime'       => ['label' => 'Prime Video', 'icon' => 'icons/providers/prime.png'],
-        'youtube'     => ['label' => 'Youtube', 'icon' => 'icons/providers/youtube.jpeg']
+        'primevideo'  => ['label' => 'Prime Video', 'icon' => 'icons/providers/primevideo.png'],
+        'molotov'     => ['label' => 'Molotov',     'icon' => 'icons/providers/molotov.png'],
+        'paramount'   => ['label' => 'Paramount',   'icon' => 'icons/providers/paramount.png'],
+        'tf1'         => ['label' => 'TF1',         'icon' => 'icons/providers/tf1.webp'],
+        'viki'        => ['label' => 'Viki',        'icon' => 'icons/providers/viki.png'],
+        'warner'      => ['label' => 'Warner TV',   'icon' => 'icons/providers/warner.png'],
+        'youtube'     => ['label' => 'Youtube',     'icon' => 'icons/providers/youtube.jpeg']
     ];
 
     /** Transforme les données brutes (JSON en base) en liens affichables. */
@@ -273,6 +279,8 @@ final class SerieController extends AbstractController
         return $this->render('serie/edit.html.twig', [
             'serieForm' => $form,
             'is_edit'   => false,
+            'watchLinks' => [],
+            'streamingLinks' => []
         ]);
     }
 
@@ -302,9 +310,19 @@ final class SerieController extends AbstractController
             return $this->redirectToRoute('serie_detail', ['id' => $serie->getId()]);
         }
 
+        $watchLinks = $this->buildWatchLinks($serie);
+        $linkForm = $this->createForm(StreamingLinkType::class, null, [
+            'action' => $this->generateUrl('serie_link_add', ['id' => $serie->getId()]),
+            'method' => 'POST',
+        ]);
+
         return $this->render('serie/edit.html.twig', [
             'serieForm' => $form,
             'is_edit'   => true,
+            'serie' => $serie,
+            'watchLinks' => $watchLinks,
+            'streamingLinks' => $serie->getStreamingLinks() ?? [],
+            'linkForm' => $linkForm
         ]);
     }
 
@@ -394,3 +412,4 @@ final class SerieController extends AbstractController
         return $this->redirectToRoute('serie_detail', ['id' => $serie->getId()]);
     }
 }
+

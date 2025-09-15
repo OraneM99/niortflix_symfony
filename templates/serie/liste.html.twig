@@ -38,9 +38,12 @@
                             <a href="{{ path('serie_detail', {id: serie.id}) }}" class="card-tapzone" aria-label="Voir la fiche de {{ serie.name }}">
                                 <div class="card-media">
                                     <img
-                                            src="{{ asset(serie_params.poster_dir ~ '/' ~ serie.poster) }}"
+                                            src="{{ serie.poster
+                                            ? asset((serie_params.poster_dir|default('/uploads/posters/series')) ~ '/' ~ serie.poster)
+                                            : asset('images/placeholder-poster.png') }}"
                                             alt="Poster de {{ serie.name }}"
                                             loading="lazy">
+
                                     <div class="chip chip-score">
                                         <img src="{{ asset('icons/star.png') }}" alt="Vote" class="icon-btn">
                                         {{ serie.vote|default('N/A') }}
@@ -77,11 +80,11 @@
                                     </a>
 
                                     {# Ignorer #}
-                                    <a href="{{ path('serie_ignore', {id: serie.id}) }}"
-                                       class="icon-circle"
-                                       title="Ne plus me proposer" aria-label="Ne plus me proposer">
-                                        <img src="{{ asset('icons/stop.png') }}" alt="">
-                                    </a>
+                                    {#                                    <a href="{{ path('serie_ignore', {id: serie.id}) }}"#}
+                                    {#                                       class="icon-circle"#}
+                                    {#                                       title="Ne plus me proposer" aria-label="Ne plus me proposer">#}
+                                    {#                                        <img src="{{ asset('icons/stop.png') }}" alt="">#}
+                                    {#                                    </a>#}
 
                                     {# Éditer (ADMIN uniquement) #}
                                     {% if is_granted('ROLE_ADMIN') %}
@@ -118,3 +121,4 @@
         </a>
     {% endif %}
 {% endblock %}
+

@@ -15,7 +15,6 @@
     {{ parent() }}
 {% endblock %}
 
-
 {% block body %}
     {% if app.request.isXmlHttpRequest() or app.request.query.getBoolean('partial') %}
         <link rel="stylesheet" href="{{ asset('assets/css/serie-detail.css') }}?v={{ 'now'|date('U') }}">
@@ -47,8 +46,8 @@
                         <div class="meta-item">
                             <img class="icon-16" src="{{ asset('icons/calendar.png') }}" alt="">
                             <span>
-                                {{ serie.firstAirDate ? serie.firstAirDate|date('d/m/Y') : 'Date inconnue' }}
-                                {% if serie.lastAirDate %} – {{ serie.lastAirDate|date('d/m/Y') }}{% endif %}
+                                {{ serie.firstAirDate ? serie.firstAirDate|date('d F Y') : 'Date inconnue' }}
+                                {% if serie.lastAirDate %} – {{ serie.lastAirDate|date('d F Y') }}{% endif %}
                             </span>
                         </div>
                     </div>
@@ -79,33 +78,57 @@
                 {% endif %}
             </div>
 
-            {% if is_granted('ROLE_ADMIN') and watchLinks is empty %}
-                <div class="d-flex justify-content-end mt-2">
-                    <button type="button" class="btn btn-add-link" data-bs-toggle="modal" data-bs-target="#addLinkModal">
-                        ➕ Ajouter un lien
-                    </button>
-                </div>
+            {# Formulaire d'ajout de lien (admin uniquement) #}
+            {% if is_granted('ROLE_ADMIN') and linkForm is defined %}
+                <div class="streaming-form-wrapper">
+                    <h3>Ajouter un lien de streaming</h3>
 
-                <div class="modal fade" id="addLinkModal" tabindex="-1" aria-hidden="true">
-                    <div class="modal-dialog">
-                        <div class="modal-content modal-dark">
-                            <div class="modal-header border-0">
-                                <h5 class="modal-title text-white">Ajouter un lien de streaming</h5>
-                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                            </div>
-                            <div class="modal-body text-white">
-                                {{ form_start(linkForm, { attr: { class: 'needs-validation', novalidate: 'novalidate' } }) }}
-                                {{ form_row(linkForm.provider) }}
-                                {{ form_row(linkForm.url) }}
-                                {{ form_row(linkForm.enabled) }}
-                                <div class="d-flex justify-content-end gap-2 mt-2">
-                                    <button type="button" class="btn btn-ghost-teal" data-bs-dismiss="modal">Annuler</button>
-                                    <button type="submit" class="btn btn-teal">Ajouter</button>
+                    {# Liste des liens existants #}
+                    {% if streamingLinks is defined and streamingLinks|length %}
+                        <div class="existing-links">
+                            {% for link in streamingLinks %}
+                                <div class="streaming-link-item">
+                                    <div class="link-info">
+                                        <span class="provider-name">{{ link.provider|capitalize }}</span>
+                                        <a href="{{ link.url }}" target="_blank" rel="noopener" class="link-url">{{ link.url }}</a>
+                                        {% if not link.enabled %}
+                                            <span class="status-disabled">Désactivé</span>
+                                        {% endif %}
+                                    </div>
+                                    <form method="post"
+                                          action="{{ path('serie_link_delete', { id: serie.id, index: loop.index0 }) }}"
+                                          class="delete-form"
+                                          onsubmit="return confirm('Supprimer ce lien ?');">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('del_link_' ~ serie.id ~ '_' ~ loop.index0) }}">
+                                        <button type="submit" class="btn-delete">×</button>
+                                    </form>
                                 </div>
-                                {{ form_end(linkForm) }}
-                            </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    {# Formulaire d'ajout #}
+                    {{ form_start(linkForm, {
+                        attr: { class: 'streaming-add-form' }
+                    }) }}
+                    <div class="form-row">
+                        <div class="form-group">
+                            {{ form_label(linkForm.provider) }}
+                            {{ form_widget(linkForm.provider, { attr: { class: 'form-control' } }) }}
+                        </div>
+                        <div class="form-group">
+                            {{ form_label(linkForm.url) }}
+                            {{ form_widget(linkForm.url, { attr: { class: 'form-control', placeholder: 'https://...' } }) }}
+                        </div>
+                        <div class="form-group checkbox-group">
+                            {{ form_widget(linkForm.enabled, { attr: { class: 'form-check-input' } }) }}
+                            {{ form_label(linkForm.enabled, null, { label_attr: { class: 'form-check-label' } }) }}
                         </div>
                     </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-add-link">Ajouter le lien</button>
+                    </div>
+                    {{ form_end(linkForm) }}
                 </div>
             {% endif %}
         </section>

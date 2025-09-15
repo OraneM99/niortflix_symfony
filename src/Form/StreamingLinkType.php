@@ -26,10 +26,16 @@ class StreamingLinkType extends AbstractType
                     'Canal+' => 'Canal+',
                     'Crunchyroll' => 'Crunchyroll',
                     'Disney+' => 'Disney+',
+                    'France TV' => 'France TV',
                     'HBO' => 'HBO',
                     'Netflix' => 'Netflix',
+                    'M6+' => 'M6+',
+                    'Molotov' => 'Molotov',
                     'Paramount' => 'Paramount',
                     'Prime Video' => 'Prime Video',
+                    'TF1' => 'TF1',
+                    'Viki' => 'Viki',
+                    'Warner TV' => 'Warner TV',
                     'Youtube' => 'Youtube'
                 ],
             ])
