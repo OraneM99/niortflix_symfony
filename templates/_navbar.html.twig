@@ -19,7 +19,7 @@
 
         <!-- Barre de recherche -->
         <form class="nx-search"
-              action="{{ path('serie_liste') }}"
+{#              action="{{ path('serie_liste') }}"#}
               method="get"
               role="search"
               data-suggest-url="{{ path('serie_suggest') }}">
@@ -43,9 +43,9 @@
             <div class="nx-suggest" hidden>
                 <ul class="nx-suggest-list" role="listbox"></ul>
                 <div class="nx-suggest-footer">
-                    <a class="see-all" href="{{ path('serie_liste') }}" data-see-all>
-                        Voir tous les résultats
-                    </a>
+{#                    <a class="see-all" href="{{ path('serie_liste') }}" data-see-all>#}
+{#                        Voir tous les résultats#}
+{#                    </a>#}
                 </div>
             </div>
         </form>

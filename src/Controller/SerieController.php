@@ -22,77 +22,21 @@ use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Twig\Environment;
 
-#[Route('/serie', name: 'serie_')]
 final class SerieController extends AbstractController
 {
-    /** Métadonnées d’icônes/labels pour les plateformes. */
-    private const PROVIDER_META = [
-        'adn'         => ['label' => 'ADN',         'icon' => 'icons/providers/ad .png'],
-        'appletv'     => ['label' => 'Apple TV+',   'icon' => 'icons/providers/apple.png'],
-        'canal'       => ['label' => 'Canal+',      'icon' => 'icons/providers/canal.jpg'],
-        'crunchyroll' => ['label' => 'Crunchyroll', 'icon' => 'icons/providers/crunchyroll.png'],
-        'disney'      => ['label' => 'Disney+',     'icon' => 'icons/providers/disney.png'],
-        'francetv'    => ['label' => 'France TV',   'icon' => 'icons/providers/francetv.webp'],
-        'hbo'         => ['label' => 'HBO',         'icon' => 'icons/providers/hbo.jpg'],
-        'm6'          => ['label' => 'M6+',         'icon' => 'icons/providers/m6.svg'],
-        'netflix'     => ['label' => 'Netflix',     'icon' => 'icons/providers/netflix.png'],
-        'primevideo'  => ['label' => 'Prime Video', 'icon' => 'icons/providers/primevideo.png'],
-        'molotov'     => ['label' => 'Molotov',     'icon' => 'icons/providers/molotov.png'],
-        'paramount'   => ['label' => 'Paramount',   'icon' => 'icons/providers/paramount.png'],
-        'tf1'         => ['label' => 'TF1',         'icon' => 'icons/providers/tf1.webp'],
-        'viki'        => ['label' => 'Viki',        'icon' => 'icons/providers/viki.png'],
-        'warner'      => ['label' => 'Warner TV',   'icon' => 'icons/providers/warner.png'],
-        'youtube'     => ['label' => 'Youtube',     'icon' => 'icons/providers/youtube.jpeg']
-    ];
-
-    /** Transforme les données brutes (JSON en base) en liens affichables. */
-    private function buildWatchLinks(Serie $serie): array
-    {
-        $out = [];
-        foreach (($serie->getStreamingLinks() ?? []) as $l) {
-            if (!is_array($l) || empty($l['enabled']) || empty($l['provider']) || empty($l['url'])) {
-                continue;
-            }
-
-            $key = strtolower(preg_replace('/[^a-z0-9]+/','', (string)$l['provider']));
-            $meta = self::PROVIDER_META[$key] ?? ['label' => ucfirst($key), 'icon' => 'icons/providers/generic.png'];
-
-            $out[] = [
-                'key'   => $key,
-                'label' => $meta['label'],
-                'icon'  => $meta['icon'],
-                'url'   => (string)$l['url'],
-            ];
-        }
-        return $out;
-    }
-
-    #[Route('/liste', name: 'liste')]
-    public function liste(
+    #[Route('/api/series', name: 'api_serie_list', methods: ['GET'])]
+    public function serieList(
         SerieRepository $serieRepository,
-        GenreRepository $genreRepository,
-        PaginatorInterface $paginator,
         Request $request,
+        PaginatorInterface $paginator,
         ParameterBagInterface $parameterBag,
         SessionInterface $session
-    ): Response {
+    ): JsonResponse {
         $sort    = $request->query->get('sort');
         $search  = $request->query->get('search');
         $genreId = $request->query->getInt('genre', 0);
         $type    = $request->query->get('type');
         $ignoredIds = array_keys($session->get('ignored_series', []));
-
-        // 👉 Si un filtre est appliqué, on "reset" les autres
-        if ($search) {
-            $genreId = 0;
-            $type = null;
-        } elseif ($genreId) {
-            $search = null;
-            $type = null;
-        } elseif ($type) {
-            $search = null;
-            $genreId = 0;
-        }
 
         $query = $serieRepository->getQueryForSeries($sort, $search, $ignoredIds, $genreId, $type);
 
@@ -102,17 +46,33 @@ final class SerieController extends AbstractController
             $parameterBag->get('serie')['nb_par_page']
         );
 
-        $genres = $genreRepository->findAllOrderedByName();
+        $host = $request->getSchemeAndHttpHost();
 
-        return $this->render('serie/liste.html.twig', [
-            'series'  => $series,
-            'sort'    => $sort,
-            'genres'  => $genres,
-            'genreId' => $genreId,
-            'search'  => $search,
-            'type'    => $type,
+        $data = [];
+        foreach ($series as $s) {
+            $data[] = [
+                'id'           => $s->getId(),
+                'name'         => $s->getName(),
+                'overview'     => $s->getOverview(),
+                'vote'         => $s->getVote(),
+                'country'      => $s->getCountry(),
+                'poster'       => $s->getPoster()
+                    ? $host . '/uploads/posters/series/' . $s->getPoster()
+                    : null,
+                'backdrop'     => $s->getBackdrop()
+                    ? $host . '/uploads/backdrops/' . $s->getBackdrop()
+                    : null,
+                'firstAirDate' => $s->getFirstAirDate()?->format('Y-m-d'),
+                'lastAirDate'  => $s->getLastAirDate()?->format('Y-m-d'),
+            ];
+        }
+
+        return new JsonResponse([
+            'items' => $data,
+            'total' => $series->getTotalItemCount(),
         ]);
     }
+
 
     #[Route('/show/{id}', name: 'show', requirements: ['id' => '\d+'])]
     public function show(Serie $serie, ContributorRepository $contributorRepository): Response
@@ -127,50 +87,43 @@ final class SerieController extends AbstractController
         ]);
     }
 
-    #[Route('/detail/{id}', name: 'detail', requirements: ['id' => '\d+'])]
-    public function detail(
-        Serie $serie,
-        ContributorRepository $contributorRepository,
-        Request $request,
-        Environment $twig
-    ): Response {
-        $contributors = $contributorRepository->findBySerie($serie);
-        $watchLinks   = $this->buildWatchLinks($serie);
+    #[Route('/api/series/{id}', name: 'api_serie_detail', methods: ['GET'])]
+    public function serieDetail(Serie $serie, Request $request): JsonResponse
+    {
+        $data = [
+            'id'           => $serie->getId(),
+            'name'         => $serie->getName(),
+            'originalName' => $serie->getOriginalName(),
+            'overview'     => $serie->getOverview(),
+            'status'       => $serie->getStatus(),
+            'vote'         => $serie->getVote(),
+            'popularity'   => $serie->getPopularity(),
+            'poster' => $serie->getPoster()
+                ? $request->getSchemeAndHttpHost() . '/uploads/posters/series/' . $serie->getPoster()
+                : null,
+            'backdrop' => $serie->getBackdrop()
+                ? $request->getSchemeAndHttpHost() . '/uploads/backdrops/' . $serie->getBackdrop()
+                : null,
+            'country'      => $serie->getCountry(),
+            'firstAirDate' => $serie->getFirstAirDate()?->format('Y-m-d'),
+            'lastAirDate'  => $serie->getLastAirDate()?->format('Y-m-d'),
 
-        $linkForm = $this->createForm(StreamingLinkType::class, null, [
-            'action' => $this->generateUrl('serie_link_add', ['id' => $serie->getId()]),
-            'method' => 'POST',
-        ]);
+            'genres' => array_map(
+                fn($g) => $g->getName(),
+                $serie->getGenres()->toArray()
+            ),
+            'contributors' => array_map(
+                fn($c) => [
+                    'id'   => $c->getId(),
+                    'name' => $c->getName(),
+                    'role' => $c->getRole(),
+                ],
+                $serie->getContributors()->toArray()
+            ),
+            'streamingLinks' => $serie->getStreamingLinks() ?? [],
+        ];
 
-        if ($request->isXmlHttpRequest() || $request->query->getBoolean('partial')) {
-            $tpl = $twig->load('serie/detail.html.twig');
-            $context = [
-                'serie'        => $serie,
-                'contributors' => $contributors,
-                'watchLinks'   => $watchLinks,
-                'linkForm'     => $linkForm->createView(),
-            ];
-            $body   = $tpl->renderBlock('body', $context);
-            $styles = $tpl->hasBlock('stylesheets', $context) ? $tpl->renderBlock('stylesheets', $context) : '';
-
-            $html = sprintf(
-                '<div class="modal-header border-0">
-                    <h5 class="modal-title text-white">%s</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
-                 </div>
-                 <div class="modal-body">%s%s</div>',
-                htmlspecialchars($serie->getName(), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'),
-                $styles, $body
-            );
-            return new Response($html);
-        }
-
-        return $this->render('serie/detail.html.twig', [
-            'serie'        => $serie,
-            'contributors' => $contributors,
-            'watchLinks'   => $watchLinks,
-            'linkForm'     => $linkForm->createView(),
-        ]);
+        return new JsonResponse($data);
     }
 
     #[Route('/favorite/{id}', name: 'favorite', requirements: ['id' => '\d+'], methods: ['POST'])]

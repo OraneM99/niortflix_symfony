@@ -31,6 +31,9 @@ class Serie
     #[Assert\Length(min: 1, max: 150)]
     private ?string $name = null;
 
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $originalName = null;
+
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $overview = null;
 
@@ -355,6 +358,18 @@ class Serie
         if ($this->favoriteSeries->removeElement($favoriteSeries)) {
             $favoriteSeries->removeFavoriteSeries($this);
         }
+
+        return $this;
+    }
+
+    public function getOriginalName(): ?string
+    {
+        return $this->originalName;
+    }
+
+    public function setOriginalName(?string $originalName): static
+    {
+        $this->originalName = $originalName;
 
         return $this;
     }
