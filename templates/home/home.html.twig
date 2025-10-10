@@ -3,91 +3,266 @@
 {% block title %}Accueil - Mes Séries{% endblock %}
 
 {% block body %}
-    <div class="container mt-4">
-        <h1 class="mb-4">Découvrez vos séries</h1>
+    <div class="homepage-container py-5 px-0">
+        <div class="container-fluid px-md-5">
+            <!-- En-tête -->
+            <div class="header-section text-center mb-5">
+                <div class="loader-wrapper mx-auto p-4 rounded-4 shadow-lg">
+                    <div class="loader">
+                        <p>Découvrez vos</p>
+                        <div class="words">
+                            <span class="word">émissions TV</span>
+                            <span class="word">séries</span>
+                            <span class="word">animes</span>
+                            <span class="word">documentaires</span>
+                            <span class="word">dessins animés</span>
+                        </div>
+                    </div>
+                </div>
+                <p class="lead text-light opacity-75 mt-3">Explorez les dernières sorties et les plus populaires</p>
+            </div>
 
-        {# Section Nouvelles Sorties #}
-        <section class="mb-5">
-            <h2 class="h3 mb-3">🆕 Nouvelles Sorties</h2>
-            <div class="row g-3">
-                {% for serie in nouvelles_series %}
-                    <div class="col-6 col-md-4 col-lg-2">
-                        <div class="card h-100 shadow-sm">
-                            {% if serie.poster %}
-                                <img src="{{ serie.poster }}"
-                                     class="card-img-top"
-                                     alt="{{ serie.name }}"
-                                     style="height: 300px; object-fit: cover;">
-                            {% else %}
-                                <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center"
-                                     style="height: 300px;">
-                                    <span class="text-white">Pas d'image</span>
-                                </div>
-                            {% endif %}
-                            <div class="card-body p-2">
-                                <h5 class="card-title small mb-1">{{ serie.name }}</h5>
-                                <p class="card-text small text-muted mb-2">
-                                    {{ serie.firstAirDate|date('Y') }}
-                                </p>
-                                {% if serie.vote %}
-                                    <p class="small mb-2">
-                                        ⭐ {{ serie.vote|number_format(1) }}/10
-                                    </p>
+            <!-- Section Nouvelles Sorties -->
+            <section class="mb-5">
+                <h2 class="section-title">
+                    <i class="fas fa-bolt me-2 text-accent"></i> Nouvelles Sorties
+                </h2>
+                <div class="row g-4">
+                    {% for serie in nouvelles_series %}
+                        <div class="col-6 col-md-4 col-lg-2">
+                            <div class="serie-card h-100">
+                                {% if serie.poster %}
+                                    <img
+                                            src="{{ serie.poster
+                                            ? asset((serie_params.poster_dir|default('/uploads/posters/series')) ~ '/' ~ serie.poster)
+                                            : asset('images/placeholder-poster.png') }}"
+                                            alt="Poster de {{ serie.name }}"
+                                            class="serie-poster">
+                                {% else %}
+                                    <div class="serie-placeholder d-flex align-items-center justify-content-center">
+                                        <span>Pas d'image</span>
+                                    </div>
                                 {% endif %}
-                                <a href="{{ path('serie_show', {id: serie.id}) }}"
-                                   class="btn btn-primary btn-sm w-100">Voir</a>
-                            </div>
-                        </div>
-                    </div>
-                {% else %}
-                    <div class="col-12">
-                        <p class="text-muted">Aucune série disponible pour le moment.</p>
-                    </div>
-                {% endfor %}
-            </div>
-        </section>
-
-        {# Section Séries Populaires #}
-        <section class="mb-5">
-            <h2 class="h3 mb-3">🔥 Séries Populaires</h2>
-            <div class="row g-3">
-                {% for serie in series_populaires %}
-                    <div class="col-6 col-md-4 col-lg-2">
-                        <div class="card h-100 shadow-sm">
-                            {% if serie.poster %}
-                                <img src="{{ serie.poster }}"
-                                     class="card-img-top"
-                                     alt="{{ serie.name }}"
-                                     style="height: 300px; object-fit: cover;">
-                            {% else %}
-                                <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center"
-                                     style="height: 300px;">
-                                    <span class="text-white">Pas d'image</span>
-                                </div>
-                            {% endif %}
-                            <div class="card-body p-2">
-                                <h5 class="card-title small mb-1">{{ serie.name }}</h5>
-                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div class="serie-info p-2">
+                                    <h5 class="serie-title mb-1">{{ serie.name }}</h5>
+                                    <p class="small text-muted mb-2">{{ serie.firstAirDate|date('Y') }}</p>
                                     {% if serie.vote %}
-                                        <span class="small">⭐ {{ serie.vote|number_format(1) }}</span>
+                                        <p class="small mb-2"><i class="fas fa-star text-warning"></i> {{ serie.vote|number_format(1) }}/10</p>
                                     {% endif %}
-                                    {% if serie.popularity %}
-                                        <span class="badge bg-success small">
-                                        {{ serie.popularity|number_format(0) }}
-                                    </span>
-                                    {% endif %}
+                                    <a href="{{ path('serie_show', {id: serie.id}) }}" class="btn-serie">Voir</a>
                                 </div>
-                                <a href="{{ path('serie_show', {id: serie.id}) }}"
-                                   class="btn btn-primary btn-sm w-100">Voir</a>
                             </div>
                         </div>
-                    </div>
-                {% else %}
-                    <div class="col-12">
-                        <p class="text-muted">Aucune série populaire pour le moment.</p>
-                    </div>
-                {% endfor %}
-            </div>
-        </section>
+                    {% else %}
+                        <div class="col-12 text-center text-muted">Aucune série disponible pour le moment.</div>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <!-- Section Séries Populaires -->
+            <section class="mb-5">
+                <h2 class="section-title">
+                    <i class="fas fa-fire me-2 text-accent"></i> Séries Populaires
+                </h2>
+                <div class="row g-4">
+                    {% for serie in series_populaires|sort((a, b) => a.popularity <=> b.popularity) %}
+                        <div class="col-6 col-md-4 col-lg-2">
+                            <div class="serie-card h-100">
+                                {% if serie.poster %}
+                                    <img
+                                            src="{{ serie.poster
+                                            ? asset((serie_params.poster_dir|default('/uploads/posters/series')) ~ '/' ~ serie.poster)
+                                            : asset('images/placeholder-poster.png') }}"
+                                            alt="Poster de {{ serie.name }}"
+                                            class="serie-poster">
+                                {% else %}
+                                    <div class="serie-placeholder d-flex align-items-center justify-content-center">
+                                        <span>Pas d'image</span>
+                                    </div>
+                                {% endif %}
+                                <div class="serie-info p-2">
+                                    <h5 class="serie-title mb-1">{{ serie.name }}</h5>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        {% if serie.vote %}
+                                            <span class="small"><i class="fas fa-star text-warning"></i> {{ serie.vote|number_format(1) }}</span>
+                                        {% endif %}
+                                        {% if serie.popularity %}
+                                            <span class="badge bg-accent text-dark small">
+                                                <i class="fas fa-chart-line me-1"></i> {{ serie.popularity|number_format(0) }}
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                    <a href="{{ path('serie_show', {id: serie.id}) }}" class="btn-serie">Voir</a>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="col-12 text-center text-muted">Aucune série populaire pour le moment.</div>
+                    {% endfor %}
+                </div>
+            </section>
+        </div>
     </div>
+
+    <!-- Font Awesome -->
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+
+    <style>
+        :root {
+            --bg-main: #222831;
+            --bg-hover: #393e46;
+            --accent: #00ADB5;
+            --text: #EEE;
+        }
+
+        body {
+            background: url('{{ asset('images/fond-serie.jpeg') }}') center/cover no-repeat fixed;
+            color: var(--text);
+            overflow-x: hidden;
+        }
+
+        .homepage-container {
+            background-color: var(--bg-main);
+            backdrop-filter: blur(10px);
+            border-radius: 0;
+            margin: 0;
+        }
+
+        .container-fluid {
+            max-width: 1600px;
+        }
+
+        .header-section {
+            background-color: var(--bg-main);
+            border-radius: 20px;
+            padding: 3rem 1rem;
+            backdrop-filter: blur(8px);
+        }
+
+        .loader-wrapper {
+            max-width: 800px;
+        }
+
+        .loader {
+            color: var(--text);
+            font-weight: 700;
+            font-size: 2.5rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            line-height: 1.3;
+        }
+
+        .loader p {
+            margin: 0;
+            font-size: 2.8rem;
+        }
+
+        .words {
+            overflow: hidden;
+            position: relative;
+            height: 3rem;
+        }
+
+        .words::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: 10;
+        }
+
+        .word {
+            display: block;
+            height: 100%;
+            padding-left: 10px;
+            color: var(--accent);
+            animation: spin_4991 4s infinite;
+        }
+
+        @keyframes spin_4991 {
+            10% { transform: translateY(-102%); }
+            25% { transform: translateY(-100%); }
+            35% { transform: translateY(-202%); }
+            50% { transform: translateY(-200%); }
+            60% { transform: translateY(-302%); }
+            75% { transform: translateY(-300%); }
+            85% { transform: translateY(-402%); }
+            100% { transform: translateY(-400%); }
+        }
+
+        .section-title {
+            font-size: 1.6rem;
+            font-weight: 600;
+            color: #fff;
+            border-left: 4px solid var(--accent);
+            padding-left: 10px;
+            margin-bottom: 1.2rem;
+        }
+
+        /* Série Cards */
+        .serie-card {
+            background-color: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .serie-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 8px 20px rgba(0,173,181,0.25);
+        }
+
+        .serie-poster {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+        }
+
+        .serie-placeholder {
+            width: 100%;
+            height: 300px;
+            background-color: var(--bg-hover);
+            color: #ccc;
+            font-size: 0.9rem;
+        }
+
+        .serie-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .btn-serie {
+            display: block;
+            width: 100%;
+            text-align: center;
+            padding: 8px 0;
+            background-color: var(--accent);
+            border-radius: 8px;
+            color: #000;
+            font-weight: 600;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-serie:hover {
+            background-color: #06c3cc;
+            box-shadow: 0 0 10px var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .badge.bg-accent {
+            background-color: var(--accent) !important;
+        }
+
+        @media (max-width: 768px) {
+            .loader { font-size: 1.6rem; flex-direction: column; }
+            .loader p { font-size: 1.8rem; }
+            .words { height: 2.2rem; }
+        }
+    </style>
 {% endblock %}
