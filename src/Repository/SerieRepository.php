@@ -59,6 +59,32 @@ class SerieRepository extends ServiceEntityRepository
         return $qb;
     }
 
+    /**
+     * Retourne les séries les plus récemment ajoutées
+     */
+    public function findRecentSeries(int $limit = 6): array
+    {
+        return $this->createQueryBuilder('s')
+            ->orderBy('s.dateCreated', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Retourne les séries les plus populaires
+     */
+    public function findPopularSeries(int $limit = 6): array
+    {
+        return $this->createQueryBuilder('s')
+            ->where('s.popularity IS NOT NULL')
+            ->orderBy('s.popularity', 'DESC')
+            ->addOrderBy('s.vote', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
 
     /**
      * Séries favorites d’un utilisateur

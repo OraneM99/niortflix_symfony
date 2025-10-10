@@ -1,7 +1,93 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}{% endblock %}
+{% block title %}Accueil - Mes Séries{% endblock %}
 
 {% block body %}
-    <h1>Accueil</h1>
+    <div class="container mt-4">
+        <h1 class="mb-4">Découvrez vos séries</h1>
+
+        {# Section Nouvelles Sorties #}
+        <section class="mb-5">
+            <h2 class="h3 mb-3">🆕 Nouvelles Sorties</h2>
+            <div class="row g-3">
+                {% for serie in nouvelles_series %}
+                    <div class="col-6 col-md-4 col-lg-2">
+                        <div class="card h-100 shadow-sm">
+                            {% if serie.poster %}
+                                <img src="{{ serie.poster }}"
+                                     class="card-img-top"
+                                     alt="{{ serie.name }}"
+                                     style="height: 300px; object-fit: cover;">
+                            {% else %}
+                                <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center"
+                                     style="height: 300px;">
+                                    <span class="text-white">Pas d'image</span>
+                                </div>
+                            {% endif %}
+                            <div class="card-body p-2">
+                                <h5 class="card-title small mb-1">{{ serie.name }}</h5>
+                                <p class="card-text small text-muted mb-2">
+                                    {{ serie.firstAirDate|date('Y') }}
+                                </p>
+                                {% if serie.vote %}
+                                    <p class="small mb-2">
+                                        ⭐ {{ serie.vote|number_format(1) }}/10
+                                    </p>
+                                {% endif %}
+                                <a href="{{ path('serie_show', {id: serie.id}) }}"
+                                   class="btn btn-primary btn-sm w-100">Voir</a>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="col-12">
+                        <p class="text-muted">Aucune série disponible pour le moment.</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        {# Section Séries Populaires #}
+        <section class="mb-5">
+            <h2 class="h3 mb-3">🔥 Séries Populaires</h2>
+            <div class="row g-3">
+                {% for serie in series_populaires %}
+                    <div class="col-6 col-md-4 col-lg-2">
+                        <div class="card h-100 shadow-sm">
+                            {% if serie.poster %}
+                                <img src="{{ serie.poster }}"
+                                     class="card-img-top"
+                                     alt="{{ serie.name }}"
+                                     style="height: 300px; object-fit: cover;">
+                            {% else %}
+                                <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center"
+                                     style="height: 300px;">
+                                    <span class="text-white">Pas d'image</span>
+                                </div>
+                            {% endif %}
+                            <div class="card-body p-2">
+                                <h5 class="card-title small mb-1">{{ serie.name }}</h5>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    {% if serie.vote %}
+                                        <span class="small">⭐ {{ serie.vote|number_format(1) }}</span>
+                                    {% endif %}
+                                    {% if serie.popularity %}
+                                        <span class="badge bg-success small">
+                                        {{ serie.popularity|number_format(0) }}
+                                    </span>
+                                    {% endif %}
+                                </div>
+                                <a href="{{ path('serie_show', {id: serie.id}) }}"
+                                   class="btn btn-primary btn-sm w-100">Voir</a>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="col-12">
+                        <p class="text-muted">Aucune série populaire pour le moment.</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+    </div>
 {% endblock %}

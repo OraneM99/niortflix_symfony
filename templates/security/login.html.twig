@@ -3,7 +3,7 @@
 {% block title %}Se connecter{% endblock %}
 
 {% block body %}
-    <div class="min-vh-100 d-flex align-items-center justify-content-center position-relative py-4">
+    <div class="d-flex align-items-center justify-content-center position-relative py-4">
 
         <div class="container position-relative">
             <div class="row justify-content-center">
@@ -13,8 +13,17 @@
                         <div class="card-body p-4 p-md-5">
                             <!-- En-tête avec icône -->
                             <div class="text-center mb-4">
-                                <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3 auth-icon">
-                                    <img src="{{ asset('icons/user.png') }}" alt="Utilisateur">
+                                <div class="d-inline-flex align-items-center justify-content-center mb-3">
+                                    <!-- Pyramid -->
+                                    <div class="pyramid-loader">
+                                        <div class="wrapper">
+                                            <span class="side side1"></span>
+                                            <span class="side side2"></span>
+                                            <span class="side side3"></span>
+                                            <span class="side side4"></span>
+                                            <span class="shadow"></span>
+                                        </div>
+                                    </div>
                                 </div>
                                 <h1 class="h3 fw-bold text-white mb-2">Connexion</h1>
                                 <p class="text-light opacity-75 mb-0">Accédez à votre espace</p>
@@ -104,17 +113,23 @@
 
         <!-- Styles personnalisés -->
         <style>
+            :root {
+                --bg-main: #222831;
+                --bg-hover: #393e46;
+                --text: #fff;
+                --accent: #00ADB5;
+            }
+
             body {
                 margin: 0;
                 padding: 0;
-                min-height: 100vh;
                 background: url('{{ asset('images/fond-serie.jpeg') }}') center/cover no-repeat fixed;
                 position: relative;
                 font-family: Arial, sans-serif;
             }
 
             .auth-card {
-                background-color: rgba(0,0,0,0.8);
+                background-color: var(--bg-main);
                 backdrop-filter: blur(10px);
                 border-radius: 15px;
                 z-index: 2;
@@ -124,9 +139,10 @@
             .auth-icon {
                 width: 4rem; height: 4rem;
                 display: flex; align-items: center; justify-content: center;
-                background-color: rgba(13,110,253,0.2);
-                border: 2px solid #0d6efd;
+                background-color: var(--accent);
+                border: 2px solid var(--accent);
             }
+
             .auth-icon img { width: 2rem; height: 2rem; }
 
             .input-icon { position: relative; }
@@ -140,16 +156,16 @@
             }
 
             .custom-form-control {
-                background-color: rgba(255,255,255,0.1) !important;
-                border: 1px solid rgba(255,255,255,0.3) !important;
+                background-color: var(--bg-hover) !important;
+                border: 1px solid var(--bg-hover) !important;
                 color: white !important;
                 border-radius: 8px !important;
             }
             .custom-form-control::placeholder { color: rgba(255,255,255,0.6) !important; }
             .custom-form-control:focus {
                 background-color: rgba(255,255,255,0.15) !important;
-                border-color: #0d6efd !important;
-                box-shadow: 0 0 0 0.2rem rgba(13,110,253,0.25) !important;
+                border-color: var(--accent) !important;
+                box-shadow: 0 0 0 0.2rem var(--accent) !important;
                 color: white !important;
             }
 
@@ -190,6 +206,91 @@
                 border:1px solid rgba(255,255,255,0.1);
             }
             .security-info small { color:white !important; }
+
+            /* From Uiverse.io by Anita3761520000 */
+            .pyramid-loader {
+                position: relative;
+                width: 300px;
+                height: 300px;
+                display: block;
+                transform-style: preserve-3d;
+                transform: rotateX(-20deg);
+            }
+
+            .pyramid-loader {
+                position: relative;
+                width: 180px;
+                height: 180px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                margin: 0 auto 10px auto;
+                transform-style: preserve-3d;
+                transform: rotateX(-20deg);
+            }
+
+            .wrapper {
+                position: relative;
+                width: 80%;
+                height: 100%;
+                transform-style: preserve-3d;
+                animation: spin 4s linear infinite;
+            }
+
+            @keyframes spin {
+                100% {
+                    transform: rotateY(360deg);
+                }
+            }
+
+            .pyramid-loader .wrapper .side {
+                width: 70px;
+                height: 70px;
+                /* you can choose any gradient or color you want */
+                /* background: radial-gradient( #2F2585 10%, #F028FD 70%, #2BDEAC 120%); */
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                margin: auto;
+                transform-origin: center top;
+                clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+            }
+
+            .pyramid-loader .wrapper .side1 {
+                transform: rotateZ(-30deg) rotateY(90deg);
+                background: linear-gradient(to bottom right, #1afbf0, #00ADB5);
+            }
+
+            .pyramid-loader .wrapper .side2 {
+                transform: rotateZ(30deg) rotateY(90deg);
+                background: linear-gradient(to bottom right, #1afbf0, #00ADB5);
+            }
+
+            .pyramid-loader .wrapper .side3 {
+                transform: rotateX(30deg);
+                background: linear-gradient(to bottom right, #1afbf0, #00ADB5);
+            }
+
+            .pyramid-loader .wrapper .side4 {
+                transform: rotateX(-30deg);
+                background: linear-gradient(to bottom right, #1afbf0, #00ADB5);
+            }
+
+            .pyramid-loader .wrapper .shadow {
+                width: 60px;
+                height: 60px;
+                background: #00ADB5;
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                margin: auto;
+                transform: rotateX(90deg) translateZ(-40px);
+                filter: blur(12px);
+            }
 
             @keyframes slideUp { from { opacity:0; transform: translateY(30px); } to { opacity:1; transform: translateY(0); } }
 
