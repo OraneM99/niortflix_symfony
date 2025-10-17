@@ -1,0 +1,97 @@
+{# templates/serie/_serie_card.html.twig - Template unifié #}
+
+<div class="card h-100 shadow-sm hover-card">
+    {# Détermine l'URL selon le type #}
+    {% set serie_url = serie.is_local is defined and serie.is_local
+        ? path('serie_detail', {id: serie.id})
+        : path('serie_preview', {tmdbId: serie.tmdb_id}) %}
+
+    <a href="{{ serie_url }}" class="text-decoration-none">
+        {# Poster #}
+        {% if serie.poster %}
+            <img src="{{ serie.poster }}"
+                 class="card-img-top"
+                 alt="{{ serie.name }}"
+                 loading="lazy"
+                 style="height: 300px; object-fit: cover;">
+        {% else %}
+            <div class="bg-secondary d-flex align-items-center justify-content-center"
+                 style="height: 300px;">
+                <i class="bi bi-film fs-1 text-white-50"></i>
+            </div>
+        {% endif %}
+
+        {# Badge selon la source #}
+        {% if serie.is_local is defined and serie.is_local %}
+            <span class="position-absolute top-0 end-0 m-2 badge bg-success">
+                <i class="bi bi-check-circle"></i> En collection
+            </span>
+        {% else %}
+            <span class="position-absolute top-0 end-0 m-2 badge bg-primary">
+                <i class="bi bi-cloud"></i> TMDb
+            </span>
+        {% endif %}
+
+        {# Infos #}
+        <div class="card-body p-2">
+            <h6 class="card-title text-truncate mb-1" title="{{ serie.name }}">
+                {{ serie.name }}
+            </h6>
+
+            <div class="d-flex justify-content-between align-items-center">
+                <small class="text-muted">
+                    {% if serie.vote %}
+                        <i class="bi bi-star-fill text-warning"></i>
+                        {{ serie.vote|number_format(1) }}
+                    {% endif %}
+                </small>
+
+                {# Année - gère les deux formats #}
+                {% if serie.year is defined and serie.year %}
+                    <small class="text-muted">{{ serie.year }}</small>
+                {% elseif serie.firstAirDate is defined and serie.firstAirDate %}
+                    <small class="text-muted">{{ serie.firstAirDate|date('Y') }}</small>
+                {% elseif serie.first_air_date is defined and serie.first_air_date %}
+                    <small class="text-muted">{{ serie.first_air_date|slice(0, 4) }}</small>
+                {% endif %}
+            </div>
+
+            {# Status pour séries locales #}
+            {% if serie.status is defined and serie.status %}
+                <span class="badge bg-secondary mt-1">
+                    {% if serie.status == 'returning' %}
+                        En cours
+                    {% elseif serie.status == 'ended' %}
+                        Terminée
+                    {% else %}
+                        {{ serie.status }}
+                    {% endif %}
+                </span>
+            {% endif %}
+        </div>
+    </a>
+
+    {# Bouton d'import pour séries API (admin uniquement) #}
+    {% if is_granted('ROLE_ADMIN') and (serie.is_local is not defined or not serie.is_local) %}
+        <div class="card-footer bg-transparent border-0 p-2">
+            <form method="post"
+                  action="{{ path('api_import', {tmdbId: serie.tmdb_id}) }}"
+                  onsubmit="return confirm('Importer cette série ?')">
+                <input type="hidden" name="_token" value="{{ csrf_token('import' ~ serie.tmdb_id) }}">
+                <button type="submit" class="btn btn-sm btn-success w-100">
+                    <i class="bi bi-plus-circle"></i> Ajouter
+                </button>
+            </form>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+    .hover-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .hover-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.3) !important;
+    }
+</style>

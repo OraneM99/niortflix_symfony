@@ -40,7 +40,7 @@ class BrowseController extends AbstractController
     {
         $series = $this->serieManager->getTrendingSeries(20);
 
-        return $this->render('browse/list.html.twig', [
+        return $this->render('browse/liste.html.twig', [
             'title' => 'Séries tendances',
             'series' => $series,
             'page' => $page,
@@ -56,7 +56,7 @@ class BrowseController extends AbstractController
     {
         $series = $this->serieManager->getPopularSeriesFromApi($page, 20);
 
-        return $this->render('browse/list.html.twig', [
+        return $this->render('browse/liste.html.twig', [
             'title' => 'Séries populaires',
             'series' => $series,
             'page' => $page,
@@ -72,7 +72,7 @@ class BrowseController extends AbstractController
     {
         $series = $this->serieManager->getTopRatedSeries(20);
 
-        return $this->render('browse/list.html.twig', [
+        return $this->render('browse/liste.html.twig', [
             'title' => 'Meilleures séries',
             'series' => $series,
             'page' => $page,
@@ -88,7 +88,7 @@ class BrowseController extends AbstractController
     {
         $series = $this->serieManager->getNewReleases(20);
 
-        return $this->render('browse/list.html.twig', [
+        return $this->render('browse/liste.html.twig', [
             'title' => 'Nouvelles sorties',
             'series' => $series,
             'page' => $page,

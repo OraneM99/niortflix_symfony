@@ -2,123 +2,306 @@
 
 {% block title %}Liste des séries{% endblock %}
 
-{% block body_class %}page-series{% endblock %}
-
 {% block stylesheets %}
+    {{ parent() }}
     <link rel="stylesheet" href="{{ asset('assets/css/serie-list.css') }}">
 {% endblock %}
 
 {% block body %}
-    <div class="container my-5 position-relative p-3">
-        <div class="panel">
-            <div class="text-center mb-3">
-                <h2 class="page-title">Liste des séries</h2>
-                <p class="page-subtitle">Parcourez, filtrez et retrouvez vos shows préférés.</p>
+    <div class="page-series">
+        <div class="container-fluid">
+
+            {# Header #}
+            <div class="series-header">
+                <h1 class="page-title">
+                    {% if source == 'api' %}
+                        <i class="fas fa-cloud"></i> Catalogue TMDb
+                    {% elseif source == 'mixed' %}
+                        <i class="fas fa-search"></i> Résultats de recherche
+                    {% else %}
+                        <i class="fas fa-layer-group"></i> Ma collection
+                    {% endif %}
+                </h1>
+                <p class="page-subtitle">
+                    {% if source == 'api' %}
+                        Découvrez des milliers de séries depuis TMDb
+                    {% elseif source == 'mixed' %}
+                        Recherche dans votre collection et sur TMDb
+                    {% else %}
+                        Gérez votre collection personnelle
+                    {% endif %}
+                </p>
+
+                {# Tabs #}
+                <div class="series-tabs">
+                    <a href="{{ path('serie_liste', {source: 'local'}) }}"
+                       class="tab-link {{ source == 'local' or not source ? 'active' : '' }}">
+                        <i class="fas fa-bookmark"></i>
+                        Ma collection
+                    </a>
+                    <a href="{{ path('serie_liste', {source: 'api', type: 'popular'}) }}"
+                       class="tab-link {{ source == 'api' ? 'active' : '' }}">
+                        <i class="fas fa-cloud"></i>
+                        Catalogue TMDb
+                    </a>
+                </div>
+
+                {# Search #}
+                <form method="get" action="{{ path('serie_liste') }}" class="search-form">
+                    <div class="input-group">
+                        <input type="text"
+                               name="search"
+                               class="search-input form-control"
+                               placeholder="Rechercher une série..."
+                               value="{{ search|default('') }}"
+                               aria-label="Rechercher une série">
+                        <button class="search-button btn" type="submit">
+                            <i class="fas fa-search"></i>
+                            <span class="sr-only">Rechercher</span>
+                        </button>
+                    </div>
+                </form>
             </div>
 
-            <ul class="nav nav-pills justify-content-center gap-2 mb-4" role="tablist" aria-label="Filtres de tri">
-                <li class="nav-item">
-                    {{ knp_pagination_sortable(series, 'Les mieux notées', ['s.vote'], {'class': 'nav-link pill-link'}) }}
-                </li>
-                <li class="nav-item">
-                    {{ knp_pagination_sortable(series, 'Favoris des fans', ['s.popularity'], {'class': 'nav-link pill-link'}) }}
-                </li>
-                <li class="nav-item">
-                    {{ knp_pagination_sortable(series, 'Les plus anciennes', ['s.firstAirDate'], {'class': 'nav-link pill-link'}) }}
-                </li>
-                <li class="nav-item">
-                    {{ knp_pagination_sortable(series, 'A à Z', ['s.name'], {'class': 'nav-link pill-link'}) }}
-                </li>
-            </ul>
+            {# Filters API #}
+            {% if source == 'api' %}
+                <div class="filters-section">
+                    <div class="filters-row">
+                        <a href="{{ path('serie_liste', {source: 'api', type: 'popular'}) }}"
+                           class="filter-chip {{ type == 'popular' or not type ? 'active' : '' }}">
+                            <i class="fas fa-chart-line"></i> Populaires
+                        </a>
+                        <a href="{{ path('serie_liste', {source: 'api', type: 'trending'}) }}"
+                           class="filter-chip {{ type == 'trending' ? 'active' : '' }}">
+                            <i class="fas fa-fire"></i> Tendances
+                        </a>
+                        <a href="{{ path('serie_liste', {source: 'api', type: 'top_rated'}) }}"
+                           class="filter-chip {{ type == 'top_rated' ? 'active' : '' }}">
+                            <i class="fas fa-star"></i> Meilleures notes
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
 
-            <div class="row row-cols-2 row-cols-md-3 row-cols-lg-5 g-4">
-                {% for serie in series %}
-                    <div class="col d-flex">
-                        <div class="card-show w-100">
-                            <a href="{{ path('serie_detail', {id: serie.id}) }}" class="card-tapzone" aria-label="Voir la fiche de {{ serie.name }}">
-                                <div class="card-media">
-                                    <img
-                                            src="{{ serie.poster
-                                            ? asset((serie_params.poster_dir|default('/uploads/posters/series')) ~ '/' ~ serie.poster)
-                                            : asset('images/placeholder-poster.png') }}"
-                                            alt="Poster de {{ serie.name }}"
-                                            loading="lazy">
+            {# Filters Local #}
+            {% if source == 'local' and genres is defined %}
+                <div class="filters-section">
+                    <label class="filter-label">Filtrer par genre :</label>
+                    <div class="filters-row">
+                        <a href="{{ path('serie_liste') }}"
+                           class="filter-chip {{ not genreId ? 'active' : '' }}">
+                            Tous
+                        </a>
+                        {% for genre in genres %}
+                            <a href="{{ path('serie_liste', {genre: genre.id}) }}"
+                               class="filter-chip {{ genreId == genre.id ? 'active' : '' }}">
+                                {{ genre.name }}
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
 
-                                    <div class="chip chip-score">
-                                        <img src="{{ asset('icons/star.png') }}" alt="Vote" class="icon-btn">
-                                        {{ serie.vote|default('N/A') }}
+            {# Grid de séries #}
+            {% if series is not empty %}
+                <div class="series-grid">
+                    {% for serie in series %}
+                        <article class="serie-card">
+                            <a href="{% if serie.is_local is defined and serie.is_local %}{{ path('serie_detail', {id: serie.id}) }}{% else %}{{ path('serie_preview', {tmdbId: serie.tmdb_id}) }}{% endif %}"
+                               class="card-link">
+
+                                {# Image #}
+                                <div class="card-image">
+                                    {% if serie.poster %}
+                                        <img src="{{ serie.poster }}"
+                                             alt="{{ serie.name|e('html_attr') }}"
+                                             loading="lazy">
+                                    {% else %}
+                                        <div class="card-image-placeholder">
+                                            <i class="fas fa-film"></i>
+                                        </div>
+                                    {% endif %}
+
+                                    {# Badges #}
+                                    <div class="card-badges">
+                                        {% if serie.vote %}
+                                            <span class="card-badge badge-score">
+                                            <i class="fas fa-star"></i>
+                                            {{ serie.vote|number_format(1) }}
+                                        </span>
+                                        {% endif %}
+
+                                        {% if serie.is_local is defined and serie.is_local %}
+                                            <span class="card-badge badge-local">
+                                            <i class="fas fa-check-circle"></i>
+                                        </span>
+                                        {% else %}
+                                            <span class="card-badge badge-api">
+                                            <i class="fas fa-cloud"></i>
+                                        </span>
+                                        {% endif %}
                                     </div>
-                                    <div class="chip chip-flag">{{ serie.country|flag }}</div>
-                                    <div class="media-fade"></div>
+
+                                    {# Overlay on hover #}
+                                    <div class="card-overlay">
+                                        <div class="card-actions">
+                                            {% if is_granted('ROLE_ADMIN') and (serie.is_local is not defined or not serie.is_local) %}
+                                                <form method="post"
+                                                      action="{{ path('api_import', {tmdbId: serie.tmdb_id}) }}"
+                                                      onsubmit="return confirm('Importer cette série ?')">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token('import' ~ serie.tmdb_id) }}">
+                                                    <button type="submit" class="card-btn">
+                                                        <i class="fas fa-plus-circle"></i>
+                                                        Ajouter
+                                                    </button>
+                                                </form>
+                                            {% endif %}
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="card-caption">
-                                    <h6 class="text-truncate-2">{{ serie.name }}</h6>
-                                    <small class="dates">
-                                        {{ serie.firstAirDate ? serie.firstAirDate|date('Y') : 'Date inconnue' }}
-                                        {% if serie.lastAirDate %}– {{ serie.lastAirDate|date('Y') }}{% endif %}
-                                    </small>
+
+                                {# Content #}
+                                <div class="card-content">
+                                    <h2 class="card-title">{{ serie.name }}</h2>
+                                    <div class="card-meta">
+                                        {% if serie.vote %}
+                                            <span class="card-rating">
+                                            <i class="fas fa-star"></i>
+                                            {{ serie.vote|number_format(1) }}
+                                        </span>
+                                        {% endif %}
+                                        <span class="card-year">
+                                        {% if serie.year is defined and serie.year %}
+                                            <i class="fas fa-calendar-alt"></i>
+                                            {{ serie.year }}
+                                        {% elseif serie.firstAirDate is defined and serie.firstAirDate %}
+                                            <i class="fas fa-calendar-alt"></i>
+                                            {{ serie.firstAirDate|date('Y') }}
+                                        {% elseif serie.first_air_date is defined and serie.first_air_date %}
+                                            <i class="fas fa-calendar-alt"></i>
+                                            {{ serie.first_air_date|slice(0, 4) }}
+                                        {% endif %}
+                                    </span>
+                                    </div>
                                 </div>
                             </a>
+                        </article>
+                    {% endfor %}
+                </div>
 
-                            {# Overlay au survol #}
-                            <div class="card-overlay">
-                                {# En savoir plus -> fiche détail #}
-                                <a href="{{ path('serie_detail', { id: serie.id }) }}"
-                                   class="btn-watch js-open-detail">
-                                    <img src="{{ asset('icons/info.png') }}" alt="">
-                                    En savoir plus
-                                </a>
+                {# Pagination #}
+                {% if (source == 'api' and total_pages is defined and total_pages > 1) or (source == 'local' and series.haveToPaginate is defined and series.haveToPaginate) %}
+                    <div class="pagination-wrapper">
+                        <nav aria-label="Navigation des pages">
+                            <ul class="pagination">
+                                {% if source == 'api' %}
+                                    {# Pagination API #}
+                                    <li class="page-item {{ current_page <= 1 ? 'disabled' : '' }}">
+                                        {% if current_page > 1 %}
+                                            <a class="page-link" href="{{ path('serie_liste', {source: 'api', type: type, page: current_page - 1}) }}">
+                                                <i class="fas fa-chevron-left"></i>
+                                                <span class="sr-only">Page précédente</span>
+                                            </a>
+                                        {% else %}
+                                            <span class="page-link">
+                                            <i class="fas fa-chevron-left"></i>
+                                            <span class="sr-only">Page précédente</span>
+                                        </span>
+                                        {% endif %}
+                                    </li>
 
-                                <div class="overlay-actions">
-                                    {# Favoris #}
-                                    <a href="{{ path('serie_favorite', {id: serie.id}) }}"
-                                       class="icon-circle js-favorite"
-                                       data-url="{{ path('serie_favorite', {id: serie.id}) }}"
-                                       data-token="{{ csrf_token('favorite' ~ serie.id) }}"
-                                       title="Ajouter aux favoris" aria-label="Ajouter aux favoris">
-                                        <img src="{{ asset('icons/heart.png') }}" alt="">
-                                    </a>
-
-                                    {# Ignorer #}
-                                    {#                                    <a href="{{ path('serie_ignore', {id: serie.id}) }}"#}
-                                    {#                                       class="icon-circle"#}
-                                    {#                                       title="Ne plus me proposer" aria-label="Ne plus me proposer">#}
-                                    {#                                        <img src="{{ asset('icons/stop.png') }}" alt="">#}
-                                    {#                                    </a>#}
-
-                                    {# Éditer (ADMIN uniquement) #}
-                                    {% if is_granted('ROLE_ADMIN') %}
-                                        <a href="{{ path('serie_update', { id: serie.id }) }}"
-                                           class="icon-circle"
-                                           title="Modifier la série" aria-label="Modifier la série">
-                                            <img src="{{ asset('icons/edit.png') }}" alt="Modifier">
-                                        </a>
+                                    {# Première page #}
+                                    {% if current_page > 3 %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ path('serie_liste', {source: 'api', type: type, page: 1}) }}">1</a>
+                                        </li>
+                                        {% if current_page > 4 %}
+                                            <li class="page-item disabled">
+                                                <span class="page-link">...</span>
+                                            </li>
+                                        {% endif %}
                                     {% endif %}
-                                </div>
 
-                                <p class="overlay-synopsis">
-                                    {{ serie.overview|default('Synopsis indisponible.') }}
-                                </p>
-                            </div>
+                                    {# Pages autour de la page courante #}
+                                    {% for i in range(max(1, current_page - 2), min(total_pages, current_page + 2)) %}
+                                        <li class="page-item {{ i == current_page ? 'active' : '' }}">
+                                            <a class="page-link" href="{{ path('serie_liste', {source: 'api', type: type, page: i}) }}">
+                                                {{ i }}
+                                                {% if i == current_page %}
+                                                    <span class="sr-only">(page actuelle)</span>
+                                                {% endif %}
+                                            </a>
+                                        </li>
+                                    {% endfor %}
 
-                        </div>
+                                    {# Dernière page #}
+                                    {% if current_page < total_pages - 2 %}
+                                        {% if current_page < total_pages - 3 %}
+                                            <li class="page-item disabled">
+                                                <span class="page-link">...</span>
+                                            </li>
+                                        {% endif %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ path('serie_liste', {source: 'api', type: type, page: total_pages}) }}">{{ total_pages }}</a>
+                                        </li>
+                                    {% endif %}
+
+                                    {# Bouton Suivant #}
+                                    <li class="page-item {{ current_page >= total_pages ? 'disabled' : '' }}">
+                                        {% if current_page < total_pages %}
+                                            <a class="page-link" href="{{ path('serie_liste', {source: 'api', type: type, page: current_page + 1}) }}">
+                                                <i class="fas fa-chevron-right"></i>
+                                                <span class="sr-only">Page suivante</span>
+                                            </a>
+                                        {% else %}
+                                            <span class="page-link">
+                                            <i class="fas fa-chevron-right"></i>
+                                            <span class="sr-only">Page suivante</span>
+                                        </span>
+                                        {% endif %}
+                                    </li>
+
+                                {% elseif source == 'local' %}
+                                    {# Pagination KnpPaginator pour local #}
+                                    {{ knp_pagination_render(series) }}
+                                {% endif %}
+                            </ul>
+                        </nav>
+
+                        {# Info pagination #}
+                        {% if source == 'api' and current_page is defined and total_pages is defined %}
+                            <p class="pagination-info">
+                                Page {{ current_page }} sur {{ total_pages }}
+                            </p>
+                        {% endif %}
                     </div>
-                {% endfor %}
-            </div>
+                {% endif %}
 
-            <div class="pagination-container d-flex justify-content-center mt-4">
-                {{ knp_pagination_render(series) }}
-            </div>
+            {% else %}
+                {# État vide #}
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-inbox"></i>
+                    </div>
+                    <h2 class="empty-title">Aucune série trouvée</h2>
+                    <p class="empty-text">
+                        {% if search is defined and search %}
+                            Aucun résultat pour votre recherche "{{ search }}".
+                        {% elseif source == 'local' %}
+                            Votre collection est vide. Ajoutez des séries depuis le catalogue TMDb.
+                        {% else %}
+                            Impossible de charger les séries pour le moment.
+                        {% endif %}
+                    </p>
+                    {% if source == 'local' %}
+                        <a href="{{ path('serie_liste', {source: 'api'}) }}" class="empty-action">
+                            <i class="fas fa-cloud"></i>
+                            Explorer le catalogue
+                        </a>
+                    {% endif %}
+                </div>
+            {% endif %}
+
         </div>
     </div>
-
-    {% if is_granted('ROLE_ADMIN') %}
-        <a href="{{ path('serie_create') }}" class="fab-add-serie" title="Ajouter une série"
-           style="position: fixed; bottom: 28px; right: 24px; width:60px; height:60px; border-radius: var(--radius-m);
-              background: var(--pri); color:#fff; display:grid; place-items:center;
-              box-shadow: 0 10px 24px rgba(127,140,170,.45); border:1px solid rgba(255,255,255,.12);">
-            <i class="fa-solid fa-plus"></i>
-        </a>
-    {% endif %}
 {% endblock %}
-

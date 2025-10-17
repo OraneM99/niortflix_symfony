@@ -32,28 +32,50 @@ class SerieManagerService
     /**
      * Récupère les séries tendances depuis TMDb
      */
-    public function getTrendingSeries(int $limit = 20): array
+    public function getTrendingSeries(int $limit = 20, int $page = 1): array
     {
         try {
-            $data = $this->tmdbService->getTrendingSeries();
-            return $this->formatSeriesFromTmdb($data['results'] ?? [], $limit);
+            $data = $this->tmdbService->getTrendingSeries($page);
+
+            return [
+                'series' => $this->formatSeriesFromTmdb($data['results'] ?? [], $limit),
+                'total_pages' => $data['total_pages'] ?? 1,
+                'total_results' => $data['total_results'] ?? 0,
+                'current_page' => $page,
+            ];
         } catch (\Exception $e) {
             $this->logger->error('Erreur trending series: ' . $e->getMessage());
-            return [];
+            return [
+                'series' => [],
+                'total_pages' => 1,
+                'total_results' => 0,
+                'current_page' => $page,
+            ];
         }
     }
 
     /**
      * Récupère les séries les mieux notées depuis TMDb
      */
-    public function getTopRatedSeries(int $limit = 20): array
+    public function getTopRatedSeries(int $limit = 20, int $page = 1): array
     {
         try {
-            $data = $this->tmdbService->getTopRatedSeries();
-            return $this->formatSeriesFromTmdb($data['results'] ?? [], $limit);
+            $data = $this->tmdbService->getTopRatedSeries($page);
+
+            return [
+                'series' => $this->formatSeriesFromTmdb($data['results'] ?? [], $limit),
+                'total_pages' => $data['total_pages'] ?? 1,
+                'total_results' => $data['total_results'] ?? 0,
+                'current_page' => $page,
+            ];
         } catch (\Exception $e) {
             $this->logger->error('Erreur top rated series: ' . $e->getMessage());
-            return [];
+            return [
+                'series' => [],
+                'total_pages' => 1,
+                'total_results' => 0,
+                'current_page' => $page,
+            ];
         }
     }
 
@@ -64,10 +86,21 @@ class SerieManagerService
     {
         try {
             $data = $this->tmdbService->getPopularSeries($page);
-            return $this->formatSeriesFromTmdb($data['results'] ?? [], $limit);
+
+            return [
+                'series' => $this->formatSeriesFromTmdb($data['results'] ?? [], $limit),
+                'total_pages' => $data['total_pages'] ?? 1,
+                'total_results' => $data['total_results'] ?? 0,
+                'current_page' => $page,
+            ];
         } catch (\Exception $e) {
             $this->logger->error('Erreur popular series: ' . $e->getMessage());
-            return [];
+            return [
+                'series' => [],
+                'total_pages' => 1,
+                'total_results' => 0,
+                'current_page' => $page,
+            ];
         }
     }
 

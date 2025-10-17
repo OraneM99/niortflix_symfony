@@ -23,21 +23,21 @@
 
     <div class="container-fluid px-4 py-4">
 
-        {# Tendances de la semaine (API TMDb) #}
+        {# Tendances TMDb #}
         {% if tmdb_trending is not empty %}
             <section class="mb-5">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h2 class="h3">
-                        <i class="bi bi-fire text-danger"></i> Tendances cette semaine
-                    </h2>
-                    <a href="{{ path('browse_trending') }}" class="btn btn-sm btn-outline-primary">
-                        Voir tout <i class="bi bi-arrow-right"></i>
+                    <h2><i class="bi bi-fire text-danger"></i> Tendances cette semaine</h2>
+                    <a href="{{ path('serie_liste', {source: 'api', type: 'trending'}) }}" class="btn btn-sm btn-outline-primary">
+                        Voir tout
                     </a>
                 </div>
 
                 <div class="row g-3">
                     {% for serie in tmdb_trending|slice(0, 6) %}
-                        {{ include('browse/_serie_card.html.twig', {serie: serie}) }}
+                        <div class="col-6 col-md-4 col-lg-2">
+                            {{ include('serie/_serie_card.html.twig', {serie: serie}) }}
+                        </div>
                     {% endfor %}
                 </div>
             </section>

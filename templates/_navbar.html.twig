@@ -1,55 +1,143 @@
-{# À ajouter dans ton menu de navigation (base.html.twig ou _navbar.html.twig) #}
+{# À mettre dans ton fichier de navigation (base.html.twig ou _navbar.html.twig) #}
 
-<li class="nav-item">
-    <a class="nav-link" href="{{ path('serie_home') }}">
-        <i class="bi bi-house"></i> Accueil
-    </a>
-</li>
-
-<li class="nav-item">
-    <a class="nav-link" href="{{ path('browse_index') }}">
-        <i class="bi bi-compass"></i> Découvrir
-    </a>
-</li>
-
-<li class="nav-item dropdown">
-    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-        <i class="bi bi-collection"></i> Séries
-    </a>
-    <ul class="dropdown-menu">
-        <li>
-            <a class="dropdown-item" href="{{ path('serie_liste') }}">
-                <i class="bi bi-list"></i> Ma collection
-            </a>
-        </li>
-        <li>
-            <a class="dropdown-item" href="{{ path('browse_trending') }}">
-                <i class="bi bi-fire"></i> Tendances
-            </a>
-        </li>
-        <li>
-            <a class="dropdown-item" href="{{ path('browse_popular') }}">
-                <i class="bi bi-graph-up"></i> Populaires
-            </a>
-        </li>
-        <li>
-            <a class="dropdown-item" href="{{ path('browse_top_rated') }}">
-                <i class="bi bi-star"></i> Meilleures notes
-            </a>
-        </li>
-        <li><hr class="dropdown-divider"></li>
-        <li>
-            <a class="dropdown-item" href="{{ path('browse_search') }}">
-                <i class="bi bi-search"></i> Rechercher
-            </a>
-        </li>
-    </ul>
-</li>
-
-{% if is_granted('ROLE_ADMIN') %}
-    <li class="nav-item">
-        <a class="nav-link" href="{{ path('api_search') }}">
-            <i class="bi bi-cloud-download"></i> Importer
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{{ path('serie_home') }}">
+            <i class="bi bi-tv"></i> Series Time
         </a>
-    </li>
-{% endif %}
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+
+                {# Accueil #}
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ path('serie_home') }}">
+                        <i class="bi bi-house"></i> Accueil
+                    </a>
+                </li>
+
+                {# Menu Séries #}
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-collection"></i> Séries
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a class="dropdown-item" href="{{ path('serie_liste', {source: 'local'}) }}">
+                                <i class="bi bi-bookmark"></i> Ma collection
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{{ path('serie_liste', {source: 'api', type: 'popular'}) }}">
+                                <i class="bi bi-cloud"></i> Catalogue TMDb
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item" href="{{ path('serie_liste', {source: 'api', type: 'trending'}) }}">
+                                <i class="bi bi-fire"></i> Tendances
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{{ path('serie_liste', {source: 'api', type: 'top_rated'}) }}">
+                                <i class="bi bi-star"></i> Meilleures notes
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
+                {# Films (si tu les as) #}
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ path('film_liste') }}">
+                        <i class="bi bi-film"></i> Films
+                    </a>
+                </li>
+
+                {# Animes (si tu les as) #}
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ path('anime_liste') }}">
+                        <i class="bi bi-stars"></i> Animes
+                    </a>
+                </li>
+
+            </ul>
+
+            {# Barre de recherche rapide #}
+            <form class="d-flex me-3" action="{{ path('serie_liste') }}" method="get">
+                <input class="form-control form-control-sm me-2"
+                       type="search"
+                       name="search"
+                       placeholder="Rechercher..."
+                       aria-label="Rechercher">
+                <button class="btn btn-sm btn-outline-light" type="submit">
+                    <i class="bi bi-search"></i>
+                </button>
+            </form>
+
+            {# Menu utilisateur #}
+            <ul class="navbar-nav">
+                {% if is_granted('IS_AUTHENTICATED_FULLY') %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            {% if app.user.profilePicture %}
+                                <img src="/uploads/profile_pictures/{{ app.user.profilePicture }}"
+                                     alt="{{ app.user.username }}"
+                                     class="rounded-circle"
+                                     style="width: 30px; height: 30px; object-fit: cover;">
+                            {% else %}
+                                <i class="bi bi-person-circle"></i>
+                            {% endif %}
+                            {{ app.user.username }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <a class="dropdown-item" href="{{ path('profile_index') }}">
+                                    <i class="bi bi-person"></i> Mon profil
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{{ path('profile_favorites') }}">
+                                    <i class="bi bi-heart"></i> Mes favoris
+                                </a>
+                            </li>
+                            {% if is_granted('ROLE_ADMIN') %}
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ path('admin_dashboard') }}">
+                                        <i class="bi bi-speedometer2"></i> Admin
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ path('api_search') }}">
+                                        <i class="bi bi-cloud-download"></i> Importer
+                                    </a>
+                                </li>
+                            {% endif %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item" href="{{ path('app_logout') }}">
+                                    <i class="bi bi-box-arrow-right"></i> Déconnexion
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('app_login') }}">
+                            <i class="bi bi-box-arrow-in-right"></i> Connexion
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('app_register') }}">
+                            <i class="bi bi-person-plus"></i> Inscription
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>

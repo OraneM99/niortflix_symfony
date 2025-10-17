@@ -9,6 +9,7 @@ use App\Repository\ContributorRepository;
 use App\Repository\GenreRepository;
 use App\Repository\SerieRepository;
 use App\Service\SerieService;
+use App\Service\SerieManagerService;
 use App\Utils\FileManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Component\Pager\PaginatorInterface;
@@ -25,7 +26,6 @@ use Twig\Environment;
 #[Route('/serie', name: 'serie_')]
 final class SerieController extends AbstractController
 {
-    /** Métadonnées d’icônes/labels pour les plateformes. */
     private const PROVIDER_META = [
         'adn'         => ['label' => 'ADN',         'icon' => 'icons/providers/ad .png'],
         'appletv'     => ['label' => 'Apple TV+',   'icon' => 'icons/providers/apple.png'],
@@ -45,7 +45,11 @@ final class SerieController extends AbstractController
         'youtube'     => ['label' => 'Youtube',     'icon' => 'icons/providers/youtube.jpeg']
     ];
 
-    /** Transforme les données brutes (JSON en base) en liens affichables. */
+    public function __construct(
+        private readonly SerieManagerService $serieManager
+    ) {
+    }
+
     private function buildWatchLinks(Serie $serie): array
     {
         $out = [];
@@ -67,6 +71,9 @@ final class SerieController extends AbstractController
         return $out;
     }
 
+    /**
+     * Liste des séries - MAINTENANT HYBRIDE (BDD + API)
+     */
     #[Route('/liste', name: 'liste')]
     public function liste(
         SerieRepository $serieRepository,
@@ -80,25 +87,71 @@ final class SerieController extends AbstractController
         $search  = $request->query->get('search');
         $genreId = $request->query->getInt('genre', 0);
         $type    = $request->query->get('type');
+        $source  = $request->query->get('source', 'local');
+        $page    = $request->query->getInt('page', 1);
+
         $ignoredIds = array_keys($session->get('ignored_series', []));
 
-        // 👉 Si un filtre est appliqué, on "reset" les autres
-        if ($search) {
-            $genreId = 0;
-            $type = null;
-        } elseif ($genreId) {
-            $search = null;
-            $type = null;
-        } elseif ($type) {
-            $search = null;
-            $genreId = 0;
+        // Si source = 'api', on affiche depuis l'API
+        if ($source === 'api') {
+            $apiSeries = [];
+            $totalPages = 1;
+
+            // Selon le type demandé
+            switch ($type) {
+                case 'trending':
+                    $data = $this->serieManager->getTrendingSeries(20, $page);
+                    break;
+                case 'popular':
+                    $data = $this->serieManager->getPopularSeriesFromApi($page, 20);
+                    break;
+                case 'top_rated':
+                    $data = $this->serieManager->getTopRatedSeries(20, $page);
+                    break;
+                default:
+                    $data = $this->serieManager->getPopularSeriesFromApi($page, 20);
+            }
+
+            $apiSeries = $data['series'] ?? [];
+            $totalPages = $data['total_pages'] ?? 1;
+
+            return $this->render('serie/liste.html.twig', [
+                'series'      => $apiSeries,
+                'sort'        => $sort,
+                'genres'      => $genreRepository->findAllOrderedByName(),
+                'genreId'     => $genreId,
+                'search'      => $search,
+                'type'        => $type,
+                'source'      => 'api',
+                'is_api'      => true,
+                'current_page' => $page,
+                'total_pages'  => $totalPages,
+            ]);
         }
 
+        // Recherche mixte si search
+        if ($search) {
+            $results = $this->serieManager->searchSeries($search, 20);
+
+            return $this->render('serie/liste.html.twig', [
+                'series'     => $results['local'],
+                'api_series' => $results['api'],
+                'sort'       => $sort,
+                'genres'     => $genreRepository->findAllOrderedByName(),
+                'genreId'    => $genreId,
+                'search'     => $search,
+                'type'       => $type,
+                'source'     => 'mixed',
+                'is_api'     => false,
+            ]);
+        }
+
+        // Sinon, liste locale classique
         $query = $serieRepository->getQueryForSeries($sort, $search, $ignoredIds, $genreId, $type);
 
         $series = $paginator->paginate(
             $query,
-            $request->query->getInt('page', 1),
+            $page,
             $parameterBag->get('serie')['nb_par_page']
         );
 
@@ -111,6 +164,8 @@ final class SerieController extends AbstractController
             'genreId' => $genreId,
             'search'  => $search,
             'type'    => $type,
+            'source'  => 'local',
+            'is_api'  => false,
         ]);
     }
 
@@ -173,6 +228,28 @@ final class SerieController extends AbstractController
         ]);
     }
 
+    /**
+     * NOUVELLE : Détail d'une série depuis l'API (avant import)
+     */
+    #[Route('/preview/{tmdbId}', name: 'preview', requirements: ['tmdbId' => '\d+'])]
+    public function preview(int $tmdbId, Request $request): Response
+    {
+        $serieData = $this->serieManager->getSerieDetails($tmdbId);
+
+        if (!$serieData) {
+            $this->addFlash('danger', 'Série introuvable.');
+            return $this->redirectToRoute('serie_liste', ['source' => 'api']);
+        }
+
+        $isInDatabase = $this->serieManager->isSerieInDatabase($tmdbId);
+
+        return $this->render('serie/preview.html.twig', [
+            'serie' => $serieData,
+            'is_in_database' => $isInDatabase,
+            'is_preview' => true,
+        ]);
+    }
+
     #[Route('/favorite/{id}', name: 'favorite', requirements: ['id' => '\d+'], methods: ['POST'])]
     public function favorite(Serie $serie, EntityManagerInterface $em, Request $request): JsonResponse
     {
@@ -216,22 +293,35 @@ final class SerieController extends AbstractController
             return new JsonResponse([]);
         }
 
-        // Recherche uniquement par titre
-        $series = $repo->createQueryBuilder('s')
-            ->where('s.name LIKE :q')
-            ->setParameter('q', '%' . $q . '%')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult();
+        // Recherche mixte
+        $searchResults = $this->serieManager->searchSeries($q, 10);
 
-        $results = array_map(fn(Serie $s) => [
-            'id'     => $s->getId(),
-            'title'  => $s->getName(),
-            'year'   => $s->getFirstAirDate()?->format('Y')
-                . ($s->getLastAirDate() ? ' – '.$s->getLastAirDate()->format('Y') : ''),
-            'poster' => $s->getPoster() ? '/uploads/posters/series/'.$s->getPoster() : null,
-            'url'    => $this->generateUrl('serie_detail', ['id' => $s->getId()]),
-        ], $series);
+        $results = [];
+
+        // Séries locales
+        foreach ($searchResults['local'] as $serie) {
+            $results[] = [
+                'id'     => $serie->getId(),
+                'title'  => $serie->getName(),
+                'year'   => $serie->getFirstAirDate()?->format('Y')
+                    . ($serie->getLastAirDate() ? ' – '.$serie->getLastAirDate()->format('Y') : ''),
+                'poster' => $serie->getPoster(),
+                'url'    => $this->generateUrl('serie_detail', ['id' => $serie->getId()]),
+                'source' => 'local',
+            ];
+        }
+
+        // Séries API
+        foreach ($searchResults['api'] as $serie) {
+            $results[] = [
+                'id'     => $serie['tmdb_id'],
+                'title'  => $serie['name'],
+                'year'   => $serie['year'] ?? '',
+                'poster' => $serie['poster'],
+                'url'    => $this->generateUrl('serie_preview', ['tmdbId' => $serie['tmdb_id']]),
+                'source' => 'api',
+            ];
+        }
 
         return new JsonResponse($results);
     }

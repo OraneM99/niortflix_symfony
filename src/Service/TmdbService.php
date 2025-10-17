@@ -1,32 +1,111 @@
 <?php
+// src/Service/TmdbService.php - VERSION BEARER TOKEN
 
 namespace App\Service;
 
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
-use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 
 class TmdbService
 {
     private const BASE_URI = 'https://api.themoviedb.org/3/';
     private const IMAGE_BASE = 'https://image.tmdb.org/t/p/';
 
+    private HttpClientInterface $authenticatedClient;
+
     public function __construct(
-        private readonly HttpClientInterface $httpClient,
-        private readonly string $apiKey,
+        HttpClientInterface $httpClient,
+        string $apiKey,
         private readonly LoggerInterface $logger
     ) {
+        // Crée un client avec le Bearer Token dans les headers
+        $this->authenticatedClient = $httpClient->withOptions([
+            'headers' => [
+                'Authorization' => 'Bearer ' . $apiKey,
+                'accept' => 'application/json',
+            ],
+        ]);
     }
 
     /**
-     * Récupère les détails complets d'une série
+     * Récupère les séries populaires
+     */
+    public function getPopularSeries(int $page = 1): array
+    {
+        try {
+            $response = $this->authenticatedClient->request('GET', self::BASE_URI . 'tv/popular', [
+                'query' => [
+                    'language' => 'fr-FR',
+                    'page' => $page
+                ],
+                'timeout' => 10
+            ]);
+
+            if ($response->getStatusCode() !== 200) {
+                $this->logger->error('TMDb API error', [
+                    'status' => $response->getStatusCode(),
+                    'body' => $response->getContent(false)
+                ]);
+                return ['results' => []];
+            }
+
+            return $response->toArray();
+        } catch (\Exception $e) {
+            $this->logger->error('Error fetching popular series: ' . $e->getMessage());
+            return ['results' => []];
+        }
+    }
+
+    /**
+     * Récupère les séries tendances
+     */
+    public function getTrendingSeries(int $page = 1): array
+    {
+        try {
+            $response = $this->authenticatedClient->request('GET', self::BASE_URI . 'trending/tv/week', [
+                'query' => [
+                    'language' => 'fr-FR',
+                    'page' => $page
+                ],
+                'timeout' => 10
+            ]);
+
+            return $response->toArray();
+        } catch (\Exception $e) {
+            $this->logger->error('Error fetching trending series: ' . $e->getMessage());
+            return ['results' => []];
+        }
+    }
+
+    /**
+     * Récupère les séries les mieux notées
+     */
+    public function getTopRatedSeries(int $page = 1): array
+    {
+        try {
+            $response = $this->authenticatedClient->request('GET', self::BASE_URI . 'tv/top_rated', [
+                'query' => [
+                    'language' => 'fr-FR',
+                    'page' => $page
+                ],
+                'timeout' => 10
+            ]);
+
+            return $response->toArray();
+        } catch (\Exception $e) {
+            $this->logger->error('Error fetching top rated series: ' . $e->getMessage());
+            return ['results' => []];
+        }
+    }
+
+    /**
+     * Récupère les détails d'une série
      */
     public function getSerie(int $id): ?array
     {
         try {
-            $response = $this->httpClient->request('GET', self::BASE_URI . "tv/{$id}", [
+            $response = $this->authenticatedClient->request('GET', self::BASE_URI . "tv/{$id}", [
                 'query' => [
-                    'api_key' => $this->apiKey,
                     'language' => 'fr-FR',
                     'append_to_response' => 'credits,videos,watch/providers'
                 ],
@@ -34,34 +113,27 @@ class TmdbService
             ]);
 
             if ($response->getStatusCode() !== 200) {
-                $this->logger->error('TMDb API error', ['status' => $response->getStatusCode()]);
                 return null;
             }
 
             return $response->toArray();
-        } catch (TransportExceptionInterface $e) {
-            $this->logger->error('TMDb transport error: ' . $e->getMessage());
-            return null;
         } catch (\Exception $e) {
-            $this->logger->error('TMDb unexpected error: ' . $e->getMessage());
+            $this->logger->error('Error fetching serie: ' . $e->getMessage());
             return null;
         }
     }
 
     /**
-     * Récupère les détails d'une saison spécifique
+     * Récupère une saison spécifique
      */
     public function getSeason(int $serieId, int $seasonNumber): ?array
     {
         try {
-            $response = $this->httpClient->request(
+            $response = $this->authenticatedClient->request(
                 'GET',
                 self::BASE_URI . "tv/{$serieId}/season/{$seasonNumber}",
                 [
-                    'query' => [
-                        'api_key' => $this->apiKey,
-                        'language' => 'fr-FR'
-                    ],
+                    'query' => ['language' => 'fr-FR'],
                     'timeout' => 10
                 ]
             );
@@ -83,9 +155,8 @@ class TmdbService
     public function searchSerie(string $query, int $page = 1): array
     {
         try {
-            $response = $this->httpClient->request('GET', self::BASE_URI . 'search/tv', [
+            $response = $this->authenticatedClient->request('GET', self::BASE_URI . 'search/tv', [
                 'query' => [
-                    'api_key' => $this->apiKey,
                     'query' => $query,
                     'language' => 'fr-FR',
                     'page' => $page
@@ -101,14 +172,13 @@ class TmdbService
     }
 
     /**
-     * Récupère les séries populaires
+     * Récupère les séries actuellement diffusées
      */
-    public function getPopularSeries(int $page = 1): array
+    public function getOnTheAir(int $page = 1): array
     {
         try {
-            $response = $this->httpClient->request('GET', self::BASE_URI . 'tv/popular', [
+            $response = $this->authenticatedClient->request('GET', self::BASE_URI . 'tv/on_the_air', [
                 'query' => [
-                    'api_key' => $this->apiKey,
                     'language' => 'fr-FR',
                     'page' => $page
                 ],
@@ -117,7 +187,7 @@ class TmdbService
 
             return $response->toArray();
         } catch (\Exception $e) {
-            $this->logger->error('Error fetching popular series: ' . $e->getMessage());
+            $this->logger->error('Error fetching on the air: ' . $e->getMessage());
             return ['results' => []];
         }
     }
@@ -146,7 +216,6 @@ class TmdbService
         $providers = [];
         $frData = $serieData['watch/providers']['results']['FR'];
 
-        // Flatrate = abonnement (Netflix, Disney+, etc.)
         if (isset($frData['flatrate'])) {
             foreach ($frData['flatrate'] as $provider) {
                 $providers[] = [
@@ -158,118 +227,5 @@ class TmdbService
         }
 
         return $providers;
-    }
-
-    /**
-     * Récupère les séries tendances de la semaine
-     */
-    public function getTrendingSeries(int $page = 1): array
-    {
-        try {
-            $response = $this->httpClient->request('GET', self::BASE_URI . 'trending/tv/week', [
-                'query' => [
-                    'api_key' => $this->apiKey,
-                    'language' => 'fr-FR',
-                    'page' => $page
-                ],
-                'timeout' => 10
-            ]);
-
-            return $response->toArray();
-        } catch (\Exception $e) {
-            $this->logger->error('Error fetching trending series: ' . $e->getMessage());
-            return ['results' => []];
-        }
-    }
-
-    /**
-     * Récupère les séries les mieux notées
-     */
-    public function getTopRatedSeries(int $page = 1): array
-    {
-        try {
-            $response = $this->httpClient->request('GET', self::BASE_URI . 'tv/top_rated', [
-                'query' => [
-                    'api_key' => $this->apiKey,
-                    'language' => 'fr-FR',
-                    'page' => $page
-                ],
-                'timeout' => 10
-            ]);
-
-            return $response->toArray();
-        } catch (\Exception $e) {
-            $this->logger->error('Error fetching top rated series: ' . $e->getMessage());
-            return ['results' => []];
-        }
-    }
-
-    /**
-     * Récupère les séries actuellement diffusées
-     */
-    public function getOnTheAir(int $page = 1): array
-    {
-        try {
-            $response = $this->httpClient->request('GET', self::BASE_URI . 'tv/on_the_air', [
-                'query' => [
-                    'api_key' => $this->apiKey,
-                    'language' => 'fr-FR',
-                    'page' => $page
-                ],
-                'timeout' => 10
-            ]);
-
-            return $response->toArray();
-        } catch (\Exception $e) {
-            $this->logger->error('Error fetching on the air series: ' . $e->getMessage());
-            return ['results' => []];
-        }
-    }
-
-    /**
-     * Récupère les séries qui arrivent bientôt
-     */
-    public function getAiringToday(int $page = 1): array
-    {
-        try {
-            $response = $this->httpClient->request('GET', self::BASE_URI . 'tv/airing_today', [
-                'query' => [
-                    'api_key' => $this->apiKey,
-                    'language' => 'fr-FR',
-                    'page' => $page
-                ],
-                'timeout' => 10
-            ]);
-
-            return $response->toArray();
-        } catch (\Exception $e) {
-            $this->logger->error('Error fetching airing today: ' . $e->getMessage());
-            return ['results' => []];
-        }
-    }
-
-    /**
-     * Découverte de séries avec filtres
-     */
-    public function discoverSeries(array $filters = [], int $page = 1): array
-    {
-        try {
-            $query = array_merge([
-                'api_key' => $this->apiKey,
-                'language' => 'fr-FR',
-                'page' => $page,
-                'sort_by' => 'popularity.desc',
-            ], $filters);
-
-            $response = $this->httpClient->request('GET', self::BASE_URI . 'discover/tv', [
-                'query' => $query,
-                'timeout' => 10
-            ]);
-
-            return $response->toArray();
-        } catch (\Exception $e) {
-            $this->logger->error('Error discovering series: ' . $e->getMessage());
-            return ['results' => []];
-        }
     }
 }
