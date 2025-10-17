@@ -92,12 +92,17 @@ class Serie
     #[ORM\ManyToMany(targetEntity: User::class, mappedBy: 'favoriteSeries')]
     private Collection $favoriteSeries;
 
+    #[ORM\OneToMany(targetEntity: Season::class, mappedBy: 'serie', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[ORM\OrderBy(['seasonNumber' => 'ASC'])]
+    private Collection $seasons;
+
     public function __construct()
     {
         $this->contributors = new ArrayCollection();
         $this->genres = new ArrayCollection();
         $this->userSeries = new ArrayCollection();
         $this->favoriteSeries = new ArrayCollection();
+        $this->seasons = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -357,5 +362,46 @@ class Serie
         }
 
         return $this;
+    }
+
+    /**
+     * @return Collection<int, Season>
+     */
+    public function getSeasons(): Collection
+    {
+        return $this->seasons;
+    }
+
+    public function addSeason(Season $season): static
+    {
+        if (!$this->seasons->contains($season)) {
+            $this->seasons->add($season);
+            $season->setSerie($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSeason(Season $season): static
+    {
+        if ($this->seasons->removeElement($season)) {
+            if ($season->getSerie() === $this) {
+                $season->setSerie(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * Compte le nombre total d'épisodes
+     */
+    public function getTotalEpisodes(): int
+    {
+        $total = 0;
+        foreach ($this->seasons as $season) {
+            $total += $season->getEpisodeCount() ?? 0;
+        }
+        return $total;
     }
 }

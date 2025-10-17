@@ -1,0 +1,160 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Rechercher des séries{% endblock %}
+
+{% block body %}
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-8 mx-auto">
+
+                {# Barre de recherche #}
+                <div class="mb-5">
+                    <h1 class="text-center mb-4">
+                        <i class="bi bi-search"></i> Rechercher des séries
+                    </h1>
+
+                    <form method="get" action="{{ path('browse_search') }}">
+                        <div class="input-group input-group-lg">
+                            <input
+                                    type="text"
+                                    name="q"
+                                    class="form-control"
+                                    placeholder="Titre de la série..."
+                                    value="{{ query }}"
+                                    required
+                                    minlength="2"
+                                    autofocus
+                            >
+                            <button class="btn btn-primary" type="submit">
+                                <i class="bi bi-search"></i> Rechercher
+                            </button>
+                        </div>
+                        <small class="text-muted">Recherche dans votre collection et sur TMDb</small>
+                    </form>
+                </div>
+
+                {# Résultats de la collection locale #}
+                {% if results.local is defined and results.local is not empty %}
+                    <section class="mb-5">
+                        <h3 class="h5 mb-3">
+                            <i class="bi bi-bookmark-fill text-success"></i>
+                            Dans votre collection ({{ results.local|length }})
+                        </h3>
+
+                        <div class="list-group">
+                            {% for serie in results.local %}
+                                <a href="{{ path('serie_detail', {id: serie.id}) }}"
+                                   class="list-group-item list-group-item-action">
+                                    <div class="row align-items-center">
+                                        <div class="col-auto">
+                                            {% if serie.poster %}
+                                                <img src="{{ serie.poster }}"
+                                                     alt="{{ serie.name }}"
+                                                     style="width: 50px; height: 75px; object-fit: cover;"
+                                                     class="rounded">
+                                            {% else %}
+                                                <div class="bg-secondary rounded d-flex align-items-center justify-content-center"
+                                                     style="width: 50px; height: 75px;">
+                                                    <i class="bi bi-film text-white"></i>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col">
+                                            <h6 class="mb-1">{{ serie.name }}</h6>
+                                            <small class="text-muted">
+                                                {% if serie.firstAirDate %}
+                                                    {{ serie.firstAirDate|date('Y') }}
+                                                {% endif %}
+                                                {% if serie.vote %}
+                                                    • <i class="bi bi-star-fill text-warning"></i> {{ serie.vote|number_format(1) }}
+                                                {% endif %}
+                                            </small>
+                                        </div>
+                                        <div class="col-auto">
+                                            <span class="badge bg-success">En collection</span>
+                                        </div>
+                                    </div>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    </section>
+                {% endif %}
+
+                {# Résultats de l'API TMDb #}
+                {% if results.api is defined and results.api is not empty %}
+                    <section class="mb-5">
+                        <h3 class="h5 mb-3">
+                            <i class="bi bi-globe"></i>
+                            Sur TMDb ({{ results.api|length }})
+                        </h3>
+
+                        <div class="list-group">
+                            {% for serie in results.api %}
+                                <div class="list-group-item">
+                                    <div class="row align-items-center">
+                                        <div class="col-auto">
+                                            {% if serie.poster %}
+                                                <img src="{{ serie.poster }}"
+                                                     alt="{{ serie.name }}"
+                                                     style="width: 50px; height: 75px; object-fit: cover;"
+                                                     class="rounded">
+                                            {% else %}
+                                                <div class="bg-secondary rounded d-flex align-items-center justify-content-center"
+                                                     style="width: 50px; height: 75px;">
+                                                    <i class="bi bi-film text-white"></i>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col">
+                                            <h6 class="mb-1">{{ serie.name }}</h6>
+                                            <p class="mb-1 text-muted small">
+                                                {{ serie.overview|slice(0, 150) }}{% if serie.overview|length > 150 %}...{% endif %}
+                                            </p>
+                                            <small class="text-muted">
+                                                {% if serie.year %}
+                                                    {{ serie.year }}
+                                                {% endif %}
+                                                {% if serie.vote %}
+                                                    • <i class="bi bi-star-fill text-warning"></i> {{ serie.vote|number_format(1) }}
+                                                {% endif %}
+                                            </small>
+                                        </div>
+                                        <div class="col-auto">
+                                            <a href="{{ path('browse_detail', {tmdbId: serie.tmdb_id}) }}"
+                                               class="btn btn-sm btn-outline-primary me-2">
+                                                <i class="bi bi-info-circle"></i> Détails
+                                            </a>
+
+                                            {% if is_granted('ROLE_ADMIN') %}
+                                                <form method="post"
+                                                      action="{{ path('api_import', {tmdbId: serie.tmdb_id}) }}"
+                                                      class="d-inline">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token('import' ~ serie.tmdb_id) }}">
+                                                    <button type="submit"
+                                                            class="btn btn-sm btn-success"
+                                                            onclick="return confirm('Importer cette série ?')">
+                                                        <i class="bi bi-plus-circle"></i> Ajouter
+                                                    </button>
+                                                </form>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </section>
+                {% endif %}
+
+                {# Aucun résultat #}
+                {% if query and results.total is defined and results.total == 0 %}
+                    <div class="alert alert-info text-center">
+                        <i class="bi bi-info-circle fs-1 d-block mb-3"></i>
+                        <h5>Aucun résultat pour "{{ query }}"</h5>
+                        <p class="mb-0">Essayez avec un autre titre ou des mots-clés différents.</p>
+                    </div>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+{% endblock %}

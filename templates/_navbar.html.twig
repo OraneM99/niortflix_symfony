@@ -1,210 +1,55 @@
-{% include '_sidebar.html.twig' %}
+{# À ajouter dans ton menu de navigation (base.html.twig ou _navbar.html.twig) #}
 
-<!-- Overlay pour fermer la sidebar -->
-<div id="sidebar-overlay" class="sidebar-overlay"></div>
+<li class="nav-item">
+    <a class="nav-link" href="{{ path('serie_home') }}">
+        <i class="bi bi-house"></i> Accueil
+    </a>
+</li>
 
-<!-- Navbar avec bouton hamburger intégré -->
-<nav class="nx-navbar">
-    <div class="nx-container">
+<li class="nav-item">
+    <a class="nav-link" href="{{ path('browse_index') }}">
+        <i class="bi bi-compass"></i> Découvrir
+    </a>
+</li>
 
-        <!-- Bouton hamburger -->
-        <button id="hamburger-btn" class="hamburger-btn">
-            <span></span><span></span><span></span>
-        </button>
-
-        <!-- Logo -->
-        <a href="{{ path('serie_home') }}" class="nx-logo">
-            <span class="logo-text">SeriesTime</span>
-        </a>
-
-        <!-- Barre de recherche -->
-        <form class="nx-search"
-              action="{{ path('serie_liste') }}"
-              method="get"
-              role="search"
-              data-suggest-url="{{ path('serie_suggest') }}">
-
-            <div class="search-container">
-                <select class="nx-cat" name="type" aria-label="Filtrer sur">
-                    <option value="">Tout</option>
-                    <option value="series">Séries</option>
-                    <option value="films">Films</option>
-                    <option value="animes">Animes</option>
-                </select>
-
-                <input class="search-input" type="text" name="search"
-                       placeholder="Rechercher une série, un acteur…" autocomplete="off">
-                <button class="search-submit" type="submit" aria-label="Rechercher">
-                    <img src="{{ asset('icons/search-dark.png') }}" width="18" height="18" alt="">
-                </button>
-            </div>
-
-            {# Suggestions (remplies en JS) #}
-            <div class="nx-suggest" hidden>
-                <ul class="nx-suggest-list" role="listbox"></ul>
-                <div class="nx-suggest-footer">
-                    <a class="see-all" href="{{ path('serie_liste') }}" data-see-all>
-                        Voir tous les résultats
-                    </a>
-                </div>
-            </div>
-        </form>
-
-        <!-- Actions rapides -->
-        <div class="nx-actions">
-            <button class="nx-action-btn" title="Notifications">
-                <img src="{{ asset('icons/clock.png') }}" alt="Notifications" width="22">
-                <span class="notification-badge">3</span>
-            </button>
-            <button class="nx-action-btn" title="Mes favoris">
-                <img src="{{ asset('icons/favori.png') }}" alt="Favoris" width="22">
-            </button>
-            <a href="{{ path('serie_random') }}" class="nx-action-btn" title="Lecture aléatoire">
-                <img src="{{ asset('icons/random.png') }}" alt="Random" width="22">
-            </a>
-
-            {# Onglet Dashboard visible uniquement pour les admins #}
-            {% if is_granted('ROLE_ADMIN') %}
-                <a href="{{ path('admin_dashboard') }}" class="nx-action-btn" title="Dashboard">
-                    <img src="{{ asset('icons/admin.png') }}" alt="Dashboard" width="22">
-                </a>
-            {% endif %}
-        </div>
-
-        {# Zone droite (auth) #}
-        <div class="nx-auth">
-            {% if app.user %}
-                <div class="nx-dropdown">
-                    <button class="nx-user-btn">
-                        <div class="user-avatar">👤</div>
-                        <span class="user-name">{{ app.user.username }}</span>
-                    </button>
-                    <div class="nx-dropdown-content">
-                        <a href="{{ path('profile_index') }}" class="dropdown-item">
-                            <img src="{{ asset('icons/user.png') }}" width="16"> Mon profil
-                        </a>
-                        <a href="{{ path('profile_edit') }}" class="dropdown-item">
-                            <img src="{{ asset('icons/param.png') }}" width="16"> Paramètres
-                        </a>
-                        <div class="dropdown-divider"></div>
-                        <a href="{{ path('app_logout') }}" class="dropdown-item danger">
-                            <img src="{{ asset('icons/arrow.png') }}" width="16"> Se déconnecter
-                        </a>
-                    </div>
-                </div>
-            {% else %}
-                <a href="{{ path('app_login') }}" class="nx-btn">Se connecter</a>
-                <a href="{{ path('app_register') }}" class="nx-btn-outline">S'inscrire</a>
-            {% endif %}
-        </div>
-    </div>
-</nav>
-
-<script>
-    (function(){
-        // Helper debounce
-        const debounce = (fn, ms=250) => {
-            let t; return (...args) => { clearTimeout(t); t=setTimeout(()=>fn.apply(this,args),ms); };
-        };
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const form = document.querySelector('.nx-search');
-            if(!form) return;
-
-            const input   = form.querySelector('.search-input');
-            const select  = form.querySelector('.nx-cat');
-            const suggest = form.querySelector('.nx-suggest');
-            const list    = form.querySelector('.nx-suggest-list');
-            const seeAll  = form.querySelector('[data-see-all]');
-            const submit  = form.querySelector('.search-submit');
-            const suggestUrl = form.dataset.suggestUrl || '';
-
-            let activeIndex = -1; // pour le focus clavier
-
-            // Soumission normale
-            form.addEventListener('submit', (e) => {
-                const q = (input.value || '').trim();
-                if(!q){ e.preventDefault(); input.focus(); return; }
-                // laisse partir vers serie_liste
-            });
-
-            // Voir tous les résultats clique → vers la liste
-            if(seeAll){
-                seeAll.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const params = new URLSearchParams();
-                    const formAction = form.getAttribute('action') || window.location.href;
-
-                    if(input.value.trim()) params.set('search', input.value.trim());
-                    if(select.value)       params.set('type', select.value);
-                    window.location.href = formAction + '?' + params.toString();
-                });
-            }
-
-            // Suggestions (si endpoint dispo)
-            const updateSuggest = debounce(async () => {
-                const q = input.value.trim();
-                if(!suggestUrl || q.length < 2){ suggest.hidden = true; list.innerHTML=''; return; }
-
-                try{
-                    const url = new URL(suggestUrl, window.location.origin);
-                    url.searchParams.set('q', q);
-                    if(select && select.value) url.searchParams.set('type', select.value);
-
-                    const res = await fetch(url.toString(), { headers: { 'Accept': 'application/json' }});
-                    if(!res.ok) throw new Error('HTTP '+res.status);
-                    const data = await res.json(); // [{id, title, year, poster, url, meta}]
-                    render(data, q);
-                }catch(e){
-                    suggest.hidden = true;
-                    list.innerHTML = '';
-                }
-            }, 250);
-
-            const render = (items, q) => {
-                if(!Array.isArray(items) || items.length===0){ suggest.hidden=true; list.innerHTML=''; return; }
-                list.innerHTML = items.slice(0,10).map((it, i) => `
+<li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+        <i class="bi bi-collection"></i> Séries
+    </a>
+    <ul class="dropdown-menu">
         <li>
-          <a class="nx-sg-item" href="${it.url || '#'}" role="option" data-index="${i}">
-            <img class="nx-sg-cover" src="${it.poster || ''}" alt="" onerror="this.style.display='none'">
-            <div>
-              <div class="nx-sg-title">${it.title || ''}</div>
-              <div class="nx-sg-meta">${[it.year, it.meta].filter(Boolean).join(' · ')}</div>
-            </div>
-          </a>
+            <a class="dropdown-item" href="{{ path('serie_liste') }}">
+                <i class="bi bi-list"></i> Ma collection
+            </a>
         </li>
-      `).join('');
-                activeIndex = -1;
-                suggest.hidden = false;
-            };
+        <li>
+            <a class="dropdown-item" href="{{ path('browse_trending') }}">
+                <i class="bi bi-fire"></i> Tendances
+            </a>
+        </li>
+        <li>
+            <a class="dropdown-item" href="{{ path('browse_popular') }}">
+                <i class="bi bi-graph-up"></i> Populaires
+            </a>
+        </li>
+        <li>
+            <a class="dropdown-item" href="{{ path('browse_top_rated') }}">
+                <i class="bi bi-star"></i> Meilleures notes
+            </a>
+        </li>
+        <li><hr class="dropdown-divider"></li>
+        <li>
+            <a class="dropdown-item" href="{{ path('browse_search') }}">
+                <i class="bi bi-search"></i> Rechercher
+            </a>
+        </li>
+    </ul>
+</li>
 
-            input.addEventListener('input', updateSuggest);
-            select.addEventListener('change', () => { if(input.value.trim().length>=2) updateSuggest(); });
-
-            // Navigation clavier
-            input.addEventListener('keydown', (e) => {
-                if(suggest.hidden) return;
-                const items = Array.from(list.querySelectorAll('.nx-sg-item'));
-                if(!items.length) return;
-
-                if(e.key === 'ArrowDown'){ e.preventDefault(); activeIndex = (activeIndex+1) % items.length; focusItem(items); }
-                if(e.key === 'ArrowUp'){   e.preventDefault(); activeIndex = (activeIndex-1+items.length) % items.length; focusItem(items); }
-                if(e.key === 'Enter'){     if(activeIndex>-1){ e.preventDefault(); items[activeIndex].click(); } }
-                if(e.key === 'Escape'){    suggest.hidden = true; list.innerHTML=''; }
-            });
-
-            const focusItem = (items) => {
-                items.forEach(a => a.classList.remove('is-active'));
-                const a = items[activeIndex];
-                if(a){ a.classList.add('is-active'); a.scrollIntoView({block:'nearest'}); }
-            };
-
-            // Fermer suggestions en dehors
-            document.addEventListener('click', (e) => {
-                if(!form.contains(e.target)){ suggest.hidden = true; list.innerHTML=''; }
-            });
-        });
-    })();
-</script>
-
-<link rel="stylesheet" href="{{ asset('assets/css/navbar.css') }}?v={{ 'now'|date('U') }}">
+{% if is_granted('ROLE_ADMIN') %}
+    <li class="nav-item">
+        <a class="nav-link" href="{{ path('api_search') }}">
+            <i class="bi bi-cloud-download"></i> Importer
+        </a>
+    </li>
+{% endif %}

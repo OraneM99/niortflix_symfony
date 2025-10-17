@@ -1,36 +1,28 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Accueil - Series Time{% endblock %}
+{% block title %}Découvrir des séries{% endblock %}
 
 {% block body %}
-
-    {# Hero Section #}
-    <div class="hero-section text-white text-center py-5"
-         style="background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('{{ random_background() }}') center/cover; min-height: 400px; display: flex; align-items: center; justify-content: center;">
-        <div class="container">
-            <h1 class="display-4 fw-bold mb-3">Bienvenue sur Series Time</h1>
-            <p class="lead mb-4">Découvrez, suivez et gérez vos séries préférées</p>
-            <div class="d-flex gap-2 justify-content-center">
-                <a href="{{ path('browse_index') }}" class="btn btn-primary btn-lg">
-                    <i class="bi bi-compass"></i> Découvrir
-                </a>
-                <a href="{{ path('browse_search') }}" class="btn btn-outline-light btn-lg">
-                    <i class="bi bi-search"></i> Rechercher
-                </a>
-            </div>
-        </div>
-    </div>
-
     <div class="container-fluid px-4 py-4">
 
-        {# Tendances de la semaine (API TMDb) #}
+        {# En-tête #}
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h2">
+                <i class="bi bi-compass"></i> Découvrir des séries
+            </h1>
+            <a href="{{ path('browse_search') }}" class="btn btn-outline-primary">
+                <i class="bi bi-search"></i> Rechercher
+            </a>
+        </div>
+
+        {# Séries tendances (API TMDb) #}
         {% if tmdb_trending is not empty %}
             <section class="mb-5">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h2 class="h3">
+                    <h2 class="h4">
                         <i class="bi bi-fire text-danger"></i> Tendances cette semaine
                     </h2>
-                    <a href="{{ path('browse_trending') }}" class="btn btn-sm btn-outline-primary">
+                    <a href="{{ path('browse_trending') }}" class="btn btn-sm btn-link">
                         Voir tout <i class="bi bi-arrow-right"></i>
                     </a>
                 </div>
@@ -47,10 +39,10 @@
         {% if tmdb_top_rated is not empty %}
             <section class="mb-5">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h2 class="h3">
+                    <h2 class="h4">
                         <i class="bi bi-star-fill text-warning"></i> Meilleures séries
                     </h2>
-                    <a href="{{ path('browse_top_rated') }}" class="btn btn-sm btn-outline-primary">
+                    <a href="{{ path('browse_top_rated') }}" class="btn btn-sm btn-link">
                         Voir tout <i class="bi bi-arrow-right"></i>
                     </a>
                 </div>
@@ -63,15 +55,15 @@
             </section>
         {% endif %}
 
-        {# Séries populaires de votre collection #}
+        {# Séries populaires locales #}
         {% if local_popular is not empty %}
             <section class="mb-5">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h2 class="h3">
-                        <i class="bi bi-bookmark-fill text-success"></i> Populaires dans votre collection
+                    <h2 class="h4">
+                        <i class="bi bi-bookmark-fill text-primary"></i> Ma collection populaire
                     </h2>
-                    <a href="{{ path('serie_liste') }}" class="btn btn-sm btn-outline-success">
-                        Voir votre collection <i class="bi bi-arrow-right"></i>
+                    <a href="{{ path('serie_liste') }}" class="btn btn-sm btn-link">
+                        Voir tout <i class="bi bi-arrow-right"></i>
                     </a>
                 </div>
 
@@ -81,14 +73,10 @@
                             <div class="card h-100 shadow-sm hover-scale">
                                 <a href="{{ path('serie_detail', {id: serie.id}) }}" class="text-decoration-none">
                                     {% if serie.poster %}
-                                        <img src="{{ serie.poster }}"
-                                             class="card-img-top"
-                                             alt="{{ serie.name }}"
-                                             style="height: 300px; object-fit: cover;">
+                                        <img src="{{ serie.poster }}" class="card-img-top" alt="{{ serie.name }}">
                                     {% else %}
-                                        <div class="bg-secondary d-flex align-items-center justify-content-center"
-                                             style="height: 300px;">
-                                            <i class="bi bi-film fs-1 text-white-50"></i>
+                                        <div class="bg-secondary" style="height: 300px; display: flex; align-items: center; justify-content: center;">
+                                            <i class="bi bi-image fs-1 text-white-50"></i>
                                         </div>
                                     {% endif %}
                                     <div class="card-body p-2">
@@ -98,7 +86,7 @@
                                                 <i class="bi bi-star-fill text-warning"></i> {{ serie.vote|number_format(1) }}
                                             {% endif %}
                                         </small>
-                                        <span class="badge bg-success mt-1 d-block">En collection</span>
+                                        <span class="badge bg-success">En collection</span>
                                     </div>
                                 </a>
                             </div>
@@ -108,11 +96,11 @@
             </section>
         {% endif %}
 
-        {# Récemment ajoutées #}
+        {# Séries récentes locales #}
         {% if local_recent is not empty %}
             <section class="mb-5">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h2 class="h3">
+                    <h2 class="h4">
                         <i class="bi bi-clock-history"></i> Récemment ajoutées
                     </h2>
                 </div>
@@ -123,19 +111,15 @@
                             <div class="card h-100 shadow-sm hover-scale">
                                 <a href="{{ path('serie_detail', {id: serie.id}) }}" class="text-decoration-none">
                                     {% if serie.poster %}
-                                        <img src="{{ serie.poster }}"
-                                             class="card-img-top"
-                                             alt="{{ serie.name }}"
-                                             style="height: 300px; object-fit: cover;">
+                                        <img src="{{ serie.poster }}" class="card-img-top" alt="{{ serie.name }}">
                                     {% else %}
-                                        <div class="bg-secondary d-flex align-items-center justify-content-center"
-                                             style="height: 300px;">
-                                            <i class="bi bi-film fs-1 text-white-50"></i>
+                                        <div class="bg-secondary" style="height: 300px; display: flex; align-items: center; justify-content: center;">
+                                            <i class="bi bi-image fs-1 text-white-50"></i>
                                         </div>
                                     {% endif %}
                                     <div class="card-body p-2">
                                         <h6 class="card-title text-truncate mb-1">{{ serie.name }}</h6>
-                                        <small class="text-muted d-block">
+                                        <small class="text-muted">
                                             Ajoutée le {{ serie.dateCreated|date('d/m/Y') }}
                                         </small>
                                     </div>
@@ -147,36 +131,15 @@
             </section>
         {% endif %}
 
-        {# Call to action si aucune série locale #}
-        {% if local_popular is empty and local_recent is empty %}
-            <div class="text-center py-5">
-                <i class="bi bi-collection fs-1 text-muted mb-3 d-block"></i>
-                <h3>Votre collection est vide</h3>
-                <p class="text-muted mb-4">Commencez à ajouter des séries pour suivre vos visionnages</p>
-                <a href="{{ path('browse_index') }}" class="btn btn-primary">
-                    <i class="bi bi-plus-circle"></i> Découvrir des séries
-                </a>
-            </div>
-        {% endif %}
-
     </div>
 
     <style>
         .hover-scale {
             transition: transform 0.2s;
-            cursor: pointer;
         }
         .hover-scale:hover {
             transform: scale(1.05);
             box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.3) !important;
         }
-        .hero-section {
-            animation: fadeIn 0.5s ease-in;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
     </style>
-
 {% endblock %}

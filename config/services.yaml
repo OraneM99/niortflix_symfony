@@ -22,8 +22,6 @@ services:
   _defaults:
     autowire: true
     autoconfigure: true
-    bind:
-      string $apiKey: '%env(TMDB_API_KEY)%'
 
   # Extension Twig BackdropExtension
   App\Utils\BackdropExtension:
@@ -44,5 +42,26 @@ services:
     resource: '../src/'
     exclude:
       - '../src/DependencyInjection/'
+      - '../src/Entity/'
       - '../src/Kernel.php'
       - '../src/Utils/'
+
+  # Configuration du HttpClient pour TMDb
+  tmdb.http_client:
+    class: Symfony\Contracts\HttpClient\HttpClientInterface
+    factory: ['Symfony\Component\HttpClient\HttpClient', 'create']
+    arguments:
+      -
+        max_redirects: 3
+        timeout: 10
+
+  # Alias pour injection
+  http_client:
+    alias: tmdb.http_client
+
+  # Service TMDb avec configuration explicite
+  App\Service\TmdbService:
+    arguments:
+      $httpClient: '@http_client'
+      $apiKey: '%env(TMDB_API_KEY)%'
+      $logger: '@logger'

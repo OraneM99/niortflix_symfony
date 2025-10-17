@@ -1,0 +1,67 @@
+<div class="col-6 col-md-4 col-lg-2">
+    <div class="card h-100 shadow-sm hover-scale position-relative">
+        {# Badge si la série est en collection #}
+        {% if serie.is_local is defined and serie.is_local %}
+            <span class="position-absolute top-0 end-0 m-2 badge bg-success">
+                <i class="bi bi-check-circle"></i> En collection
+            </span>
+        {% endif %}
+
+        <a href="{% if serie.is_local is defined and serie.is_local %}{{ path('serie_detail', {id: serie.id}) }}{% else %}{{ path('browse_detail', {tmdbId: serie.tmdb_id}) }}{% endif %}"
+           class="text-decoration-none serie-card-link"
+           {% if serie.is_local is not defined or not serie.is_local %}data-tmdb-id="{{ serie.tmdb_id }}"{% endif %}>
+
+            {# Poster #}
+            {% if serie.poster %}
+                <img src="{{ serie.poster }}"
+                     class="card-img-top"
+                     alt="{{ serie.name }}"
+                     loading="lazy"
+                     style="height: 300px; object-fit: cover;">
+            {% else %}
+                <div class="bg-secondary d-flex align-items-center justify-content-center"
+                     style="height: 300px;">
+                    <i class="bi bi-film fs-1 text-white-50"></i>
+                </div>
+            {% endif %}
+
+            {# Infos #}
+            <div class="card-body p-2">
+                <h6 class="card-title text-truncate mb-1" title="{{ serie.name }}">
+                    {{ serie.name }}
+                </h6>
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted">
+                        {% if serie.vote is defined and serie.vote %}
+                            <i class="bi bi-star-fill text-warning"></i>
+                            {{ serie.vote|number_format(1) }}
+                        {% endif %}
+                    </small>
+
+                    {% if serie.year is defined and serie.year %}
+                        <small class="text-muted">{{ serie.year }}</small>
+                    {% elseif serie.first_air_date is defined and serie.first_air_date %}
+                        <small class="text-muted">{{ serie.first_air_date|date('Y') }}</small>
+                    {% endif %}
+                </div>
+            </div>
+        </a>
+
+        {# Bouton d'import rapide pour les admins #}
+        {% if is_granted('ROLE_ADMIN') and (serie.is_local is not defined or not serie.is_local) %}
+            <div class="card-footer bg-transparent border-0 p-2">
+                <form method="post"
+                      action="{{ path('api_import', {tmdbId: serie.tmdb_id}) }}"
+                      class="quick-import-form">
+                    <input type="hidden" name="_token" value="{{ csrf_token('import' ~ serie.tmdb_id) }}">
+                    <button type="submit"
+                            class="btn btn-sm btn-outline-primary w-100"
+                            onclick="return confirm('Importer cette série ?')">
+                        <i class="bi bi-plus-circle"></i> Ajouter
+                    </button>
+                </form>
+            </div>
+        {% endif %}
+    </div>
+</div>
