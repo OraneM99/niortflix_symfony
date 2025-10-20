@@ -4,7 +4,7 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Form\ProfileType;
-use App\Repository\UserSerieRepository;
+use App\Repository\UserFavoriteRepository;
 use App\Utils\FileManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -13,13 +13,12 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Security\Core\Security;
 
 #[Route('/profile', name: 'profile_')]
 class ProfileController extends AbstractController
 {
     #[Route('/', name: 'index')]
-    public function index(UserSerieRepository $userSerieRepository): Response
+    public function index(UserFavoriteRepository $favoriteRepo): Response
     {
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
 
@@ -28,14 +27,12 @@ class ProfileController extends AbstractController
             throw $this->createAccessDeniedException('Utilisateur non valide.');
         }
 
-        $favoris = $userSerieRepository->findByUserAndStatus($user, 'favoris');
-        $aVoir   = $userSerieRepository->findByUserAndStatus($user, 'a-voir');
-        $enCours = $userSerieRepository->findByUserAndStatus($user, 'en-cours');
+        $favoritesCount = $favoriteRepo->countByUser($user);
+        $recentFavorites = $favoriteRepo->findRecentByUser($user, 6);
 
         return $this->render('profile/index.html.twig', [
-            'favoris' => $favoris,
-            'aVoir' => $aVoir,
-            'enCours' => $enCours,
+            'favoritesCount' => $favoritesCount,
+            'recentFavorites' => $recentFavorites,
         ]);
     }
 
@@ -74,7 +71,7 @@ class ProfileController extends AbstractController
             $plainPassword = $form->get('plainPassword')->getData();
 
             if ($plainPassword) {
-                if (! $passwordHasher->isPasswordValid($user, $currentPassword)) {
+                if (!$passwordHasher->isPasswordValid($user, $currentPassword)) {
                     $form->get('currentPassword')->addError(
                         new FormError('Mot de passe actuel incorrect.')
                     );
@@ -96,16 +93,12 @@ class ProfileController extends AbstractController
     }
 
     #[Route('/favorites', name: 'favorites')]
-    public function favorites(UserSerieRepository $userSerieRepository): Response
+    public function favorites(): Response
     {
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
 
-        $user = $this->getUser();
-        $favoris = $userSerieRepository->findByUserAndStatus($user, 'favoris');
-
-        return $this->render('profile/favorites.html.twig', [
-            'favoris' => $favoris,
-        ]);
+        // Rediriger vers la nouvelle route
+        return $this->redirectToRoute('favorites_index');
     }
 
     #[Route('/data-privacy', name: 'data_privacy')]
@@ -130,10 +123,10 @@ class ProfileController extends AbstractController
     }
 
     #[Route('/desactive', name: 'desactive')]
-    public function deactivate(EntityManagerInterface $em, Security $security): Response
+    public function deactivate(EntityManagerInterface $em): Response
     {
-        $user = $security->getUser();
-        if ($user) {
+        $user = $this->getUser();
+        if ($user instanceof User) {
             $user->setIsActive(false);
             $em->flush();
             $this->addFlash('success', 'Votre compte a été désactivé.');

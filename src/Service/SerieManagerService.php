@@ -13,7 +13,7 @@ class SerieManagerService
     }
 
     /**
-     * Récupère les séries tendances depuis TMDb
+     * Récupère les séries tendances
      */
     public function getTrendingSeries(int $limit = 20): array
     {
@@ -27,7 +27,7 @@ class SerieManagerService
     }
 
     /**
-     * Récupère les séries les mieux notées depuis TMDb
+     * Récupère les séries les mieux notées
      */
     public function getTopRatedSeries(int $limit = 20): array
     {
@@ -41,7 +41,7 @@ class SerieManagerService
     }
 
     /**
-     * Récupère les séries populaires depuis TMDb
+     * Récupère les séries populaires
      */
     public function getPopularSeriesFromApi(int $page = 1, int $limit = 20): array
     {
@@ -50,6 +50,20 @@ class SerieManagerService
             return $this->formatSeriesFromTmdb($data['results'] ?? [], $limit);
         } catch (\Exception $e) {
             $this->logger->error('Erreur popular series: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Récupère les nouvelles sorties
+     */
+    public function getNewReleases(int $limit = 20): array
+    {
+        try {
+            $data = $this->tmdbService->getOnTheAir();
+            return $this->formatSeriesFromTmdb($data['results'] ?? [], $limit);
+        } catch (\Exception $e) {
+            $this->logger->error('Erreur new releases: ' . $e->getMessage());
             return [];
         }
     }
@@ -71,7 +85,7 @@ class SerieManagerService
     }
 
     /**
-     * Récupère les détails d'une série depuis TMDb
+     * Récupère les détails d'une série
      */
     public function getSerieDetails(int $tmdbId): ?array
     {
@@ -85,7 +99,7 @@ class SerieManagerService
     }
 
     /**
-     * Formate les données TMDb pour affichage
+     * Formate les données TMDb
      */
     private function formatSeriesFromTmdb(array $series, int $limit): array
     {
@@ -117,7 +131,7 @@ class SerieManagerService
     }
 
     /**
-     * Formate une série TMDb complète
+     * Formate une série complète
      */
     private function formatSingleSerieFromTmdb(array $data): array
     {

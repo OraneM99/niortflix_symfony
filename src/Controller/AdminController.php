@@ -2,15 +2,9 @@
 
 namespace App\Controller;
 
-use App\Entity\Contributor;
-use App\Form\ContributorType;
-use App\Repository\ContributorRepository;
-use App\Repository\FilmRepository;
 use App\Repository\UserRepository;
-use App\Repository\SerieRepository;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Repository\UserFavoriteRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -19,54 +13,24 @@ class AdminController extends AbstractController
 {
     #[Route('/dashboard', name: 'dashboard')]
     public function dashboard(
-        Request $request,
         UserRepository $userRepository,
-        SerieRepository $serieRepository,
-        FilmRepository $filmRepository,
-        ContributorRepository $contributorRepository,
-        EntityManagerInterface $em
+        UserFavoriteRepository $favoriteRepository
     ): Response {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         // Statistiques globales
-        $usersCount  = $userRepository->count([]);
-        $seriesCount = $serieRepository->count([]);
-        $filmsCount  = $filmRepository->count([]);
+        $usersCount = $userRepository->count([]);
+        $activeUsersCount = $userRepository->countActiveUsers();
+        $verifiedUsersCount = $userRepository->count(['isVerified' => true]);
 
         // Derniers utilisateurs
-        $lastUsers = $userRepository->findBy([], ['createdAt' => 'DESC'], 10);
-
-        // Dernières séries
-        $lastSeries = $serieRepository->findBy([], ['dateCreated' => 'DESC'], 5);
-
-        // Derniers contributeurs
-        $lastContributors = $contributorRepository->createQueryBuilder('c')
-            ->orderBy('c.id', 'DESC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult();
-
-        // Formulaire d’ajout de contributeur directement dans le dashboard
-        $newContributor = new Contributor();
-        $form = $this->createForm(ContributorType::class, $newContributor);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $em->persist($newContributor);
-            $em->flush();
-
-            $this->addFlash('success', 'Contributeur ajouté avec succès !');
-            return $this->redirectToRoute('admin_dashboard');
-        }
+        $lastUsers = $userRepository->findRecentUsers(10);
 
         return $this->render('admin/dashboard.html.twig', [
-            'usersCount'       => $usersCount,
-            'seriesCount'      => $seriesCount,
-            'filmsCount'       => $filmsCount,
-            'lastUsers'        => $lastUsers,
-            'lastSeries'       => $lastSeries,
-            'lastContributors' => $lastContributors,
-            'contributorForm'  => $form->createView(),
+            'usersCount' => $usersCount,
+            'activeUsersCount' => $activeUsersCount,
+            'verifiedUsersCount' => $verifiedUsersCount,
+            'lastUsers' => $lastUsers,
         ]);
     }
 
@@ -87,12 +51,8 @@ class AdminController extends AbstractController
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
-        // TODO ⚠️ Pour l'instant on ne fait qu’un affichage statique (branchement de la logique plus tard)
-        $notifications = [
-            ['id' => 1, 'title' => 'Nouvelle série ajoutée', 'date' => new \DateTime('-2 hours')],
-            ['id' => 2, 'title' => 'Un utilisateur s’est inscrit', 'date' => new \DateTime('-1 day')],
-            ['id' => 3, 'title' => 'Un contributeur a été modifié', 'date' => new \DateTime('-3 days')],
-        ];
+        // TODO : Implémenter la logique de notifications
+        $notifications = [];
 
         return $this->render('admin/notifications.html.twig', [
             'notifications' => $notifications,
@@ -104,16 +64,11 @@ class AdminController extends AbstractController
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
-        // TODO : Pour l’instant : version statique/dummy
-        $settings = [
-            ['name' => 'Mode maintenance', 'value' => false, 'description' => 'Activer/désactiver le site pour les visiteurs'],
-            ['name' => 'Inscription', 'value' => true, 'description' => 'Autoriser les nouveaux comptes utilisateurs'],
-            ['name' => 'Taille max upload', 'value' => '2 Mo', 'description' => 'Poids maximum des fichiers uploadés'],
-        ];
+        // TODO : Implémenter la gestion des paramètres
+        $settings = [];
 
         return $this->render('admin/settings.html.twig', [
             'settings' => $settings,
         ]);
     }
-
 }

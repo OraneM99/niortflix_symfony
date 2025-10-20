@@ -1,67 +1,30 @@
-# config/services.yaml
 parameters:
-  serie:
-    nb_par_page: 20
-    backdrop_dir: 'uploads/backdrops'
-    poster_dir: 'uploads/posters/series'
-  anime:
-    nb_par_page: 15
-    backdrop_dir: 'uploads/backdrops'
-    poster_dir: 'uploads/posters/animes'
-  film:
-    nb_par_page: 15
-    backdrop_dir: 'uploads/backdrops'
-    poster_dir: 'uploads/posters/films'
-  user:
-    profil_pictures_dir: 'uploads/profile_picture'
-  contributor:
-    photo_dir: 'uploads/contributors'
+  upload_directory: '%kernel.project_dir%/public/uploads'
+  profile_pictures_directory: '%kernel.project_dir%/public/uploads/profile_pictures'
 
 services:
-  # Valeurs par défaut
   _defaults:
     autowire: true
     autoconfigure: true
 
-  # Extension Twig BackdropExtension
-  App\Utils\BackdropExtension:
-    class: App\Utils\BackdropExtension
-    arguments:
-      $projectDir: '%kernel.project_dir%'
-    tags:
-      - { name: twig.extension }
-
-  # Autres extensions Twig
-  App\Utils\:
-    resource: '../src/Utils/'
-    exclude:
-      - '../src/Utils/BackdropExtension.php'
-
-  # Autres services du projet
   App\:
     resource: '../src/'
     exclude:
       - '../src/DependencyInjection/'
       - '../src/Entity/'
       - '../src/Kernel.php'
-      - '../src/Utils/'
 
-  # Configuration du HttpClient pour TMDb
-  tmdb.http_client:
-    class: Symfony\Contracts\HttpClient\HttpClientInterface
-    factory: ['Symfony\Component\HttpClient\HttpClient', 'create']
-    arguments:
-      -
-        max_redirects: 3
-        timeout: 10
+  App\Controller\:
+    resource: '../src/Controller/'
+    tags: ['controller.service_arguments']
 
-  # Alias pour injection
-  http_client:
-    alias: tmdb.http_client
-
-  # Service TMDb avec configuration explicite
+  # Configuration explicite de TmdbService
   App\Service\TmdbService:
     arguments:
-      $httpClient: '@http_client'
       $apiKey: '%env(TMDB_API_KEY)%'
-      $logger: '@logger'
+
+when@test:
+  services:
+    _defaults:
+      autowire: true
+      autoconfigure: true
