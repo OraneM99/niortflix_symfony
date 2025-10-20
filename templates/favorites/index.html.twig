@@ -1,0 +1,70 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mes Favoris{% endblock %}
+
+{% block body %}
+    <div class="container py-4">
+        <h1 class="mb-4">
+            <i class="bi bi-heart-fill text-danger"></i> Mes séries favorites
+        </h1>
+
+        {% if favorites is not empty %}
+            <div class="row g-3">
+                {% for favorite in favorites %}
+                    <div class="col-6 col-md-4 col-lg-2">
+                        <div class="card h-100 shadow-sm hover-scale position-relative">
+                            <span class="position-absolute top-0 end-0 m-2">
+                                <button class="btn btn-sm btn-danger rounded-circle js-toggle-favorite"
+                                        data-tmdb-id="{{ favorite.tmdbId }}"
+                                        title="Retirer des favoris">
+                                    <i class="bi bi-heart-fill"></i>
+                                </button>
+                            </span>
+
+                            <a href="{{ path('browse_detail', {tmdbId: favorite.tmdbId}) }}"
+                               class="text-decoration-none js-open-detail">
+
+                                {% if favorite.poster %}
+                                    <img src="{{ favorite.poster }}"
+                                         class="card-img-top"
+                                         alt="{{ favorite.serieName }}"
+                                         style="height: 300px; object-fit: cover;">
+                                {% else %}
+                                    <div class="bg-secondary d-flex align-items-center justify-content-center"
+                                         style="height: 300px;">
+                                        <i class="bi bi-film fs-1 text-white-50"></i>
+                                    </div>
+                                {% endif %}
+
+                                <div class="card-body p-2">
+                                    <h6 class="card-title text-truncate mb-1">{{ favorite.serieName }}</h6>
+                                    <small class="text-muted d-block">
+                                        Ajouté le {{ favorite.addedAt|date('d/m/Y') }}
+                                    </small>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-heart fs-1 text-muted mb-3 d-block"></i>
+                <h3>Aucun favori pour le moment</h3>
+                <p class="text-muted mb-4">Ajoutez vos séries préférées pour les retrouver facilement ici</p>
+                <a href="{{ path('browse_index') }}" class="btn btn-primary">
+                    <i class="bi bi-compass"></i> Découvrir des séries
+                </a>
+            </div>
+        {% endif %}
+    </div>
+
+    <style>
+        .hover-scale {
+            transition: transform 0.2s;
+        }
+        .hover-scale:hover {
+            transform: scale(1.05);
+        }
+    </style>
+{% endblock %}

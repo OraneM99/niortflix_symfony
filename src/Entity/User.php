@@ -60,9 +60,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @var Collection<int, Serie>
      */
-    #[ORM\ManyToMany(targetEntity: Serie::class)]
-    #[ORM\JoinTable(name: "user_favorites")]
-    private Collection $favoriteSeries;
 
     public function __construct()
     {
@@ -70,7 +67,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->userSeries = new ArrayCollection();
         $this->createdAt = new \DateTimeImmutable();
         $this->isActive = true;
-        $this->favoriteSeries = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -259,33 +255,5 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->createdAt = $createdAt;
 
         return $this;
-    }
-
-    /**
-     * @return Collection<int, Serie>
-     */
-    public function getFavoriteSeries(): Collection
-    {
-        return $this->favoriteSeries;
-    }
-
-    public function addFavoriteSerie(Serie $serie): self
-    {
-        if (!$this->favoriteSeries->contains($serie)) {
-            $this->favoriteSeries->add($serie);
-        }
-
-        return $this;
-    }
-
-    public function removeFavoriteSerie(Serie $serie): self
-    {
-        $this->favoriteSeries->removeElement($serie);
-        return $this;
-    }
-
-    public function hasFavoriteSerie(Serie $serie): bool
-    {
-        return $this->favoriteSeries->contains($serie);
     }
 }

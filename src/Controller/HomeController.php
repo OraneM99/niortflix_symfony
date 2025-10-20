@@ -17,14 +17,9 @@ class HomeController extends AbstractController
     #[Route('/', name: 'serie_home')]
     public function index(): Response
     {
-        // Récupère un mix de séries locales et API
-        $data = $this->serieManager->getHomePageSeries();
-
         return $this->render('home/home.html.twig', [
-            'local_recent' => $data['local_recent'],
-            'local_popular' => $data['local_popular'],
-            'tmdb_trending' => $data['tmdb_trending'],
-            'tmdb_top_rated' => $data['tmdb_top_rated'],
+            'tmdb_trending' => $this->serieManager->getTrendingSeries(6),
+            'tmdb_top_rated' => $this->serieManager->getTopRatedSeries(6),
         ]);
     }
 }
