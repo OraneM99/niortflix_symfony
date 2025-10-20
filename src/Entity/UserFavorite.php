@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\UserFavoriteRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: UserFavoriteRepository::class)]
 #[ORM\Table(name: 'user_tmdb_favorites')]
@@ -14,6 +15,7 @@ class UserFavorite
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['favorite:read'])]
     private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
@@ -21,6 +23,7 @@ class UserFavorite
     private ?User $user = null;
 
     #[ORM\Column(type: 'integer')]
+    #[Groups(['favorite:read'])]
     private ?int $tmdbId = null;
 
     #[ORM\Column(type: 'string', length: 255)]
