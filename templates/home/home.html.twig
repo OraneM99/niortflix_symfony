@@ -1,43 +1,195 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Accueil - Series Time{% endblock %}
+{% block title %}Accueil - SeriesTime{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="https://unpkg.com/aos@2.3.4/dist/aos.css">
+    <link rel="stylesheet" href="{{ asset('assets/css/home.css') }}?v={{ 'now'|date('U') }}">
+{% endblock %}
 
 {% block body %}
 
-    {# Hero Section #}
-    <div class="hero-section text-white text-center py-5"
-         style="background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('{{ random_background() }}') center/cover; min-height: 400px; display: flex; align-items: center; justify-content: center;">
-        <div class="container">
-            <h1 class="display-4 fw-bold mb-3">Bienvenue sur Series Time</h1>
-            <p class="lead mb-4">Découvrez les meilleures séries du moment</p>
-            <div class="d-flex gap-2 justify-content-center">
-                <a href="{{ path('browse_index') }}" class="btn btn-primary btn-lg">
-                    <i class="bi bi-compass"></i> Découvrir
-                </a>
-                <a href="{{ path('browse_search') }}" class="btn btn-outline-light btn-lg">
-                    <i class="bi bi-search"></i> Rechercher
-                </a>
+    {# Hero Section Dynamique #}
+    <section class="hero-section" id="heroSection">
+        <div class="hero-overlay"></div>
+
+        {# Image de fond dynamique (change selon la série) #}
+        {% if tmdb_trending is not empty and tmdb_trending[0].backdrop %}
+            <img src="{{ tmdb_trending[0].backdrop }}"
+                 alt="Hero Background"
+                 style="position: absolute; width: 100%; height: 100%; object-fit: cover; object-position: center;">
+        {% endif %}
+
+        <div class="hero-content">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-7">
+                        {# Tags/Catégories #}
+                        <div class="hero-tags">
+                            <span class="hero-tag">Tendances</span>
+                            <span class="hero-tag">|</span>
+                            <span class="hero-tag">2025</span>
+                        </div>
+
+                        {# Titre principal #}
+                        <h1 class="hero-title" id="heroTitle">
+                            {% if tmdb_trending is not empty %}
+                                {{ tmdb_trending[0].name|upper }}
+                            {% else %}
+                                DÉCOUVREZ LES SÉRIES
+                            {% endif %}
+                        </h1>
+
+                        {# Description #}
+                        <p class="hero-description" id="heroDescription">
+                            {% if tmdb_trending is not empty %}
+                                {{ tmdb_trending[0].overview|length > 200
+                                ? tmdb_trending[0].overview|slice(0, 200) ~ '...'
+                                : tmdb_trending[0].overview }}
+                            {% else %}
+                                Explorez des milliers de séries, découvrez de nouveaux contenus et suivez vos épisodes préférés
+                            {% endif %}
+                        </p>
+
+                        {# Actions #}
+                        <div class="hero-actions">
+                            {% if tmdb_trending is not empty %}
+                                <a href="{{ path('browse_detail', {tmdbId: tmdb_trending[0].tmdb_id}) }}"
+                                   class="btn btn-watch btn-hero">
+                                    <i class="bi bi-play-fill"></i> Voir les détails
+                                </a>
+                            {% endif %}
+
+                            <a href="{{ path('browse_index') }}"
+                               class="btn btn-danger btn-hero">
+                                <i class="bi bi-compass"></i> Explorer
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="container-fluid px-4 py-4">
+        {# Navigation dots #}
+        <div class="hero-nav">
+            <div class="hero-nav-dot active" data-slide="0"></div>
+            <div class="hero-nav-dot" data-slide="1"></div>
+            <div class="hero-nav-dot" data-slide="2"></div>
+        </div>
+    </section>
+
+    <div class="container-fluid px-4">
+
+        {# Banner Promotionnel #}
+        <div class="promo-banner">
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="promo-card" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);">
+                        <span class="promo-badge">Nouveauté</span>
+                        <h3 class="promo-title">Séries Exclusives</h3>
+                        <p class="promo-subtitle">Découvrez les dernières sorties</p>
+                        <a href="{{ path('browse_trending') }}" class="btn btn-light mt-3">
+                            Voir maintenant →
+                        </a>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="promo-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        <span class="promo-badge">Top Rated</span>
+                        <h3 class="promo-title">Meilleures Notes</h3>
+                        <p class="promo-subtitle">Les séries les mieux notées</p>
+                        <a href="{{ path('browse_top_rated') }}" class="btn btn-light mt-3">
+                            Découvrir →
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Statistiques #}
+        {% if app.user %}
+            <div class="stats-section">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="stat-item">
+                            <div class="stat-number">10K+</div>
+                            <div class="stat-label">Séries disponibles</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-item">
+                            <div class="stat-number">50K+</div>
+                            <div class="stat-label">Utilisateurs actifs</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-item">
+                            <div class="stat-number">1M+</div>
+                            <div class="stat-label">Épisodes suivis</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
 
         {# Tendances de la semaine #}
         {% if tmdb_trending is not empty %}
-            <section class="mb-5">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h2 class="h3">
-                        <i class="bi bi-fire text-danger"></i> Tendances cette semaine
-                    </h2>
-                    <a href="{{ path('browse_trending') }}" class="btn btn-sm btn-outline-primary">
-                        Voir tout <i class="bi bi-arrow-right"></i>
-                    </a>
-                </div>
+            <section class="top10-section" data-aos="fade-up">
+                <h3 class="top10-title">
+                    <i class="fa-solid fa-fire"></i>  Tendances de la semaine
+                </h3>
 
-                <div class="row g-3">
-                    {% for serie in tmdb_trending %}
-                        {{ include('browse/_serie_card.html.twig', {serie: serie}) }}
+                <div class="top10-carousel">
+                    {% for serie in tmdb_trending|slice(0,10) %}
+                        <div class="top10-card" data-rank="{{ loop.index }}">
+                            <div class="poster-container">
+                                <img src="{{ serie.poster }}" alt="{{ serie.name }}" class="poster-img">
+
+                                <div class="poster-hover">
+                                    <button class="btn-action" title="Ajouter aux favoris">
+                                        <i class="fa-regular fa-heart"></i>
+                                    </button>
+                                    <button class="btn-action" title="Ajouter à ma collection">
+                                        <i class="fa-solid fa-folder-plus"></i>
+                                    </button>
+                                    <button class="btn-action" data-bs-toggle="modal" data-bs-target="#serieModal{{ loop.index }}">
+                                        <i class="fa-solid fa-circle-info"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {# Modal détail série #}
+                        <div class="modal fade" id="serieModal{{ loop.index }}" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-lg modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-header border-secondary">
+                                        <h5 class="modal-title text-info">
+                                            <i class="fa-solid fa-tv me-2"></i>{{ serie.name }}
+                                        </h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="row g-4">
+                                            <div class="col-md-4">
+                                                <img src="{{ serie.poster }}" alt="{{ serie.name }}" class="img-fluid rounded">
+                                            </div>
+                                            <div class="col-md-8">
+                                                <p>{{ serie.overview|default('Aucune description disponible.') }}</p>
+                                                <p><strong>Année :</strong> {{ serie.year }}</p>
+                                                {% if serie.vote %}
+                                                    <p><strong>Note :</strong> ⭐ {{ serie.vote|number_format(1) }}</p>
+                                                {% endif %}
+                                                <a href="{{ path('browse_detail', {tmdbId: serie.tmdb_id}) }}"
+                                                   class="btn btn-outline-info mt-2">
+                                                    <i class="fa-solid fa-circle-play"></i> Voir la fiche complète
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     {% endfor %}
                 </div>
             </section>
@@ -45,35 +197,125 @@
 
         {# Meilleures séries #}
         {% if tmdb_top_rated is not empty %}
-            <section class="mb-5">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h2 class="h3">
-                        <i class="bi bi-star-fill text-warning"></i> Meilleures séries
-                    </h2>
-                    <a href="{{ path('browse_top_rated') }}" class="btn btn-sm btn-outline-primary">
+            <section class="my-5 py-4">
+                <div class="section-header">
+                    <div class="section-title">
+                        <div class="section-icon">
+                            <i class="bi bi-star-fill"></i>
+                        </div>
+                        <span>Meilleures séries</span>
+                    </div>
+                    <a href="{{ path('browse_top_rated') }}" class="btn btn-view-all">
                         Voir tout <i class="bi bi-arrow-right"></i>
                     </a>
                 </div>
 
-                <div class="row g-3">
+                <div class="row g-4">
                     {% for serie in tmdb_top_rated %}
-                        {{ include('browse/_serie_card.html.twig', {serie: serie}) }}
+                        <div class="serie-card-wrapper">
+                            {{ include('browse/_serie_card.html.twig', {serie: serie}) }}
+                        </div>
                     {% endfor %}
+                </div>
+            </section>
+        {% endif %}
+
+        {# Call to Action #}
+        {% if not app.user %}
+            <section class="cta-section">
+                <h2 class="cta-title">Rejoignez SeriesTime</h2>
+                <p class="cta-description">
+                    Créez votre compte gratuit et accédez à des milliers de séries.
+                    Suivez vos épisodes, créez votre liste de favoris et bien plus encore.
+                </p>
+                <div class="d-flex gap-3 justify-content-center">
+                    <a href="{{ path('app_register') }}" class="btn btn-light btn-lg px-5">
+                        <i class="bi bi-person-plus"></i> Créer un compte
+                    </a>
+                    <a href="{{ path('app_login') }}" class="btn btn-outline-light btn-lg px-5">
+                        <i class="bi bi-box-arrow-in-right"></i> Se connecter
+                    </a>
                 </div>
             </section>
         {% endif %}
 
     </div>
 
-    <style>
-        .hover-scale {
-            transition: transform 0.2s;
-            cursor: pointer;
-        }
-        .hover-scale:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.3) !important;
-        }
-    </style>
+{% endblock %}
 
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+    <script>
+        AOS.init({
+            duration: 800,
+            once: true,
+            offset: 120,
+        });
+    </script>
+    <script>
+        // Hero Slider
+        document.addEventListener('DOMContentLoaded', () => {
+            const heroData = {{ tmdb_trending|slice(0, 3)|json_encode|raw }};
+            const heroSection = document.getElementById('heroSection');
+            const heroTitle = document.getElementById('heroTitle');
+            const heroDescription = document.getElementById('heroDescription');
+            const dots = document.querySelectorAll('.hero-nav-dot');
+
+            let currentSlide = 0;
+
+            // Changer de slide
+            function changeSlide(index) {
+                if (!heroData[index]) return;
+
+                const serie = heroData[index];
+
+                // Changer l'image de fond
+                const bgImage = heroSection.querySelector('img');
+                if (bgImage && serie.backdrop) {
+                    bgImage.style.opacity = '0';
+                    setTimeout(() => {
+                        bgImage.src = serie.backdrop;
+                        bgImage.style.opacity = '1';
+                    }, 300);
+                }
+
+                // Changer le texte
+                heroTitle.style.opacity = '0';
+                heroDescription.style.opacity = '0';
+
+                setTimeout(() => {
+                    heroTitle.textContent = serie.name.toUpperCase();
+                    heroDescription.textContent = serie.overview.length > 200
+                        ? serie.overview.substring(0, 200) + '...'
+                        : serie.overview;
+
+                    heroTitle.style.opacity = '1';
+                    heroDescription.style.opacity = '1';
+                }, 300);
+
+                // Mettre à jour les dots
+                dots.forEach((dot, i) => {
+                    dot.classList.toggle('active', i === index);
+                });
+
+                currentSlide = index;
+            }
+
+            // Click sur les dots
+            dots.forEach((dot, index) => {
+                dot.addEventListener('click', () => changeSlide(index));
+            });
+
+            // Auto-slide toutes les 5 secondes
+            setInterval(() => {
+                currentSlide = (currentSlide + 1) % heroData.length;
+                changeSlide(currentSlide);
+            }, 5000);
+
+            // Transitions CSS
+            heroTitle.style.transition = 'opacity 0.3s ease';
+            heroDescription.style.transition = 'opacity 0.3s ease';
+        });
+    </script>
 {% endblock %}

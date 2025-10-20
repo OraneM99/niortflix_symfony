@@ -1,58 +1,77 @@
-<div class="col-6 col-md-4 col-lg-2">
-    <div class="card h-100 shadow-sm hover-scale position-relative">
+{% block stylesheets %}
+    <link rel="stylesheet" href="https://unpkg.com/aos@2.3.4/dist/aos.css">
+    <link rel="stylesheet" href="{{ asset('assets/css/home.css') }}?v={{ 'now'|date('U') }}">
+{% endblock %}
 
-        {% if serie.tmdb_id is defined and serie.tmdb_id %}
-
-            <a href="{{ path('browse_detail', {tmdbId: serie.tmdb_id}) }}"
-               class="text-decoration-none serie-card-link js-open-detail"
-               data-tmdb-id="{{ serie.tmdb_id }}">
-
-                {# Poster #}
-                {% if serie.poster %}
-                    <img src="{{ serie.poster }}"
-                         class="card-img-top"
-                         alt="{{ serie.name }}"
-                         loading="lazy"
-                         style="height: 300px; object-fit: cover;">
-                {% else %}
-                    <div class="bg-secondary d-flex align-items-center justify-content-center"
-                         style="height: 300px;">
-                        <i class="bi bi-film fs-1 text-white-50"></i>
-                    </div>
-                {% endif %}
-
-                {# Infos #}
-                <div class="card-body p-2">
-                    <h6 class="card-title text-truncate mb-1" title="{{ serie.name }}">
-                        {{ serie.name }}
-                    </h6>
-
-                    <div class="d-flex justify-content-between align-items-center">
-                        <small class="text-muted">
-                            {% if serie.vote %}
-                                <i class="bi bi-star-fill text-warning"></i>
-                                {{ serie.vote|number_format(1) }}
-                            {% endif %}
-                        </small>
-
-                        {% if serie.year %}
-                            <small class="text-muted">{{ serie.year }}</small>
-                        {% endif %}
-                    </div>
-                </div>
-            </a>
-
-            {# Bouton favoris #}
-            {% if app.user %}
-                <div class="position-absolute top-0 start-0 m-2">
-                    <button class="btn btn-sm btn-light rounded-circle js-toggle-favorite"
-                            data-tmdb-id="{{ serie.tmdb_id }}"
-                            title="Ajouter aux favoris">
-                        <i class="bi bi-heart"></i>
-                    </button>
+{% block body %}
+    <div class="serie-card" data-aos="zoom-in">
+        <div class="poster-container">
+            {% if serie.poster %}
+                <img src="{{ serie.poster }}" alt="{{ serie.name }}" class="poster-img">
+            {% else %}
+                <div class="poster-fallback d-flex align-items-center justify-content-center">
+                    <i class="fa-solid fa-tv fa-3x text-muted"></i>
                 </div>
             {% endif %}
 
-        {% endif %}
+            <div class="poster-hover">
+                <button class="btn-action favorite" title="Ajouter aux favoris">
+                    <i class="fa-regular fa-heart"></i>
+                </button>
+                <button class="btn-action collection" title="Ajouter à ma collection">
+                    <i class="fa-solid fa-folder-plus"></i>
+                </button>
+                <button class="btn-action info" data-bs-toggle="modal" data-bs-target="#serieModal{{ serie.tmdb_id }}">
+                    <i class="fa-solid fa-circle-info"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="serie-info">
+            <h6 class="serie-title text-truncate" title="{{ serie.name }}">
+                {{ serie.name }}
+            </h6>
+            <div class="serie-meta">
+                {% if serie.year %}
+                    <span><i class="fa-solid fa-calendar"></i> {{ serie.year }}</span>
+                {% endif %}
+                {% if serie.vote %}
+                    <span><i class="fa-solid fa-star text-warning"></i> {{ serie.vote|number_format(1) }}</span>
+                {% endif %}
+            </div>
+        </div>
+
+        {# Modal détail série #}
+        <div class="modal fade" id="serieModal{{ serie.tmdb_id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header border-secondary">
+                        <h5 class="modal-title">
+                            <i class="fa-solid fa-tv me-2" style="color: var(--accent)"></i>{{ serie.name }}
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row g-4">
+                            <div class="col-md-4">
+                                {% if serie.poster %}
+                                    <img src="{{ serie.poster }}" alt="{{ serie.name }}" class="img-fluid rounded">
+                                {% endif %}
+                            </div>
+                            <div class="col-md-8">
+                                <p>{{ serie.overview|default('Aucune description disponible.') }}</p>
+                                <p><strong>Année :</strong> {{ serie.year }}</p>
+                                {% if serie.vote %}
+                                    <p><strong>Note :</strong> ⭐ {{ serie.vote|number_format(1) }}</p>
+                                {% endif %}
+                                <a href="{{ path('browse_detail', {tmdbId: serie.tmdb_id}) }}" class="btn btn-outline-info mt-2">
+                                    <i class="fa-solid fa-circle-play"></i> Voir la fiche complète
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-</div>
+{% endblock %}

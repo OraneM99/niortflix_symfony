@@ -1,71 +1,61 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="{{ path('serie_home') }}">
-            <img src="{{ asset('images/logo.svg') }}" alt="SeriesTime" height="30">
-            SeriesTime
+<nav id="dynamicNavbar" class="navbar navbar-expand-lg">
+    <div class="container-fluid justify-content-center">
+        <a class="navbar-brand d-flex align-items-center" href="{{ path('serie_home') }}">
+            <i class="bi bi-film"></i>
+            <span class="brand-text ms-2">SeriesTime</span>
         </a>
 
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-
         <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav me-auto">
+            <ul class="navbar-nav">
                 <li class="nav-item">
                     <a class="nav-link" href="{{ path('serie_home') }}">
-                        <i class="bi bi-house"></i> Accueil
+                        <i class="bi bi-house"></i>
+                        <span class="nav-text">Accueil</span>
                     </a>
                 </li>
-
                 <li class="nav-item">
                     <a class="nav-link" href="{{ path('browse_index') }}">
-                        <i class="bi bi-compass"></i> Découvrir
+                        <i class="bi bi-compass"></i>
+                        <span class="nav-text">Découvrir</span>
                     </a>
                 </li>
-
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                        <i class="bi bi-collection"></i> Catégories
+                        <i class="bi bi-collection"></i>
+                        <span class="nav-text">Catégories</span>
                     </a>
-                    <ul class="dropdown-menu">
+                    <ul class="dropdown-menu dropdown-menu-dark">
                         <li>
                             <a class="dropdown-item" href="{{ path('browse_trending') }}">
-                                <i class="bi bi-fire"></i> Tendances
+                                <i class="bi bi-fire text-danger"></i> Tendances
                             </a>
                         </li>
                         <li>
                             <a class="dropdown-item" href="{{ path('browse_popular') }}">
-                                <i class="bi bi-graph-up"></i> Populaires
+                                <i class="bi bi-graph-up text-info"></i> Populaires
                             </a>
                         </li>
                         <li>
                             <a class="dropdown-item" href="{{ path('browse_top_rated') }}">
-                                <i class="bi bi-star"></i> Meilleures notes
-                            </a>
-                        </li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <a class="dropdown-item" href="{{ path('browse_search') }}">
-                                <i class="bi bi-search"></i> Rechercher
+                                <i class="bi bi-star-fill text-warning"></i> Meilleures notes
                             </a>
                         </li>
                     </ul>
                 </li>
             </ul>
 
-            <ul class="navbar-nav">
+            <ul class="navbar-nav ms-4">
                 {% if app.user %}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ path('favorites_index') }}">
-                            <i class="bi bi-heart-fill text-danger"></i> Favoris
+                            <i class="bi bi-heart-fill text-danger"></i>
                         </a>
                     </li>
-
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-person-circle"></i> {{ app.user.username }}
+                            <i class="bi bi-person-circle"></i>
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
+                        <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end">
                             <li>
                                 <a class="dropdown-item" href="{{ path('profile_index') }}">
                                     <i class="bi bi-person"></i> Mon profil
@@ -89,12 +79,12 @@
                 {% else %}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ path('app_login') }}">
-                            <i class="bi bi-box-arrow-in-right"></i> Connexion
+                            <i class="bi bi-box-arrow-in-right"></i>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ path('app_register') }}">
-                            <i class="bi bi-person-plus"></i> Inscription
+                        <a class="nav-link btn btn-outline-danger ms-2" href="{{ path('app_register') }}">
+                            <i class="bi bi-person-plus"></i>
                         </a>
                     </li>
                 {% endif %}
@@ -102,3 +92,87 @@
         </div>
     </div>
 </nav>
+
+<style>
+    #dynamicNavbar {
+        position: fixed;
+        top: 0;
+        width: 100%;
+        background: transparent;
+        color: var(--text-light);
+        transition: all 0.4s ease;
+        z-index: 999;
+        padding: 1rem 2rem;
+        display: flex;
+        justify-content: center;
+    }
+
+    #dynamicNavbar.scrolled {
+        background: var(--bg-dark);
+        padding: 0.4rem 2rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+
+    #dynamicNavbar .navbar-nav {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 2rem;
+    }
+
+    #dynamicNavbar .nav-link {
+        color: #FFFFFF; /* Tous les textes blancs */
+        display: flex;
+        align-items: center;
+        transition: 0.3s ease;
+    }
+
+    #dynamicNavbar .nav-link .nav-text {
+        margin-left: 0.5rem;
+        transition: opacity 0.3s ease;
+    }
+
+    #dynamicNavbar.scrolled .nav-text {
+        opacity: 0;
+        width: 0;
+        overflow: hidden;
+    }
+
+    #dynamicNavbar .navbar-brand .brand-text {
+        margin-left: 0.5rem;
+        color: var(--accent); /* Nom de l’app accentué */
+        font-weight: bold;
+        transition: opacity 0.3s ease;
+    }
+
+    #dynamicNavbar.scrolled .brand-text {
+        opacity: 0;
+        width: 0;
+        overflow: hidden;
+    }
+
+    /* Hover effets icônes */
+    #dynamicNavbar .nav-link:hover {
+        color: var(--accent);
+    }
+
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const navbar = document.getElementById('dynamicNavbar');
+        let lastScroll = 0;
+
+        window.addEventListener('scroll', () => {
+            const currentScroll = window.pageYOffset;
+
+            if(currentScroll > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+
+            lastScroll = currentScroll;
+        });
+    });
+</script>

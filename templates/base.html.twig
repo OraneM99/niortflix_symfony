@@ -1,5 +1,152 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}SeriesTime{% endblock %}</title>
+
+    <link rel="icon" href="{{ asset('images/favicon.ico') }}">
+
+    {# Bootstrap 5 #}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    {# Bootstrap Icons #}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+    {# CSS Custom #}
+    {% block stylesheets %}
+        <style>
+            :root {
+                --primary: #e50914;
+                --dark: #141414;
+                --gray: #2f2f2f;
+            }
+
+            body {
+                background-color: var(--dark);
+                color: #fff;
+                font-family: 'Helvetica Neue', Arial, sans-serif;
+            }
+
+            .navbar {
+                background-color: rgba(0, 0, 0, 0.95) !important;
+                backdrop-filter: blur(10px);
+            }
+
+            .hover-scale {
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+            }
+
+            .hover-scale:hover {
+                transform: scale(1.05);
+                box-shadow: 0 8px 16px rgba(0, 0, 0, 0.6);
+                z-index: 10;
+            }
+
+            .card {
+                background-color: var(--gray);
+                border: none;
+                border-radius: 8px;
+                overflow: hidden;
+            }
+
+            .card-img-top {
+                border-radius: 8px 8px 0 0;
+            }
+
+            .btn-primary {
+                background-color: var(--primary);
+                border-color: var(--primary);
+            }
+
+            .btn-primary:hover {
+                background-color: #b20710;
+                border-color: #b20710;
+            }
+
+            .section-title {
+                font-size: 1.5rem;
+                font-weight: 600;
+                margin-bottom: 1rem;
+            }
+
+            /* Toast container */
+            .toast-container {
+                z-index: 9999;
+            }
+
+            /* Skeleton loader */
+            .skeleton {
+                background: linear-gradient(90deg, var(--gray) 25%, #3f3f3f 50%, var(--gray) 75%);
+                background-size: 200% 100%;
+                animation: loading 1.5s infinite;
+            }
+
+            @keyframes loading {
+                0% { background-position: 200% 0; }
+                100% { background-position: -200% 0; }
+            }
+        </style>
+    {% endblock %}
+</head>
+<body>
+{# Navigation #}
+{{ include('_navbar.html.twig') }}
+
+{# Flash Messages #}
+{% for type, messages in app.flashes %}
+    {% for message in messages %}
+        <div class="alert alert-{{ type }} alert-dismissible fade show m-3" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+{% endfor %}
+
+{# Content #}
+<main class="min-vh-100">
+    {% block body %}{% endblock %}
+</main>
+
+{# Footer #}
+<footer class="bg-dark text-center py-4 mt-5">
+    <div class="container">
+        <p class="mb-0 text-muted">
+            &copy; {{ 'now'|date('Y') }} SeriesTime - Powered by
+            <a href="https://www.themoviedb.org/" target="_blank" class="text-decoration-none">TMDb</a>
+        </p>
+    </div>
+</footer>
+
+{# Toast Container #}
+<div id="toast-container" class="toast-container position-fixed top-0 end-0 p-3"></div>
+
+{# Bootstrap JS #}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 {% block javascripts %}
     <script>
+        // Fonction pour afficher des toasts
+        function showToast(message, type = 'info') {
+            const toastContainer = document.getElementById('toast-container');
+
+            const toast = document.createElement('div');
+            toast.className = `toast align-items-center text-white bg-${type} border-0`;
+            toast.setAttribute('role', 'alert');
+            toast.innerHTML = `
+                    <div class="d-flex">
+                        <div class="toast-body">${message}</div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                    </div>
+                `;
+
+            toastContainer.appendChild(toast);
+            const bsToast = new bootstrap.Toast(toast, { delay: 3000 });
+            bsToast.show();
+
+            toast.addEventListener('hidden.bs.toast', () => toast.remove());
+        }
+
         // Gestion des favoris
         document.addEventListener('DOMContentLoaded', () => {
             // Toggle favoris
@@ -17,7 +164,6 @@
                 const originalClass = icon.className;
 
                 try {
-                    // Animation
                     btn.disabled = true;
                     icon.className = 'bi bi-hourglass-split';
 
@@ -41,9 +187,9 @@
                     // Mettre à jour l'icône
                     if (data.action === 'added') {
                         icon.className = 'bi bi-heart-fill';
-                        btn.classList.remove('btn-light');
+                        btn.classList.remove('btn-light', 'btn-outline-light');
                         btn.classList.add('btn-danger');
-                        showToast('Ajouté aux favoris', 'success');
+                        showToast('Ajouté aux favoris ❤️', 'success');
                     } else {
                         icon.className = 'bi bi-heart';
                         btn.classList.remove('btn-danger');
@@ -65,69 +211,37 @@
                 }
             });
 
-            // Charger l'état des favoris sur les cartes
-            async function loadFavoriteStates() {
-                const buttons = document.querySelectorAll('.js-toggle-favorite');
-                const tmdbIds = [...buttons].map(btn => btn.dataset.tmdbId).filter(Boolean);
+            // Charger l'état des favoris
+            loadFavoriteStates();
+        });
 
-                if (tmdbIds.length === 0) return;
+        async function loadFavoriteStates() {
+            const buttons = document.querySelectorAll('.js-toggle-favorite');
+
+            for (const btn of buttons) {
+                const tmdbId = btn.dataset.tmdbId;
+                if (!tmdbId) continue;
 
                 try {
-                    for (const tmdbId of tmdbIds) {
-                        const response = await fetch(`/favorites/check/${tmdbId}`);
-                        const data = await response.json();
+                    const response = await fetch(`/favorites/check/${tmdbId}`);
+                    const data = await response.json();
 
-                        const btn = document.querySelector(`.js-toggle-favorite[data-tmdb-id="${tmdbId}"]`);
-                        if (!btn) continue;
-
-                        const icon = btn.querySelector('i');
-                        if (data.is_favorite) {
-                            icon.className = 'bi bi-heart-fill';
-                            btn.classList.remove('btn-light');
-                            btn.classList.add('btn-danger');
-                        } else {
-                            icon.className = 'bi bi-heart';
-                            btn.classList.remove('btn-danger');
-                            btn.classList.add('btn-light');
-                        }
+                    const icon = btn.querySelector('i');
+                    if (data.is_favorite) {
+                        icon.className = 'bi bi-heart-fill';
+                        btn.classList.remove('btn-light', 'btn-outline-light');
+                        btn.classList.add('btn-danger');
+                    } else {
+                        icon.className = 'bi bi-heart';
+                        btn.classList.remove('btn-danger');
+                        btn.classList.add('btn-light');
                     }
                 } catch (error) {
                     console.error('Erreur chargement favoris:', error);
                 }
             }
-
-            // Charger au démarrage
-            loadFavoriteStates();
-        });
-
-        // Toast notifications
-        function showToast(message, type = 'info') {
-            const toastContainer = document.getElementById('toast-container') || createToastContainer();
-
-            const toast = document.createElement('div');
-            toast.className = `toast align-items-center text-white bg-${type} border-0`;
-            toast.setAttribute('role', 'alert');
-            toast.innerHTML = `
-                <div class="d-flex">
-                    <div class="toast-body">${message}</div>
-                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-                </div>
-            `;
-
-            toastContainer.appendChild(toast);
-            const bsToast = new bootstrap.Toast(toast, { delay: 3000 });
-            bsToast.show();
-
-            toast.addEventListener('hidden.bs.toast', () => toast.remove());
-        }
-
-        function createToastContainer() {
-            const container = document.createElement('div');
-            container.id = 'toast-container';
-            container.className = 'toast-container position-fixed top-0 end-0 p-3';
-            container.style.zIndex = '9999';
-            document.body.appendChild(container);
-            return container;
         }
     </script>
 {% endblock %}
+</body>
+</html>
