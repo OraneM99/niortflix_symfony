@@ -8,6 +8,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -28,12 +29,27 @@ class FavoriteApiController extends AbstractController
     public function list(): JsonResponse
     {
         $user = $this->getUser();
+
+        if (!$user) {
+            return $this->json(['error' => 'Non authentifié'], Response::HTTP_UNAUTHORIZED);
+        }
+
         $favorites = $this->favoriteRepo->findBy(
             ['user' => $user],
             ['addedAt' => 'DESC']
         );
 
-        return $this->json($favorites, 200, [], ['groups' => ['favorite:read']]);
+        return $this->json(array_map(function($fav) {
+            return [
+                'id' => $fav->getId(),
+                'tmdbId' => $fav->getTmdbId(),
+                'serieName' => $fav->getSerieName(),
+                'poster' => $fav->getPoster(),
+                'vote' => $fav->getVote(),
+                'year' => $fav->getYear(),
+                'addedAt' => $fav->getAddedAt()->format('c')
+            ];
+        }, $favorites));
     }
 
     /**
@@ -42,8 +58,19 @@ class FavoriteApiController extends AbstractController
     #[Route('', name: 'add', methods: ['POST'])]
     public function add(Request $request): JsonResponse
     {
-        $data = json_decode($request->getContent(), true);
         $user = $this->getUser();
+
+        if (!$user) {
+            return $this->json(['error' => 'Non authentifié'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $data = json_decode($request->getContent(), true);
+
+        if (!isset($data['tmdb_id']) || !isset($data['serie_name'])) {
+            return $this->json([
+                'error' => 'Les champs tmdb_id et serie_name sont requis'
+            ], Response::HTTP_BAD_REQUEST);
+        }
 
         // Vérifier si déjà en favoris
         $existing = $this->favoriteRepo->findOneBy([
@@ -52,7 +79,18 @@ class FavoriteApiController extends AbstractController
         ]);
 
         if ($existing) {
-            return $this->json(['message' => 'Déjà en favoris'], 200);
+            return $this->json([
+                'message' => 'Déjà en favoris',
+                'favorite' => [
+                    'id' => $existing->getId(),
+                    'tmdbId' => $existing->getTmdbId(),
+                    'serieName' => $existing->getSerieName(),
+                    'poster' => $existing->getPoster(),
+                    'vote' => $existing->getVote(),
+                    'year' => $existing->getYear(),
+                    'addedAt' => $existing->getAddedAt()->format('c')
+                ]
+            ]);
         }
 
         $favorite = new UserFavorite();
@@ -66,7 +104,18 @@ class FavoriteApiController extends AbstractController
         $this->em->persist($favorite);
         $this->em->flush();
 
-        return $this->json($favorite, 201, [], ['groups' => ['favorite:read']]);
+        return $this->json([
+            'message' => 'Ajouté aux favoris',
+            'favorite' => [
+                'id' => $favorite->getId(),
+                'tmdbId' => $favorite->getTmdbId(),
+                'serieName' => $favorite->getSerieName(),
+                'poster' => $favorite->getPoster(),
+                'vote' => $favorite->getVote(),
+                'year' => $favorite->getYear(),
+                'addedAt' => $favorite->getAddedAt()->format('c')
+            ]
+        ], Response::HTTP_CREATED);
     }
 
     /**
@@ -76,19 +125,26 @@ class FavoriteApiController extends AbstractController
     public function remove(int $tmdbId): JsonResponse
     {
         $user = $this->getUser();
+
+        if (!$user) {
+            return $this->json(['error' => 'Non authentifié'], Response::HTTP_UNAUTHORIZED);
+        }
+
         $favorite = $this->favoriteRepo->findOneBy([
             'user' => $user,
             'tmdbId' => $tmdbId
         ]);
 
         if (!$favorite) {
-            return $this->json(['error' => 'Favori non trouvé'], 404);
+            return $this->json(['error' => 'Favori non trouvé'], Response::HTTP_NOT_FOUND);
         }
 
         $this->em->remove($favorite);
         $this->em->flush();
 
-        return $this->json(['message' => 'Favori supprimé'], 200);
+        return $this->json([
+            'message' => 'Retiré des favoris'
+        ]);
     }
 
     /**
@@ -98,6 +154,11 @@ class FavoriteApiController extends AbstractController
     public function check(int $tmdbId): JsonResponse
     {
         $user = $this->getUser();
+
+        if (!$user) {
+            return $this->json(['isFavorite' => false]);
+        }
+
         $favorite = $this->favoriteRepo->findOneBy([
             'user' => $user,
             'tmdbId' => $tmdbId
