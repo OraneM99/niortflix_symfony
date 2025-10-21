@@ -5,16 +5,15 @@ namespace App\Controller\api;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
-use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-#[Route('/api', name: 'api_auth_')]
 class AuthController extends AbstractController
 {
     public function __construct(
@@ -26,21 +25,28 @@ class AuthController extends AbstractController
     }
 
     /**
-     * Inscription d'un nouvel utilisateur
+     * Route login - interceptée par le firewall security.yaml
+     * Cette méthode ne sera jamais exécutée, c'est le firewall qui gère tout
      */
-    #[Route('/register', name: 'register', methods: ['POST'])]
+    #[Route('/login', name: 'api_login', methods: ['POST'])]
+    public function login(): JsonResponse
+    {
+        // Cette méthode ne sera jamais appelée car le firewall intercepte la requête
+        // Elle existe juste pour créer la route
+        throw new \LogicException('Cette méthode devrait être gérée par le firewall.');
+    }
+
+    #[Route('/register', name: 'api_auth_register', methods: ['POST'])]
     public function register(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
 
-        // Validation des données
         if (!isset($data['username']) || !isset($data['email']) || !isset($data['password'])) {
             return $this->json([
                 'error' => 'Les champs username, email et password sont requis'
             ], Response::HTTP_BAD_REQUEST);
         }
 
-        // Vérifier si l'utilisateur existe déjà
         if ($this->userRepository->findOneBy(['email' => $data['email']])) {
             return $this->json([
                 'error' => 'Cet email est déjà utilisé'
@@ -53,31 +59,20 @@ class AuthController extends AbstractController
             ], Response::HTTP_CONFLICT);
         }
 
-        // Validation du mot de passe (minimum 6 caractères)
-        if (strlen($data['password']) < 6) {
+        if (strlen($data['password']) < 8) {
             return $this->json([
-                'error' => 'Le mot de passe doit contenir au moins 6 caractères'
+                'error' => 'Le mot de passe doit contenir au moins 8 caractères'
             ], Response::HTTP_BAD_REQUEST);
         }
 
-        // Créer l'utilisateur
         $user = new User();
         $user->setUsername($data['username']);
         $user->setEmail($data['email']);
-
-        // Hasher le mot de passe
-        $hashedPassword = $this->passwordHasher->hashPassword(
-            $user,
-            $data['password']
-        );
-        $user->setPassword($hashedPassword);
-
-        // Définir le rôle par défaut
+        $user->setPassword($this->passwordHasher->hashPassword($user, $data['password']));
         $user->setRoles(['ROLE_USER']);
         $user->setIsActive(true);
-        $user->setIsVerified(false); // À vérifier par email plus tard
+        $user->setIsVerified(false);
 
-        // Valider l'entité
         $errors = $this->validator->validate($user);
         if (count($errors) > 0) {
             $errorsString = [];
@@ -90,7 +85,6 @@ class AuthController extends AbstractController
             ], Response::HTTP_BAD_REQUEST);
         }
 
-        // Sauvegarder
         $this->em->persist($user);
         $this->em->flush();
 
@@ -104,25 +98,7 @@ class AuthController extends AbstractController
         ], Response::HTTP_CREATED);
     }
 
-    /**
-     * Connexion (le JWT est généré automatiquement par le firewall)
-     */
-    #[Route('/api/login', name: 'login', methods: ['POST'])]
-    public function login(Request $request, RateLimiterFactory $loginLimiter): JsonResponse
-    {
-        $limiter = $loginLimiter->create($request->getClientIp());
-
-        if (!$limiter->consume(1)->isAccepted()) {
-            return $this->json([
-                'error' => 'Trop de tentatives. Réessayez plus tard.'
-            ], Response::HTTP_TOO_MANY_REQUESTS);
-        }
-    }
-
-        /**
-     * Récupérer les informations de l'utilisateur connecté
-     */
-    #[Route('/me', name: 'me', methods: ['GET'])]
+    #[Route('/me', name: 'api_auth_me', methods: ['GET'])]
     public function me(): JsonResponse
     {
         $user = $this->getUser();
@@ -142,27 +118,11 @@ class AuthController extends AbstractController
         ]);
     }
 
-    /**
-     * Déconnexion (côté client, supprimer le token)
-     */
-    #[Route('/logout', name: 'logout', methods: ['POST'])]
+    #[Route('/logout', name: 'api_auth_logout', methods: ['POST'])]
     public function logout(): JsonResponse
     {
         return $this->json([
             'message' => 'Déconnexion réussie. Supprimez le token côté client.'
-        ]);
-    }
-
-    /**
-     * Rafraîchir le token (optionnel)
-     */
-    #[Route('/token/refresh', name: 'token_refresh', methods: ['POST'])]
-    public function refreshToken(): JsonResponse
-    {
-        // Pour implémenter le refresh token, il faut installer
-        // composer require gesdinet/jwt-refresh-token-bundle
-        return $this->json([
-            'message' => 'Token refresh endpoint'
         ]);
     }
 }
