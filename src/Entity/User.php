@@ -86,7 +86,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function getUserIdentifier(): string
     {
-        return (string) $this->username;
+    return (string) $this->email;
     }
 
     /**
@@ -95,11 +95,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getRoles(): array
     {
         $roles = $this->roles;
-        // Garantir que chaque utilisateur a au moins ROLE_USER
         $roles[] = 'ROLE_USER';
-
         return array_unique($roles);
     }
+
 
     public function setRoles(array $roles): static
     {
